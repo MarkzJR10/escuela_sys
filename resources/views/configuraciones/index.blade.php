@@ -1,0 +1,45 @@
+@extends('adminlte::page')
+
+@section('title', 'Configuración General')
+
+@section('content_header')
+    <h1>Configuración General del Sistema</h1>
+@stop
+
+@section('content')
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Parámetros de Inscripción</h3>
+                </div>
+                <form action="{{ route('configuraciones.update') }}" method="POST">
+                    @csrf
+                    <div class="card-body">
+                        @if(session('success'))
+                            <div class="alert alert-success">
+                                {{ session('success') }}
+                            </div>
+                        @endif
+
+                        <div class="form-group">
+                            <label for="costo_inscripcion">Costo de Inscripción ($)</label>
+                            <input type="number" step="0.01" name="costo_inscripcion" class="form-control" id="costo_inscripcion" value="{{ $configs['costo_inscripcion'] }}" required>
+                            <small class="text-muted">Este monto se cargará automáticamente como adeudo a cada alumno nuevo.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="ciclo_actual">Ciclo Escolar Actual</label>
+                            <input type="text" name="ciclo_actual" class="form-control" id="ciclo_actual" value="{{ $configs['ciclo_actual'] }}" placeholder="Ej: 2025-2026" required>
+                            <small class="text-muted">Se utilizará para el concepto del adeudo (Ej: Inscripción 2025-2026).</small>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@stop
