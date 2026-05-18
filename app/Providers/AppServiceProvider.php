@@ -52,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
             $event->menu->add(['text' => 'Profesores', 'url' => 'profesores', 'icon' => 'fas fa-fw fa-chalkboard-teacher']);
             $event->menu->add(['text' => 'Grados y Grupos', 'url' => 'grado_grupos', 'icon' => 'fas fa-fw fa-layer-group']);
             $event->menu->add(['text' => 'Materias', 'url' => 'materias', 'icon' => 'fas fa-fw fa-book']);
+            $event->menu->add(['text' => 'Cuadro de Honor', 'url' => 'cuadro-honor', 'icon' => 'fas fa-fw fa-trophy']);
 
             // --- PADRE ---
             $event->menu->add(['header' => 'PADRE']);
@@ -61,6 +62,8 @@ class AppServiceProvider extends ServiceProvider
             $event->menu->add(['header' => 'SOCIO']);
             $event->menu->add(['text' => 'Colegiaturas', 'url' => 'colegiaturas', 'icon' => 'fas fa-fw fa-money-check-alt']);
             $event->menu->add(['text' => 'Cobros Especiales', 'url' => 'adeudos/especial', 'icon' => 'fas fa-fw fa-file-invoice']);
+            $event->menu->add(['text' => 'Recargos Manuales', 'url' => 'adeudos/recargos-manual', 'icon' => 'fas fa-fw fa-exclamation-triangle']);
+            $event->menu->add(['text' => 'Catálogo de Productos', 'url' => 'productos', 'icon' => 'fas fa-fw fa-box']);
             $event->menu->add(['text' => 'Punto de Venta (POS)', 'url' => 'pos', 'icon' => 'fas fa-fw fa-shopping-cart']);
             $event->menu->add(['text' => 'Auditoría de Ventas', 'url' => 'contabilidad/ventas', 'icon' => 'fas fa-fw fa-chart-line']);
             $event->menu->add(['text' => 'Estados de Cuenta', 'url' => 'cartera', 'icon' => 'fas fa-fw fa-search-dollar']);

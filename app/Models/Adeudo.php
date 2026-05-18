@@ -64,6 +64,29 @@ class Adeudo extends Model
         }
     }
 
+    /**
+     * Retorna el concepto con un fallback si es nulo
+     */
+    public function getConceptoAttribute($value)
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+
+        if ($this->tipo === 'colegiatura') {
+            if ($this->periodo) {
+                return 'Colegiatura Mensual (' . ucfirst($this->mes_nombre) . ' ' . $this->anio . ')';
+            }
+            return 'Colegiatura Mensual';
+        }
+
+        if ($this->tipo === 'inscripcion') {
+            return 'Inscripción';
+        }
+
+        return 'Adeudo ' . ucfirst($this->tipo);
+    }
+
     public function getMontoCalculadoAttribute()
     {
         // Si no es colegiatura, el monto es directo

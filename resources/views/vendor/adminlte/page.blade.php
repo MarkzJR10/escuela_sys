@@ -40,9 +40,16 @@
         @endempty
 
         {{-- Footer --}}
-        @hasSection('footer')
-            @include('adminlte::partials.footer.footer')
-        @endif
+        <footer class="main-footer">
+            @hasSection('footer')
+                @yield('footer')
+            @else
+                <div class="float-right d-none d-sm-inline">
+                    <b>Sistema de Gestión Escolar</b>
+                </div>
+                <strong>Copyright &copy; 2026 Nessmedia.</strong> Todos los derechos reservados.
+            @endif
+        </footer>
 
         {{-- Right Control Sidebar --}}
         @if($layoutHelper->isRightSidebarEnabled())

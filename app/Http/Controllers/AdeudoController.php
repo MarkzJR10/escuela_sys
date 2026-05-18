@@ -6,6 +6,7 @@ use App\Models\Alumno;
 use App\Models\Adeudo;
 use App\Models\GradoGrupo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 
 class AdeudoController extends Controller
 {
@@ -112,5 +113,30 @@ class AdeudoController extends Controller
             'monto_actual' => $monto,
             'status' => 'pendiente',
         ]);
+    }
+
+    /**
+     * Muestra la pantalla para ejecutar manualmente el proceso de adeudos.
+     */
+    public function showRecargosManual()
+    {
+        return view('adeudos.recargos_manual');
+    }
+
+    /**
+     * Ejecuta el comando de adeudos mensualmente con el día seleccionado.
+     */
+    public function ejecutarRecargosManual(Request $request)
+    {
+        $request->validate([
+            'dia' => 'required|in:1,11',
+        ]);
+
+        $dia = $request->dia;
+        
+        Artisan::call('generate:adeudos', ['--dia' => $dia]);
+        $output = Artisan::output();
+
+        return redirect()->back()->with('success', 'Proceso ejecutado correctamente.')->with('command_output', $output);
     }
 }

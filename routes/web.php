@@ -27,6 +27,8 @@ use App\Http\Controllers\PadreController;
 use App\Http\Controllers\SatConceptoController;
 use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\POSController;
+use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\CuadroHonorController;
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
@@ -37,6 +39,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('materias', MateriaController::class);
     Route::resource('profesores', ProfesorController::class);
     Route::resource('calificaciones', CalificacionController::class);
+    
+    // Cuadro de Honor
+    Route::get('/cuadro-honor', [CuadroHonorController::class, 'index'])->name('cuadro_honor.index');
     Route::resource('asistencias', AsistenciaController::class);
     Route::resource('padres', PadreController::class);
     Route::post('padres/{padre}/billing', [PadreController::class, 'updateBilling'])->name('padres.billing');
@@ -54,6 +59,8 @@ Route::middleware('auth')->group(function () {
     Route::get('adeudos/especial', [AdeudoController::class, 'createEspecial'])->name('adeudos.create_especial');
     Route::post('adeudos/especial', [AdeudoController::class, 'storeEspecial'])->name('adeudos.store_especial');
     Route::get('adeudos/buscar-alumnos', [AdeudoController::class, 'buscarAlumnosAjax'])->name('adeudos.buscar_alumnos');
+    Route::get('adeudos/recargos-manual', [AdeudoController::class, 'showRecargosManual'])->name('adeudos.recargos_manual');
+    Route::post('adeudos/recargos-manual', [AdeudoController::class, 'ejecutarRecargosManual'])->name('adeudos.ejecutar_recargos_manual');
 
     // Rutas de Pagos (Caja)
     Route::get('pagos', [PagoController::class, 'index'])->name('pagos.index');
@@ -69,6 +76,9 @@ Route::middleware('auth')->group(function () {
     Route::get('pos/buscar-alumno', [POSController::class, 'buscarAlumno'])->name('pos.buscar_alumno');
     Route::get('pos/adeudos/{alumno}', [POSController::class, 'getAdeudos'])->name('pos.get_adeudos');
     Route::post('pos/procesar', [POSController::class, 'procesar'])->name('pos.procesar');
+
+    // Catálogo de Productos
+    Route::resource('productos', ProductoController::class);
 
     Route::middleware(['role:administrador'])->group(function () {
         Route::resource('menus', MenuController::class);

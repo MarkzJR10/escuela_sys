@@ -34,9 +34,10 @@ class POSController extends Controller
     public function getAdeudos(Alumno $alumno)
     {
         $adeudos = $alumno->adeudos()->whereIn('status', ['pendiente', 'vencido', 'programado'])->get();
-        // Incluir el monto calculado para colegiaturas
+        // Incluir el monto calculado y forzar el concepto
         foreach($adeudos as $adeudo) {
             $adeudo->monto_calculado = $adeudo->monto_calculado; // Usa el accessor
+            $adeudo->concepto = $adeudo->concepto; // Forza el fallback
         }
         return response()->json($adeudos);
     }
@@ -92,6 +93,11 @@ class POSController extends Controller
                 } else {
                     // Es un producto nuevo
                     $producto = Producto::find($item['id']);
+                    
+                    if ($producto->stock < $item['cantidad']) {
+                        throw new \Exception("No hay stock suficiente para: " . $producto->nombre);
+                    }
+
                     $montoOriginal = $producto->precio * $item['cantidad'];
                     $montoFinal = $montoOriginal - $descuento;
                     
@@ -115,6 +121,11 @@ class POSController extends Controller
                             'notas' => $descuento > 0 ? "Descuento aplicado en caja" : null
                         ]);
                         $totalPagado += $montoFinal;
+                    }
+
+                    // Decrementar el stock
+                    if ($producto->stock > 0) {
+                        $producto->decrement('stock', $item['cantidad']);
                     }
                 }
             }

@@ -14,7 +14,7 @@ class GenerarAdeudosMensuales extends Command
      *
      * @var string
      */
-    protected $signature = 'generate:adeudos';
+    protected $signature = 'generate:adeudos {--dia= : Día a forzar (1 o 11)}';
 
     /**
      * The console command description.
@@ -30,11 +30,12 @@ class GenerarAdeudosMensuales extends Command
     {
         $hoy = Carbon::now();
         $periodoActual = $hoy->format('Y-m');
+        $diaEjecucion = $this->option('dia') ?? $hoy->day;
 
-        $this->info("Ejecutando actualización de adeudos para: " . $hoy->format('d/m/Y'));
+        $this->info("Ejecutando actualización de adeudos para: " . $hoy->format('d/m/Y') . " (Día analizado: $diaEjecucion)");
 
         // REGLA DÍA 1: Iniciar mes y aplicar recargos a meses anteriores vencidos
-        if ($hoy->day == 1) {
+        if ($diaEjecucion == 1) {
             // 1. Activar colegiaturas programadas del mes actual
             $activados = Adeudo::where('periodo', $periodoActual)
                 ->where('status', 'programado')
@@ -56,7 +57,7 @@ class GenerarAdeudosMensuales extends Command
         }
 
         // REGLA DÍA 11: Aplicar primer recargo al mes actual y pasarlo a Vencido
-        if ($hoy->day == 11) {
+        if ($diaEjecucion == 11) {
             $adeudosMes = Adeudo::where('periodo', $periodoActual)
                 ->where('status', 'pendiente')
                 ->get();

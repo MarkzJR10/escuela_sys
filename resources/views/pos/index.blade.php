@@ -57,11 +57,19 @@
                         <div class="row">
                             @foreach($productos as $producto)
                                 <div class="col-md-4 col-sm-6 mb-3">
-                                    <div class="info-box bg-white shadow-sm h-100 product-card" onclick="addToCart({{ json_encode($producto) }}, 'producto')">
-                                        <span class="info-box-icon bg-info"><i class="fas fa-tag"></i></span>
+                                    <div class="info-box bg-white shadow-sm h-100 product-card {{ $producto->stock <= 0 ? 'opacity-50' : '' }}" 
+                                         onclick="{{ $producto->stock > 0 ? 'addToCart('.json_encode($producto).', \'producto\')' : 'toastr.error(\'Producto agotado.\')' }}">
+                                        <span class="info-box-icon {{ $producto->stock > 0 ? 'bg-info' : 'bg-secondary' }}"><i class="fas fa-tag"></i></span>
                                         <div class="info-box-content">
                                             <span class="info-box-text"><strong>{{ $producto->nombre }}</strong></span>
-                                            <span class="info-box-number text-success">${{ number_format($producto->precio, 2) }}</span>
+                                            <span class="info-box-number text-success mb-1">${{ number_format($producto->precio, 2) }}</span>
+                                            <div>
+                                                @if($producto->stock > 0)
+                                                    <small class="text-muted"><i class="fas fa-boxes"></i> {{ $producto->stock }} unidades disponibles</small>
+                                                @else
+                                                    <span class="badge badge-danger">No disponible</span>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -224,6 +232,10 @@
 
         let existing = cart.find(i => i.id === item.id && i.tipo === tipo);
         if (existing && tipo === 'producto') {
+            if (existing.cantidad >= item.stock) {
+                toastr.error('No hay suficiente stock disponible.');
+                return;
+            }
             existing.cantidad++;
         } else if (existing && tipo === 'adeudo_existente') {
             toastr.info('Este adeudo ya está en el carrito.');
@@ -235,7 +247,8 @@
                 precio: parseFloat(tipo === 'producto' ? item.precio : item.monto_calculado),
                 tipo: tipo,
                 cantidad: 1,
-                descuento: 0
+                descuento: 0,
+                stock: tipo === 'producto' ? item.stock : null
             });
         }
         renderCart();
@@ -265,6 +278,14 @@
             let html = '';
             cart.forEach((item, index) => {
                 let subtotal = (item.precio * item.cantidad) - item.descuento;
+                let qtyControl = item.tipo === 'producto' ? `
+                    <div class="d-flex align-items-center justify-content-center">
+                        <button class="btn btn-xs btn-outline-secondary px-1 py-0" onclick="decrementCartQty(${index})"><i class="fas fa-minus fa-xs"></i></button>
+                        <span class="mx-2 font-weight-bold" style="min-width: 15px;">${item.cantidad}</span>
+                        <button class="btn btn-xs btn-outline-secondary px-1 py-0" onclick="incrementCartQty(${index})"><i class="fas fa-plus fa-xs"></i></button>
+                    </div>
+                ` : `${item.cantidad}`;
+
                 html += `<tr>
                     <td>
                         <small class="badge badge-${item.tipo === 'producto' ? 'info' : 'warning'}">${item.tipo === 'producto' ? 'P' : 'A'}</small> 
@@ -275,7 +296,7 @@
                             <small class="text-muted ml-1">Desc.</small>
                         </div>
                     </td>
-                    <td class="text-center">${item.cantidad}</td>
+                    <td class="text-center">${qtyControl}</td>
                     <td class="text-right">$${subtotal.toFixed(2)}</td>
                     <td class="text-right">
                         <button class="btn btn-xs btn-link text-danger" onclick="removeFromCart(${index})"><i class="fas fa-trash"></i></button>
@@ -353,6 +374,30 @@
                 });
             }
         });
+    }
+
+    function incrementCartQty(index) {
+        let item = cart[index];
+        if (item.tipo === 'producto') {
+            if (item.cantidad >= item.stock) {
+                toastr.error('No hay suficiente stock disponible.');
+                return;
+            }
+            item.cantidad++;
+            renderCart();
+        }
+    }
+
+    function decrementCartQty(index) {
+        let item = cart[index];
+        if (item.tipo === 'producto') {
+            if (item.cantidad <= 1) {
+                removeFromCart(index);
+                return;
+            }
+            item.cantidad--;
+            renderCart();
+        }
     }
 </script>
 @stop
