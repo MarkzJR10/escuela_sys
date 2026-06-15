@@ -49,10 +49,15 @@ class AppServiceProvider extends ServiceProvider
             // --- COORDINACIÓN ---
             $event->menu->add(['header' => 'COORDINACIÓN']);
             $event->menu->add(['text' => 'Alumnos', 'url' => 'alumnos', 'icon' => 'fas fa-fw fa-user-graduate']);
+            $event->menu->add(['text' => 'Migrar Grados', 'url' => 'migrar_grados', 'icon' => 'fas fa-fw fa-exchange-alt']);
             $event->menu->add(['text' => 'Profesores', 'url' => 'profesores', 'icon' => 'fas fa-fw fa-chalkboard-teacher']);
+            $event->menu->add(['text' => 'Asignar Maestro', 'url' => 'maestro_materia', 'icon' => 'fas fa-fw fa-link']);
+
             $event->menu->add(['text' => 'Grados y Grupos', 'url' => 'grado_grupos', 'icon' => 'fas fa-fw fa-layer-group']);
             $event->menu->add(['text' => 'Materias', 'url' => 'materias', 'icon' => 'fas fa-fw fa-book']);
             $event->menu->add(['text' => 'Cuadro de Honor', 'url' => 'cuadro-honor', 'icon' => 'fas fa-fw fa-trophy']);
+            $event->menu->add(['text' => 'Boletas', 'url' => 'boletas', 'icon' => 'fas fa-fw fa-file-pdf']);
+
 
             // --- PADRE ---
             $event->menu->add(['header' => 'PADRE']);
@@ -61,6 +66,16 @@ class AppServiceProvider extends ServiceProvider
             // --- SOCIO (Finanzas) ---
             $event->menu->add(['header' => 'SOCIO']);
             $event->menu->add(['text' => 'Colegiaturas', 'url' => 'colegiaturas', 'icon' => 'fas fa-fw fa-money-check-alt']);
+            $event->menu->add([
+                'text'    => 'Reportes Financieros',
+                'icon'    => 'fas fa-fw fa-chart-bar',
+                'submenu' => [
+                    ['text' => 'Reporte de Cobranza', 'url' => 'reportes/cobranza', 'icon' => 'fas fa-fw fa-hand-holding-usd'],
+                    ['text' => 'Pendientes por Mes', 'url' => 'reportes/pendientes-mes', 'icon' => 'fas fa-fw fa-calendar-times'],
+                    ['text' => 'Historial Colegiaturas', 'url' => 'reportes/historial-colegiaturas', 'icon' => 'fas fa-fw fa-history'],
+                ],
+            ]);
+
             $event->menu->add(['text' => 'Cobros Especiales', 'url' => 'adeudos/especial', 'icon' => 'fas fa-fw fa-file-invoice']);
             $event->menu->add(['text' => 'Recargos Manuales', 'url' => 'adeudos/recargos-manual', 'icon' => 'fas fa-fw fa-exclamation-triangle']);
             $event->menu->add(['text' => 'Catálogo de Productos', 'url' => 'productos', 'icon' => 'fas fa-fw fa-box']);
@@ -72,6 +87,17 @@ class AppServiceProvider extends ServiceProvider
             $event->menu->add(['header' => 'MAESTRO / PROFESOR']);
             $event->menu->add(['text' => 'Calificaciones', 'url' => 'calificaciones', 'icon' => 'fas fa-fw fa-star']);
             $event->menu->add(['text' => 'Asistencias', 'url' => 'asistencias', 'icon' => 'fas fa-fw fa-clipboard-check']);
+            $event->menu->add([
+                'text'    => 'Reportes de Conducta',
+                'icon'    => 'fas fa-fw fa-exclamation-circle',
+                'submenu' => [
+                    ['text' => 'Capturar Reporte', 'url' => 'reportes_conducta/seleccionar', 'icon' => 'fas fa-fw fa-plus-circle'],
+                    ['text' => 'Reportes del Día', 'url' => 'reportes_conducta', 'icon' => 'fas fa-fw fa-calendar-day'],
+                    ['text' => 'Pendientes (No leídos)', 'url' => 'reportes_conducta/pendientes', 'icon' => 'fas fa-fw fa-envelope'],
+                ],
+            ]);
+            $event->menu->add(['text' => 'Reportes de Tareas', 'url' => 'reportes_tareas', 'icon' => 'fas fa-fw fa-tasks']);
+
         });
     }
 }

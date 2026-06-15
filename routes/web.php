@@ -29,6 +29,12 @@ use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\POSController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\CuadroHonorController;
+use App\Http\Controllers\ReporteConductaController;
+use App\Http\Controllers\ReporteTareaController;
+use App\Http\Controllers\BoletaController;
+use App\Http\Controllers\MigrarGradoController;
+use App\Http\Controllers\MaestroMateriaController;
+use App\Http\Controllers\ReporteCobranzaController;
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
@@ -79,6 +85,33 @@ Route::middleware('auth')->group(function () {
 
     // Catálogo de Productos
     Route::resource('productos', ProductoController::class);
+
+    // Nuevas funcionalidades (Fase 1 y 2)
+    Route::get('reportes_conducta/pendientes', [ReporteConductaController::class, 'pendientes'])->name('reportes_conducta.pendientes');
+    Route::get('reportes_conducta/alumno/{alumno}', [ReporteConductaController::class, 'porAlumno'])->name('reportes_conducta.por_alumno');
+    Route::get('reportes_conducta/seleccionar', [ReporteConductaController::class, 'seleccionarAlumno'])->name('reportes_conducta.seleccionar');
+    Route::resource('reportes_conducta', ReporteConductaController::class);
+
+    Route::resource('reportes_tareas', ReporteTareaController::class);
+
+    Route::get('boletas/gestionar/{alumno}', [BoletaController::class, 'gestionar'])->name('boletas.gestionar');
+    Route::post('boletas/gestionar/{alumno}', [BoletaController::class, 'storeMateria'])->name('boletas.store_materia');
+    Route::resource('boletas', BoletaController::class);
+
+    Route::get('migrar_grados/inactivos', [MigrarGradoController::class, 'inactivos'])->name('migrar_grados.inactivos');
+    Route::post('migrar_grados/dar_baja', [MigrarGradoController::class, 'darBaja'])->name('migrar_grados.dar_baja');
+    Route::post('migrar_grados/reactivar', [MigrarGradoController::class, 'reactivar'])->name('migrar_grados.reactivar');
+    Route::post('migrar_grados/alumno', [MigrarGradoController::class, 'migrarAlumno'])->name('migrar_grados.alumno');
+    Route::post('migrar_grados/masivo', [MigrarGradoController::class, 'migrarMasivo'])->name('migrar_grados.masivo');
+    Route::get('migrar_grados', [MigrarGradoController::class, 'index'])->name('migrar_grados.index');
+
+    Route::resource('maestro_materia', MaestroMateriaController::class)->only(['index', 'store', 'destroy']);
+
+    Route::get('reportes/cobranza', [ReporteCobranzaController::class, 'index'])->name('reportes.cobranza');
+    Route::get('reportes/pendientes-mes', [ReporteCobranzaController::class, 'pendientesPorMes'])->name('reportes.pendientes_mes');
+    Route::get('reportes/estado-cuenta', [ReporteCobranzaController::class, 'estadoCuenta'])->name('reportes.estado_cuenta');
+    Route::get('reportes/detalle-alumno/{alumno}', [ReporteCobranzaController::class, 'detalleAlumno'])->name('reportes.detalle_alumno');
+    Route::get('reportes/historial-colegiaturas', [ReporteCobranzaController::class, 'historialColegiaturas'])->name('reportes.historial_colegiaturas');
 
     Route::middleware(['role:administrador'])->group(function () {
         Route::resource('menus', MenuController::class);
