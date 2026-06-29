@@ -35,6 +35,14 @@ class EscuelaDemoSeeder extends Seeder
         }
 
         // 2. Grados y Grupos
+        $turnoDefault = \App\Models\Turno::firstOrCreate(
+            ['nombre' => 'Matutino'],
+            [
+                'hora_inicio' => '07:00:00',
+                'hora_fin' => '13:00:00'
+            ]
+        );
+
         $grupos = [];
         $gradosCombinaciones = [
             ['grado' => '1', 'grupo' => 'A'],
@@ -47,7 +55,7 @@ class EscuelaDemoSeeder extends Seeder
             $grupos[] = GradoGrupo::firstOrCreate([
                 'grado' => $combo['grado'],
                 'grupo' => $combo['grupo']
-            ], ['turno' => 'Matutino']);
+            ], ['turno_id' => $turnoDefault->id]);
         }
 
         // 3. Materias
@@ -67,8 +75,8 @@ class EscuelaDemoSeeder extends Seeder
                     'password' => Hash::make('password')
                 ]
             );
-            if (!$userProf->hasRole('profesor')) {
-                $userProf->assignRole('profesor');
+            if (!$userProf->hasRole('maestro')) {
+                $userProf->assignRole('maestro');
             }
 
             Profesor::firstOrCreate(
@@ -103,6 +111,7 @@ class EscuelaDemoSeeder extends Seeder
                     'nombre' => "Padre",
                     'apellido_paterno' => "Familia $i",
                     'apellido_materno' => "Test",
+                    'curp' => 'PADR' . str_pad($i, 14, '0', STR_PAD_LEFT),
                     'telefono' => '555111000' . $i,
                 ]
             );
