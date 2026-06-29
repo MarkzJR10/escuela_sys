@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Ver Boleta')
+@section('title', 'Boleta de Calificaciones')
 
 @section('content_header')
     <h1>Boleta de Calificaciones</h1>
@@ -11,24 +11,14 @@
     <div class="col-md-10 mx-auto">
         <div class="card card-success card-outline">
             <div class="card-header">
-                <h3 class="card-title">Detalle Académico</h3>
+                <h3 class="card-title">{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} - {{ $alumno->gradoGrupo->grado ?? '' }} "{{ $alumno->gradoGrupo->grupo ?? '' }}"</h3>
                 <div class="card-tools">
-                    <a href="{{ route('boletas.edit', $alumno->id) }}" class="btn btn-sm btn-warning">
-                        <i class="fas fa-edit"></i> Editar
+                    <a href="{{ route('boletas.pdf', $alumno->id) }}" class="btn btn-sm btn-danger" target="_blank">
+                        <i class="fas fa-file-pdf"></i> Descargar PDF
                     </a>
                 </div>
             </div>
             <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-sm-6">
-                        <h5><strong>Alumno:</strong> {{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</h5>
-                        <p class="mb-0"><strong>Matrícula:</strong> {{ $alumno->matricula }}</p>
-                    </div>
-                    <div class="col-sm-6 text-sm-right">
-                        <h5><strong>Grado:</strong> {{ $alumno->gradoGrupo->grado ?? '' }} "{{ $alumno->gradoGrupo->grupo ?? '' }}"</h5>
-                    </div>
-                </div>
-
                 @if($boletas->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped text-center">
@@ -55,14 +45,11 @@
                         </table>
                     </div>
                 @else
-                    <div class="alert alert-info">No hay calificaciones registradas.</div>
+                    <div class="alert alert-info">Aún no hay calificaciones registradas para este alumno.</div>
                 @endif
                 
                 <div class="text-center mt-4">
-                    <a href="{{ route('boletas.index') }}" class="btn btn-default">Volver</a>
-                    <a href="{{ route('boletas.pdf', $alumno->id) }}" class="btn btn-danger" target="_blank">
-                        <i class="fas fa-file-pdf"></i> Descargar PDF
-                    </a>
+                    <a href="{{ route('portal_padre.dashboard') }}" class="btn btn-default">Volver al Panel</a>
                 </div>
             </div>
         </div>

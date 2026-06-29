@@ -35,6 +35,13 @@ use App\Http\Controllers\BoletaController;
 use App\Http\Controllers\MigrarGradoController;
 use App\Http\Controllers\MaestroMateriaController;
 use App\Http\Controllers\ReporteCobranzaController;
+use App\Http\Controllers\ContabilidadController;
+use App\Http\Controllers\TurnoController;
+use App\Http\Controllers\AsistenciaMaestroController;
+use App\Http\Controllers\PortalPadreController;
+use App\Http\Controllers\ComplementosController;
+use App\Http\Controllers\CicloController;
+
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
@@ -112,8 +119,50 @@ Route::middleware('auth')->group(function () {
     Route::get('reportes/estado-cuenta', [ReporteCobranzaController::class, 'estadoCuenta'])->name('reportes.estado_cuenta');
     Route::get('reportes/detalle-alumno/{alumno}', [ReporteCobranzaController::class, 'detalleAlumno'])->name('reportes.detalle_alumno');
     Route::get('reportes/historial-colegiaturas', [ReporteCobranzaController::class, 'historialColegiaturas'])->name('reportes.historial_colegiaturas');
+    Route::get('reportes/exportar-saldos', [ComplementosController::class, 'exportarSaldosExcel'])->name('reportes.exportar_saldos');
+
+    // Fase 4: Portal Padre
+    Route::prefix('portal-padre')->name('portal_padre.')->group(function () {
+        Route::get('dashboard', [PortalPadreController::class, 'dashboard'])->name('dashboard');
+        Route::get('hijo/{alumno}/boleta', [PortalPadreController::class, 'boleta'])->name('boleta');
+        Route::get('hijo/{alumno}/conducta', [PortalPadreController::class, 'conducta'])->name('conducta');
+        Route::get('hijo/{alumno}/estado-cuenta', [PortalPadreController::class, 'estadoCuenta'])->name('estado_cuenta');
+    });
+
+    // Fase 4: PDF y Excel
+    Route::get('boletas/{alumno}/pdf', [ComplementosController::class, 'generarBoletaPdf'])->name('boletas.pdf');
+    Route::post('asistencias/imprimir-lista', [ComplementosController::class, 'imprimirListaAsistencia'])->name('asistencias.imprimir_lista');
+    Route::get('conducta-destacada', [ComplementosController::class, 'conductaDestacada'])->name('conducta_destacada');
+    Route::get('importar-pagos', [ComplementosController::class, 'showImportarPagos'])->name('complementos.importar_pagos');
+    Route::post('importar-pagos', [ComplementosController::class, 'procesarImportarPagos'])->name('complementos.importar_pagos.post');
+
+    // Ciclos Masivo
+    Route::get('ciclos', [CicloController::class, 'index'])->name('ciclos.index');
+    Route::post('ciclos/registrar-masivo', [CicloController::class, 'registrarMasivo'])->name('ciclos.registrar_masivo');
+    
+    // Fase 4: Turnos y Asistencia Maestros
+    Route::resource('turnos', TurnoController::class);
+    Route::get('asistencia-maestros', [AsistenciaMaestroController::class, 'index'])->name('asistencia_maestros.index');
+    Route::post('asistencia-maestros', [AsistenciaMaestroController::class, 'store'])->name('asistencia_maestros.store');
+
+    // Fase 3: Contabilidad y Cajas
+    Route::prefix('contabilidad')->name('contabilidad.')->group(function () {
+        Route::get('ventas', [ContabilidadController::class, 'listaVentas'])->name('ventas');
+        Route::post('ventas/{pago}/cancelar', [ContabilidadController::class, 'cancelarTicket'])->name('ventas.cancelar');
+        Route::get('ventas-canceladas', [ContabilidadController::class, 'ventasCanceladas'])->name('ventas_canceladas');
+        Route::get('ventas-por-fecha', [ContabilidadController::class, 'ventasPorFecha'])->name('ventas_por_fecha');
+        Route::get('ventas-producto', [ContabilidadController::class, 'ventasProductoFecha'])->name('ventas_producto');
+        Route::get('efectivo-cajas', [ContabilidadController::class, 'efectivoCajas'])->name('efectivo_cajas');
+        
+        Route::get('discrepancias', [ContabilidadController::class, 'discrepancias'])->name('discrepancias.index');
+        Route::post('discrepancias', [ContabilidadController::class, 'storeDiscrepancia'])->name('discrepancias.store');
+
+        Route::get('gastos', [ContabilidadController::class, 'gastos'])->name('gastos.index');
+        Route::post('gastos', [ContabilidadController::class, 'storeGasto'])->name('gastos.store');
+    });
 
     Route::middleware(['role:administrador'])->group(function () {
+
         Route::resource('menus', MenuController::class);
         Route::get('calificaciones/captura', [CalificacionController::class, 'captura'])->name('calificaciones.captura')->withoutMiddleware(['role:administrador']);
         Route::post('calificaciones/bulk', [CalificacionController::class, 'bulkStore'])->name('calificaciones.bulk_store')->withoutMiddleware(['role:administrador']);

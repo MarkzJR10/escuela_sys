@@ -51,4 +51,9 @@ class Alumno extends Model
     {
         return $this->hasMany(Calificacion::class);
     }
+
+    public function boletas()
+    {
+        return $this->hasMany(Boleta::class, 'matricula', 'matricula');
+    }
 }

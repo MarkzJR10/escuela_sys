@@ -52,20 +52,27 @@ class AppServiceProvider extends ServiceProvider
             $event->menu->add(['text' => 'Migrar Grados', 'url' => 'migrar_grados', 'icon' => 'fas fa-fw fa-exchange-alt']);
             $event->menu->add(['text' => 'Profesores', 'url' => 'profesores', 'icon' => 'fas fa-fw fa-chalkboard-teacher']);
             $event->menu->add(['text' => 'Asignar Maestro', 'url' => 'maestro_materia', 'icon' => 'fas fa-fw fa-link']);
+            $event->menu->add(['text' => 'Asistencia Maestros', 'url' => 'asistencia-maestros', 'icon' => 'fas fa-fw fa-clock']);
 
+            $event->menu->add(['text' => 'Turnos', 'url' => 'turnos', 'icon' => 'fas fa-fw fa-sun']);
             $event->menu->add(['text' => 'Grados y Grupos', 'url' => 'grado_grupos', 'icon' => 'fas fa-fw fa-layer-group']);
+
             $event->menu->add(['text' => 'Materias', 'url' => 'materias', 'icon' => 'fas fa-fw fa-book']);
+            $event->menu->add(['text' => 'Conducta Destacada', 'url' => 'conducta-destacada', 'icon' => 'fas fa-fw fa-star-half-alt']);
             $event->menu->add(['text' => 'Cuadro de Honor', 'url' => 'cuadro-honor', 'icon' => 'fas fa-fw fa-trophy']);
+
             $event->menu->add(['text' => 'Boletas', 'url' => 'boletas', 'icon' => 'fas fa-fw fa-file-pdf']);
 
 
             // --- PADRE ---
             $event->menu->add(['header' => 'PADRE']);
+            $event->menu->add(['text' => 'Mis Hijos (Portal)', 'url' => 'portal-padre/dashboard', 'icon' => 'fas fa-fw fa-child']);
+
             $event->menu->add(['text' => 'Padres de Familia', 'url' => 'padres', 'icon' => 'fas fa-fw fa-users-cog']);
 
             // --- SOCIO (Finanzas) ---
-            $event->menu->add(['header' => 'SOCIO']);
-            $event->menu->add(['text' => 'Colegiaturas', 'url' => 'colegiaturas', 'icon' => 'fas fa-fw fa-money-check-alt']);
+            $event->menu->add(['header' => 'FINANZAS / COBRANZA']);
+            $event->menu->add(['text' => 'Control de Adeudos', 'url' => 'adeudos', 'icon' => 'fas fa-fw fa-money-check-alt']);
             $event->menu->add([
                 'text'    => 'Reportes Financieros',
                 'icon'    => 'fas fa-fw fa-chart-bar',
@@ -73,15 +80,32 @@ class AppServiceProvider extends ServiceProvider
                     ['text' => 'Reporte de Cobranza', 'url' => 'reportes/cobranza', 'icon' => 'fas fa-fw fa-hand-holding-usd'],
                     ['text' => 'Pendientes por Mes', 'url' => 'reportes/pendientes-mes', 'icon' => 'fas fa-fw fa-calendar-times'],
                     ['text' => 'Historial Colegiaturas', 'url' => 'reportes/historial-colegiaturas', 'icon' => 'fas fa-fw fa-history'],
+                    ['text' => 'Exportar Saldos (Excel)', 'url' => 'reportes/exportar-saldos', 'icon' => 'fas fa-fw fa-file-excel'],
                 ],
             ]);
-
             $event->menu->add(['text' => 'Cobros Especiales', 'url' => 'adeudos/especial', 'icon' => 'fas fa-fw fa-file-invoice']);
             $event->menu->add(['text' => 'Recargos Manuales', 'url' => 'adeudos/recargos-manual', 'icon' => 'fas fa-fw fa-exclamation-triangle']);
+            $event->menu->add(['text' => 'Importar Pagos (Excel)', 'url' => 'importar-pagos', 'icon' => 'fas fa-fw fa-file-import']);
+            $event->menu->add(['text' => 'Ciclos Masivo', 'url' => 'ciclos', 'icon' => 'fas fa-fw fa-calendar-alt']);
             $event->menu->add(['text' => 'Catálogo de Productos', 'url' => 'productos', 'icon' => 'fas fa-fw fa-box']);
             $event->menu->add(['text' => 'Punto de Venta (POS)', 'url' => 'pos', 'icon' => 'fas fa-fw fa-shopping-cart']);
-            $event->menu->add(['text' => 'Auditoría de Ventas', 'url' => 'contabilidad/ventas', 'icon' => 'fas fa-fw fa-chart-line']);
+            
+            $event->menu->add([
+                'text'    => 'Contabilidad y Cajas',
+                'icon'    => 'fas fa-fw fa-calculator',
+                'submenu' => [
+                    ['text' => 'Lista de Ventas', 'url' => 'contabilidad/ventas', 'icon' => 'fas fa-fw fa-list'],
+                    ['text' => 'Ventas Canceladas', 'url' => 'contabilidad/ventas-canceladas', 'icon' => 'fas fa-fw fa-ban'],
+                    ['text' => 'Ventas por Fecha', 'url' => 'contabilidad/ventas-por-fecha', 'icon' => 'fas fa-fw fa-calendar-day'],
+                    ['text' => 'Ventas Producto x Fecha', 'url' => 'contabilidad/ventas-producto', 'icon' => 'fas fa-fw fa-boxes'],
+                    ['text' => 'Efectivo en Cajas', 'url' => 'contabilidad/efectivo-cajas', 'icon' => 'fas fa-fw fa-cash-register'],
+                    ['text' => 'Discrepancias', 'url' => 'contabilidad/discrepancias', 'icon' => 'fas fa-fw fa-exclamation-circle'],
+                    ['text' => 'Gastos', 'url' => 'contabilidad/gastos', 'icon' => 'fas fa-fw fa-file-invoice'],
+                ],
+            ]);
+            
             $event->menu->add(['text' => 'Estados de Cuenta', 'url' => 'cartera', 'icon' => 'fas fa-fw fa-search-dollar']);
+
 
             // --- MAESTRO / PROFESOR ---
             $event->menu->add(['header' => 'MAESTRO / PROFESOR']);

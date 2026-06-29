@@ -26,10 +26,21 @@
                     </select>
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-info btn-block">Buscar Lista</button>
+                    <button type="submit" class="btn btn-info btn-block mr-2"><i class="fas fa-search"></i> Buscar Lista</button>
+                    @if($grado_grupo_id)
+                    <button type="submit" form="printForm" class="btn btn-secondary btn-block mt-0" title="Imprimir Formato Vacío"><i class="fas fa-print"></i> PDF</button>
+                    @endif
                 </div>
             </form>
+
+            @if($grado_grupo_id)
+            <form id="printForm" action="{{ route('asistencias.imprimir_lista') }}" method="POST" target="_blank" style="display:none;">
+                @csrf
+                <input type="hidden" name="grado_grupo_id" value="{{ $grado_grupo_id }}">
+            </form>
+            @endif
         </div>
+
         
         @if($grado_grupo_id)
         <div class="card-body">
