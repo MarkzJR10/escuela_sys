@@ -10,6 +10,7 @@
         "barryvdh/laravel-dompdf": "^3.1",
         "jeroennoten/laravel-adminlte": "^3.15",
         "laravel/framework": "^12.0",
+        "laravel/socialite": "^5.28",
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
         "maatwebsite/excel": "^3.1",
@@ -84,8 +85,14 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
-        }
+        },
+        "secure-http": false
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [{
+        "name": "packagist",
+        "type": "composer",
+        "url": "http://repo.packagist.org"
+    }]
 }

@@ -13,7 +13,7 @@ class RolesSeeder extends Seeder
      */
     public function run(): void
     {
-        $roles = ['administrador', 'coordinador', 'padre', 'socio'];
+        $roles = ['administrador', 'coordinador', 'maestro', 'socio', 'cajero', 'padre'];
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role]);
         }
