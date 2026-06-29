@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Si la petición ya busca un archivo o carpeta real dentro de public, dejarlo pasar
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Redirigir todo el tráfico de forma invisible a la carpeta public
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
