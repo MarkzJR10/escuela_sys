@@ -44,7 +44,7 @@
                             <td><code>#{{ $pago->referencia_ticket }}</code></td>
                             <td>{{ $pago->fecha_pago->format('d/m/Y H:i') }}</td>
                             <td>{{ $pago->cajero->name }}</td>
-                            <td>{{ $pago->alumno->nombre }} {{ $pago->alumno->apellidos }}</td>
+                            <td>{{ $pago->alumno->nombre ?? '' }} {{ $pago->alumno->apellido_paterno ?? '' }}</td>
                             <td class="text-right">${{ number_format($pagoDue, 2) }}</td>
                             <td class="text-right text-danger">-${{ number_format($pagoDiscount, 2) }}</td>
                             <td class="text-right font-weight-bold">${{ number_format($pago->total, 2) }}</td>

@@ -81,8 +81,10 @@ Route::middleware('auth')->group(function () {
     Route::post('pagos/store/{alumno}', [PagoController::class, 'store'])->name('pagos.store');
     Route::get('pagos/ticket/{pago}', [PagoController::class, 'ticket'])->name('pagos.ticket');
 
-    // Rutas de Contabilidad
-    Route::get('contabilidad/ventas', [PagoController::class, 'reporte'])->name('contabilidad.ventas');
+    // Redirigir /adeudos al módulo de colegiaturas (evitar 404)
+    Route::get('adeudos', function () {
+        return redirect()->route('colegiaturas.index');
+    })->name('adeudos.index');
 
     // Rutas de Punto de Venta (POS)
     Route::get('pos', [POSController::class, 'index'])->name('pos.index');
