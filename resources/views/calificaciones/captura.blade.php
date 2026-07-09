@@ -90,7 +90,7 @@
                                                class="form-control" 
                                                value="{{ old('notas.'.$alumno->id.'.1', $t1 ? $t1->puntaje : '') }}" 
                                                placeholder="0.0"
-                                               {{ !($periodosControl[1] ?? false) ? 'disabled title=Periodo_Cerrado' : '' }}>
+                                               {{ !($periodosControl[1] ?? false) && !Auth::user()->hasRole('administrador') ? 'disabled title=Periodo_Cerrado' : '' }}>
                                     </td>
                                     <td>
                                         <input type="number" step="0.1" min="0" max="10" 
@@ -98,7 +98,7 @@
                                                class="form-control" 
                                                value="{{ old('notas.'.$alumno->id.'.2', $t2 ? $t2->puntaje : '') }}" 
                                                placeholder="0.0"
-                                               {{ !($periodosControl[2] ?? false) ? 'disabled title=Periodo_Cerrado' : '' }}>
+                                               {{ !($periodosControl[2] ?? false) && !Auth::user()->hasRole('administrador') ? 'disabled title=Periodo_Cerrado' : '' }}>
                                     </td>
                                     <td>
                                         <input type="number" step="0.1" min="0" max="10" 
@@ -106,7 +106,7 @@
                                                class="form-control" 
                                                value="{{ old('notas.'.$alumno->id.'.3', $t3 ? $t3->puntaje : '') }}" 
                                                placeholder="0.0"
-                                               {{ !($periodosControl[3] ?? false) ? 'disabled title=Periodo_Cerrado' : '' }}>
+                                               {{ !($periodosControl[3] ?? false) && !Auth::user()->hasRole('administrador') ? 'disabled title=Periodo_Cerrado' : '' }}>
                                     </td>
                                     <td>
                                         {{ $ultima ? $ultima->updated_at->format('d/m/Y H:i') : 'N/A' }}
