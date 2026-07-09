@@ -6,16 +6,6 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
-Route::get('probar-enlace', function () {
-    return response()->json([
-        'success' => true,
-        'uri' => request()->getRequestUri(),
-        'path' => request()->getPathInfo(),
-        'method' => request()->getMethod(),
-        'base' => request()->getBaseUrl(),
-    ]);
-});
-
 Auth::routes();
 
 Route::get('login/google', [App\Http\Controllers\Auth\LoginController::class, 'redirectToGoogle'])->name('login.google');
