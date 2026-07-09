@@ -1,6 +1,16 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    
+    # Redirigir la raíz a public/
     RewriteRule ^$ public/ [L]
+    
+    # Si la petición existe como archivo o carpeta dentro de la carpeta public/
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{DOCUMENT_ROOT}/escuela_sys/public/$1 -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/escuela_sys/public/$1 -d
+    RewriteRule ^(.*)$ public/$1 [L]
+    
+    # Si no, enviar la solicitud a public/index.php
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ public/index.php [L]
