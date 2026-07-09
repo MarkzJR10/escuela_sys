@@ -4,7 +4,6 @@
     </IfModule>
 
     RewriteEngine On
-    RewriteBase /escuela_sys/
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
