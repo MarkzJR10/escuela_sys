@@ -2,4 +2,15 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home3/nessmedi/public_html/escuela_sys/
+    
+    # 1. Sincronizar archivos eficientemente
     - /bin/rsync -av --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='node_modules' --exclude='storage' ./ $DEPLOYPATH
+    
+    # 2. Forzar automáticamente los permisos correctos exigidos por cPanel
+    - /bin/find $DEPLOYPATH -type d -exec chmod 755 {} \;
+    - /bin/find $DEPLOYPATH -type f -exec chmod 644 {} \;
+    
+    # 3. Limpiar la caché de Laravel de forma automática en cada deploy
+    - /usr/local/bin/php $DEPLOYPATH/artisan config:clear
+    - /usr/local/bin/php $DEPLOYPATH/artisan route:clear
+    - /usr/local/bin/php $DEPLOYPATH/artisan cache:clear
