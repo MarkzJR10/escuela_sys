@@ -34,7 +34,7 @@
                 </form>
 
                 @if($alumnos->count() > 0)
-                    <table class="table table-bordered table-striped">
+                    <table id="boletas-table" class="table table-bordered table-striped">
                         <thead>
                             <tr>
                                 <th>Matrícula</th>
@@ -74,4 +74,25 @@
         </div>
     </div>
 </div>
+@stop
+
+@section('plugins.Datatables', true)
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        if ($('#boletas-table').length) {
+            $('#boletas-table').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+                },
+                "pageLength": 10,
+                "responsive": true,
+                "columnDefs": [
+                    { "orderable": false, "targets": 2 }
+                ]
+            });
+        }
+    });
+</script>
 @stop

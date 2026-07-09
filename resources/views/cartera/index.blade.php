@@ -10,19 +10,9 @@
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Listado Global de Alumnos</h3>
-            <div class="card-tools">
-                <form action="{{ route('cartera.index') }}" method="GET" class="input-group input-group-sm" style="width: 300px;">
-                    <input type="text" name="search" class="form-control float-right" placeholder="Nombre o Matrícula..." value="{{ request('search') }}">
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-default">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
         <div class="card-body p-0">
-            <table class="table table-hover table-striped">
+            <table id="cartera-table" class="table table-hover table-striped">
                 <thead>
                     <tr>
                         <th>Matrícula</th>
@@ -51,8 +41,24 @@
                 </tbody>
             </table>
         </div>
-        <div class="card-footer clearfix">
-            {{ $alumnos->appends(request()->query())->links() }}
-        </div>
     </div>
+@stop
+
+@section('plugins.Datatables', true)
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        $('#cartera-table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+            },
+            "pageLength": 10,
+            "responsive": true,
+            "columnDefs": [
+                { "orderable": false, "targets": 3 }
+            ]
+        });
+    });
+</script>
 @stop

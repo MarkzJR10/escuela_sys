@@ -16,7 +16,7 @@
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
 
-            <table class="table table-bordered table-striped">
+            <table id="sat-conceptos-table" class="table table-bordered table-striped">
                 <thead>
                     <tr>
                         <th>Clave</th>
@@ -49,4 +49,23 @@
             </table>
         </div>
     </div>
+@stop
+
+@section('plugins.Datatables', true)
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        $('#sat-conceptos-table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+            },
+            "pageLength": 10,
+            "responsive": true,
+            "columnDefs": [
+                { "orderable": false, "targets": 3 }
+            ]
+        });
+    });
+</script>
 @stop

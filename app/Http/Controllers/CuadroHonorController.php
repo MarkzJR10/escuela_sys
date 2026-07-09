@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Alumno;
 use App\Models\PeriodoControl;
+use App\Models\Configuracion;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -83,5 +85,80 @@ class CuadroHonorController extends Controller
         }
 
         return view('cuadro_honor.index', compact('trimestres', 'selectedTrimestreId', 'cuadroDeHonor', 'isAdmin'));
+    }
+
+    /**
+     * Genera un diploma PDF en formato landscape (horizontal) para el alumno.
+     */
+    public function generarDiploma(Request $request, Alumno $alumno)
+    {
+        $trimestre = (int) $request->input('trimestre');
+        $lugar = (int) $request->input('lugar');
+
+        // Validar parámetros básicos
+        if (!$trimestre || $trimestre < 1 || $trimestre > 3) {
+            abort(404, 'Trimestre inválido.');
+        }
+
+        if (!$lugar || $lugar < 1 || $lugar > 5) {
+            abort(404, 'Lugar inválido.');
+        }
+
+        // Cargar calificaciones del trimestre seleccionado
+        $alumno->load(['gradoGrupo', 'calificaciones' => function ($q) use ($trimestre) {
+            $q->where('trimestre', $trimestre)->with('materia');
+        }]);
+
+        // Re-calcular promedio y conducta para este alumno en este trimestre
+        $calificaciones = $alumno->calificaciones;
+        $sumPromedio = 0;
+        $countPromedio = 0;
+
+        foreach ($calificaciones as $calif) {
+            $materiaNombre = strtolower(trim($calif->materia->nombre ?? ''));
+            // Excluimos conducta de promedio general
+            if (!str_contains($materiaNombre, 'conducta') && !str_contains($materiaNombre, 'comportamiento')) {
+                $sumPromedio += (float)$calif->puntaje;
+                $countPromedio++;
+            }
+        }
+
+        $promedio = $countPromedio > 0 ? ($sumPromedio / $countPromedio) : 0;
+        $promedioFormateado = number_format($promedio, 2);
+
+        // Traducir número de lugar a texto ordinal en español
+        $lugaresTexto = [
+            1 => 'PRIMER LUGAR',
+            2 => 'SEGUNDO LUGAR',
+            3 => 'TERCER LUGAR',
+            4 => 'CUARTO LUGAR',
+            5 => 'QUINTO LUGAR',
+        ];
+        $lugarTexto = $lugaresTexto[$lugar] ?? '';
+
+        // Obtener ciclo escolar actual
+        $cicloEscolar = Configuracion::get('ciclo_actual', date('Y') . '-' . (date('Y') + 1));
+
+        // Grado y grupo
+        $grado = $alumno->gradoGrupo->grado ?? '';
+        $grupo = $alumno->gradoGrupo->grupo ?? '';
+
+        // Cargar la vista y generar el PDF
+        $pdf = Pdf::loadView('cuadro_honor.diploma_pdf', compact(
+            'alumno',
+            'trimestre',
+            'lugarTexto',
+            'promedioFormateado',
+            'cicloEscolar',
+            'grado',
+            'grupo'
+        ));
+
+        // Configurar orientación horizontal y tamaño de papel
+        $pdf->setPaper('a4', 'landscape');
+
+        // Retornar en modo stream para abrir en una pestaña nueva
+        $nombreArchivo = 'Diploma_' . str_replace(' ', '_', $alumno->nombre) . '_' . $alumno->matricula . '.pdf';
+        return $pdf->stream($nombreArchivo);
     }
 }

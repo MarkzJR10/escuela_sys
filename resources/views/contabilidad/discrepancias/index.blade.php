@@ -55,7 +55,7 @@
                 </div>
             </div>
             <div class="card-body p-0">
-                <table class="table table-striped table-sm text-center">
+                <table id="discrepancias-table" class="table table-striped table-sm text-center">
                     <thead class="thead-dark">
                         <tr>
                             <th>Fecha</th>
@@ -89,7 +89,11 @@
         </div>
     </div>
 </div>
+@stop
 
+@section('plugins.Datatables', true)
+
+@section('js')
 <script>
     function calcularDiferencia() {
         let sist = parseFloat(document.getElementById('monto_sistema').value) || 0;
@@ -107,5 +111,18 @@
             vista.className = "form-control font-weight-bold";
         }
     }
+
+    $(document).ready(function() {
+        if ($('#discrepancias-table tbody tr').length > 1 || !$('#discrepancias-table tbody tr td').hasClass('text-success')) {
+            $('#discrepancias-table').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+                },
+                "pageLength": 10,
+                "responsive": true,
+                "order": [[0, "desc"]] // Sort by date descending by default
+            });
+        }
+    });
 </script>
 @stop

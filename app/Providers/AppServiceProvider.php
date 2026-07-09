@@ -70,7 +70,6 @@ class AppServiceProvider extends ServiceProvider
                     'submenu' => [
                         ['text' => 'Grados y Grupos', 'url' => 'grado_grupos', 'icon' => 'fas fa-fw fa-layer-group'],
                         ['text' => 'Materias', 'url' => 'materias', 'icon' => 'fas fa-fw fa-book'],
-                        ['text' => 'Turnos', 'url' => 'turnos', 'icon' => 'fas fa-fw fa-sun'],
                         ['text' => 'Migrar Grados', 'url' => 'migrar_grados', 'icon' => 'fas fa-fw fa-exchange-alt'],
                     ],
                 ]);
@@ -80,6 +79,7 @@ class AppServiceProvider extends ServiceProvider
                     'submenu' => [
                         ['text' => 'Lista de Profesores', 'url' => 'profesores', 'icon' => 'fas fa-fw fa-chalkboard-teacher'],
                         ['text' => 'Asignar Maestro-Materia', 'url' => 'maestro_materia', 'icon' => 'fas fa-fw fa-link'],
+                        ['text' => 'Asignar Maestro de Planta', 'url' => 'maestro_grupo', 'icon' => 'fas fa-fw fa-home'],
                         ['text' => 'Asistencia Maestros', 'url' => 'asistencia-maestros', 'icon' => 'fas fa-fw fa-clock'],
                     ],
                 ]);

@@ -15,7 +15,7 @@ class Padre extends Model
         'apellido_paterno', 
         'apellido_materno', 
         'genero', 
-        'curp', 
+        'rfc', 
         'fecha_nacimiento', 
         'domicilio', 
         'telefono', 

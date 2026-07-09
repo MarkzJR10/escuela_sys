@@ -17,7 +17,7 @@
             </div>
         </div>
         <div class="card-body p-0">
-            <table class="table table-hover table-striped">
+            <table id="adeudos-table" class="table table-hover table-striped">
                 <thead>
                     <tr>
                         <th style="width: 10px">#</th>
@@ -70,7 +70,7 @@
                                     <span class="badge badge-warning">Pendiente</span>
                                 @endif
                             </td>
-                            <td>{{ $adeudo->fecha_pago ? Carbon\Carbon::parse($adeudo->fecha_pago)->format('d/m/Y') : '---' }}</td>
+                            <td>{{ $adeudo->fecha_pago ? \Carbon\Carbon::parse($adeudo->fecha_pago)->format('d/m/Y') : '---' }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -103,4 +103,21 @@
             </div>
         </div>
     </div>
+@stop
+
+@section('plugins.Datatables', true)
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        $('#adeudos-table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+            },
+            "pageLength": 10,
+            "responsive": true,
+            "order": [[0, "asc"]]
+        });
+    });
+</script>
 @stop

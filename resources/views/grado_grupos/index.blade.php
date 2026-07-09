@@ -15,7 +15,7 @@
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
-            <table class="table table-bordered table-striped">
+            <table id="grado-grupos-table" class="table table-bordered table-striped">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -88,10 +88,24 @@
     </div>
 @stop
 
+@section('plugins.Datatables', true)
+
 @section('js')
 <script>
     $(document).ready(function() {
-        $('.view-students').on('click', function() {
+        $('#grado-grupos-table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+            },
+            "pageLength": 10,
+            "responsive": true,
+            "columnDefs": [
+                { "orderable": false, "targets": [3, 4] }
+            ]
+        });
+
+        // Delegated click event to work on all pages
+        $(document).on('click', '.view-students', function() {
             const grado = $(this).data('grado');
             const grupo = $(this).data('grupo');
             const alumnos = $(this).data('alumnos');

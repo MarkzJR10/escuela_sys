@@ -96,11 +96,12 @@ class ContabilidadController extends Controller
         $fecha = $request->input('fecha', now()->toDateString());
 
         // Obtener detalles de productos vendidos (adeudos de tipo venta_credito o venta directa ligados a pagos de hoy)
-        $detalles = PagoDetalle::whereHas('pago', function($q) use ($fecha) {
+        $detalles = PagoDetalle::join('adeudos', 'pago_detalles.adeudo_id', '=', 'adeudos.id')
+            ->whereHas('pago', function($q) use ($fecha) {
                 $q->whereDate('fecha_pago', $fecha)->where('status', 'completado');
             })
-            ->select('concepto', DB::raw('SUM(monto_pagado) as total_vendido'), DB::raw('COUNT(*) as cantidad_tickets'))
-            ->groupBy('concepto')
+            ->select('adeudos.concepto', DB::raw('SUM(pago_detalles.monto_pagado) as total_vendido'), DB::raw('COUNT(*) as cantidad_tickets'))
+            ->groupBy('adeudos.concepto')
             ->get();
 
         return view('contabilidad.ventas_producto', compact('detalles', 'fecha'));

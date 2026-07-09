@@ -10,19 +10,9 @@
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Listado de Alumnos y Montos</h3>
-            <div class="card-tools">
-                <form action="{{ route('colegiaturas.index') }}" method="GET" class="input-group input-group-sm" style="width: 250px;">
-                    <input type="text" name="search" class="form-control" placeholder="Buscar por nombre..." value="{{ $search }}">
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-default">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
         <div class="card-body p-0">
-            <table class="table table-hover">
+            <table id="colegiaturas-table" class="table table-hover">
                 <thead>
                     <tr>
                         <th>Alumno</th>
@@ -75,9 +65,6 @@
                 </tbody>
             </table>
         </div>
-        <div class="card-footer clearfix">
-            {{ $alumnos->appends(['search' => $search])->links() }}
-        </div>
     </div>
 @stop
 
@@ -85,4 +72,23 @@
     <style>
         .table-warning { background-color: #fff3cd !important; }
     </style>
+@stop
+
+@section('plugins.Datatables', true)
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        $('#colegiaturas-table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+            },
+            "pageLength": 10,
+            "responsive": true,
+            "columnDefs": [
+                { "orderable": false, "targets": [2, 3, 4] } // Disable ordering on form field, status and actions
+            ]
+        });
+    });
+</script>
 @stop

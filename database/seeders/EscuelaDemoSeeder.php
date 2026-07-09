@@ -111,7 +111,7 @@ class EscuelaDemoSeeder extends Seeder
                     'nombre' => "Padre",
                     'apellido_paterno' => "Familia $i",
                     'apellido_materno' => "Test",
-                    'curp' => 'PADR' . str_pad($i, 14, '0', STR_PAD_LEFT),
+                    'rfc' => 'PADR' . str_pad($i, 9, '0', STR_PAD_LEFT),
                     'telefono' => '555111000' . $i,
                 ]
             );

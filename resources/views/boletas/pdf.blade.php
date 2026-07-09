@@ -31,7 +31,15 @@
             <td><strong>Grado:</strong> {{ $alumno->gradoGrupo->grado ?? '' }} "{{ $alumno->gradoGrupo->grupo ?? '' }}"</td>
         </tr>
         <tr>
-            <td colspan="2"><strong>Nombre del Alumno:</strong> {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} {{ $alumno->nombre }}</td>
+            <td><strong>Nombre del Alumno:</strong> {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} {{ $alumno->nombre }}</td>
+            <td>
+                <strong>Maestro(a) de Planta:</strong> 
+                @if($alumno->gradoGrupo && $alumno->gradoGrupo->maestro)
+                    {{ $alumno->gradoGrupo->maestro->nombre }} {{ $alumno->gradoGrupo->maestro->apellido_paterno }} {{ $alumno->gradoGrupo->maestro->apellido_materno }}
+                @else
+                    <span style="color: #7f8c8d; font-style: italic;">Sin asignar</span>
+                @endif
+            </td>
         </tr>
     </table>
 
@@ -62,10 +70,26 @@
         </tbody>
     </table>
 
-    <div style="text-align: center; margin-top: 80px;">
-        <div class="signature-line"></div>
-        <strong>Firma del Director / Autoridad Escolar</strong>
-    </div>
+    <table style="width: 100%; margin-top: 80px; border-collapse: collapse;">
+        <tr>
+            <td style="width: 50%; text-align: center; vertical-align: top;">
+                <div class="signature-line"></div>
+                <strong>
+                    @if($alumno->gradoGrupo && $alumno->gradoGrupo->maestro)
+                        {{ $alumno->gradoGrupo->maestro->nombre }} {{ $alumno->gradoGrupo->maestro->apellido_paterno }}
+                    @else
+                        Tutor / Maestro de Planta
+                    @endif
+                </strong>
+                <div style="font-size: 11px; color: #555; margin-top: 5px;">Maestro(a) de Planta</div>
+            </td>
+            <td style="width: 50%; text-align: center; vertical-align: top;">
+                <div class="signature-line"></div>
+                <strong>Director Escolar</strong>
+                <div style="font-size: 11px; color: #555; margin-top: 5px;">Colegio {{ config('app.name') }}</div>
+            </td>
+        </tr>
+    </table>
 
     <div class="footer">
         Documento generado el {{ date('d/m/Y') }} a las {{ date('H:i') }} - Válido solo con sello oficial.

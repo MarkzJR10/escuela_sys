@@ -12,7 +12,7 @@
             <h3 class="card-title">Historial de Tickets y Descuentos</h3>
         </div>
         <div class="card-body p-0">
-            <table class="table table-hover table-striped">
+            <table id="ventas-table" class="table table-hover table-striped">
                 <thead>
                     <tr>
                         <th>Ticket</th>
@@ -63,7 +63,7 @@
                 @if($pagos->count() > 0)
                 <tfoot>
                     <tr class="bg-light font-weight-bold">
-                        <td colspan="4" class="text-right">TOTALES PÁGINA:</td>
+                        <td colspan="4" class="text-right">TOTALES:</td>
                         <td class="text-right">${{ number_format($totalDue, 2) }}</td>
                         <td class="text-right text-danger">-${{ number_format($totalDiscount, 2) }}</td>
                         <td class="text-right text-primary">${{ number_format($totalPaid, 2) }}</td>
@@ -72,9 +72,6 @@
                 </tfoot>
                 @endif
             </table>
-        </div>
-        <div class="card-footer clearfix">
-            {{ $pagos->appends(request()->query())->links() }}
         </div>
     </div>
 
@@ -94,4 +91,24 @@
             </div>
         </div>
     </div>
+@stop
+
+@section('plugins.Datatables', true)
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        $('#ventas-table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+            },
+            "pageLength": 10,
+            "responsive": true,
+            "order": [[1, "desc"]], // Sort by date descending
+            "columnDefs": [
+                { "orderable": false, "targets": 7 }
+            ]
+        });
+    });
+</script>
 @stop

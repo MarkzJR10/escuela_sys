@@ -46,7 +46,7 @@ class ComplementosController extends Controller
      */
     public function generarBoletaPdf($alumnoId)
     {
-        $alumno = Alumno::with(['gradoGrupo', 'boletas'])->findOrFail($alumnoId);
+        $alumno = Alumno::with(['gradoGrupo.maestro', 'boletas'])->findOrFail($alumnoId);
         
         $pdf = Pdf::loadView('boletas.pdf', compact('alumno'));
         return $pdf->download('Boleta_'.$alumno->matricula.'.pdf');

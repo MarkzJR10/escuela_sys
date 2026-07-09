@@ -38,9 +38,9 @@ use App\Http\Controllers\ReporteTareaController;
 use App\Http\Controllers\BoletaController;
 use App\Http\Controllers\MigrarGradoController;
 use App\Http\Controllers\MaestroMateriaController;
+use App\Http\Controllers\MaestroGrupoController;
 use App\Http\Controllers\ReporteCobranzaController;
 use App\Http\Controllers\ContabilidadController;
-use App\Http\Controllers\TurnoController;
 use App\Http\Controllers\AsistenciaMaestroController;
 use App\Http\Controllers\PortalPadreController;
 use App\Http\Controllers\ComplementosController;
@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
     
     // Cuadro de Honor
     Route::get('/cuadro-honor', [CuadroHonorController::class, 'index'])->name('cuadro_honor.index');
+    Route::get('/cuadro-honor/diploma/{alumno}', [CuadroHonorController::class, 'generarDiploma'])->name('cuadro_honor.diploma');
     Route::resource('asistencias', AsistenciaController::class);
     Route::resource('padres', PadreController::class);
     Route::post('padres/{padre}/billing', [PadreController::class, 'updateBilling'])->name('padres.billing');
@@ -119,6 +120,9 @@ Route::middleware('auth')->group(function () {
     Route::get('migrar_grados', [MigrarGradoController::class, 'index'])->name('migrar_grados.index');
 
     Route::resource('maestro_materia', MaestroMateriaController::class)->only(['index', 'store', 'destroy']);
+    Route::get('maestro_grupo', [MaestroGrupoController::class, 'index'])->name('maestro_grupo.index');
+    Route::post('maestro_grupo', [MaestroGrupoController::class, 'store'])->name('maestro_grupo.store');
+    Route::delete('maestro_grupo/{gradoGrupo}', [MaestroGrupoController::class, 'destroy'])->name('maestro_grupo.destroy');
 
     Route::get('reportes/cobranza', [ReporteCobranzaController::class, 'index'])->name('reportes.cobranza');
     Route::get('reportes/pendientes-mes', [ReporteCobranzaController::class, 'pendientesPorMes'])->name('reportes.pendientes_mes');
@@ -145,9 +149,9 @@ Route::middleware('auth')->group(function () {
     // Ciclos Masivo
     Route::get('ciclos', [CicloController::class, 'index'])->name('ciclos.index');
     Route::post('ciclos/registrar-masivo', [CicloController::class, 'registrarMasivo'])->name('ciclos.registrar_masivo');
+    Route::post('ciclos/registrar-reinscripcion-masivo', [CicloController::class, 'registrarReinscripcionMasivo'])->name('ciclos.registrar_reinscripcion_masivo');
     
     // Fase 4: Turnos y Asistencia Maestros
-    Route::resource('turnos', TurnoController::class);
     Route::get('asistencia-maestros', [AsistenciaMaestroController::class, 'index'])->name('asistencia_maestros.index');
     Route::post('asistencia-maestros', [AsistenciaMaestroController::class, 'store'])->name('asistencia_maestros.store');
 

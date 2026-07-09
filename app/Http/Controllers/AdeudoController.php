@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Alumno;
 use App\Models\Adeudo;
 use App\Models\GradoGrupo;
+use App\Models\Configuracion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 

@@ -10,24 +10,12 @@ class ColegiaturaController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->get('search');
-        
-        $query = Alumno::with('gradoGrupo');
-
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('nombre', 'LIKE', "%{$search}%")
-                  ->orWhere('apellido_paterno', 'LIKE', "%{$search}%")
-                  ->orWhere('apellido_materno', 'LIKE', "%{$search}%");
-            });
-        }
-
-        // Ordenamos: nulos primero, luego por nombre
-        $alumnos = $query->orderByRaw('colegiatura IS NULL DESC')
+        $alumnos = Alumno::with('gradoGrupo')
+                         ->orderByRaw('colegiatura IS NULL DESC')
                          ->orderBy('nombre')
-                         ->paginate(15);
+                         ->get();
 
-        return view('colegiaturas.index', compact('alumnos', 'search'));
+        return view('colegiaturas.index', compact('alumnos'));
     }
 
     public function update(Request $request, Alumno $alumno)

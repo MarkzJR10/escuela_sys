@@ -50,7 +50,7 @@
                 </div>
             </div>
             <div class="card-body p-0">
-                <table class="table table-striped table-sm text-center">
+                <table id="gastos-table" class="table table-striped table-sm text-center">
                     <thead class="thead-dark">
                         <tr>
                             <th>Concepto</th>
@@ -87,4 +87,22 @@
         </div>
     </div>
 </div>
+@stop
+
+@section('plugins.Datatables', true)
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        if ($('#gastos-table tbody tr').length > 1 || !$('#gastos-table tbody tr td').hasClass('text-info')) {
+            $('#gastos-table').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+                },
+                "pageLength": 10,
+                "responsive": true
+            });
+        }
+    });
+</script>
 @stop

@@ -12,16 +12,9 @@ class CarteraController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->get('search');
-        
         $alumnos = Alumno::with('gradoGrupo')
-            ->when($search, function($query) use ($search) {
-                $query->where('nombre', 'like', "%{$search}%")
-                      ->orWhere('apellidos', 'like', "%{$search}%")
-                      ->orWhere('matricula', 'like', "%{$search}%");
-            })
             ->orderBy('nombre')
-            ->paginate(20);
+            ->get();
 
         return view('cartera.index', compact('alumnos'));
     }

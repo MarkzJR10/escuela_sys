@@ -16,24 +16,11 @@ class PadreController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->input('search');
-
-        $padres = Padre::with(['user', 'alumnos'])
-            ->when($search, function($query) use ($search) {
-                $query->where('nombre', 'like', "%{$search}%")
-                  ->orWhere('apellido_paterno', 'like', "%{$search}%")
-                  ->orWhere('apellido_materno', 'like', "%{$search}%")
-                  ->orWhere('curp', 'like', "%{$search}%")
-                  ->orWhere('telefono', 'like', "%{$search}%")
-                  ->orWhereHas('user', function($q) use ($search) {
-                      $q->where('email', 'like', "%{$search}%");
-                  });
-            })
-            ->paginate(10);
+        $padres = Padre::with(['user', 'alumnos'])->get();
 
         $satConceptos = SatConcepto::where('active', true)->get();
 
-        return view('padres.index', compact('padres', 'search', 'satConceptos'));
+        return view('padres.index', compact('padres', 'satConceptos'));
     }
 
     public function store(Request $request)
@@ -45,7 +32,7 @@ class PadreController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
             'genero' => 'required|in:M,F',
-            'curp' => 'required|size:18|unique:padres,curp',
+            'rfc' => 'required|min:12|max:13|unique:padres,rfc',
             'fecha_nacimiento' => 'nullable|date',
             'domicilio' => 'nullable|string',
             'telefono' => 'required|string|max:20',
@@ -68,7 +55,7 @@ class PadreController extends Controller
             // 3. Preparar datos del padre
             $data = $request->only([
                 'nombre', 'apellido_paterno', 'apellido_materno', 'genero', 
-                'curp', 'fecha_nacimiento', 'domicilio', 'telefono', 'celular'
+                'rfc', 'fecha_nacimiento', 'domicilio', 'telefono', 'celular'
             ]);
             $data['user_id'] = $user->id;
 
@@ -98,7 +85,7 @@ class PadreController extends Controller
             'email' => 'required|email|unique:users,email,' . $padre->user_id,
             'password' => 'nullable|min:6',
             'genero' => 'required|in:M,F',
-            'curp' => 'required|size:18|unique:padres,curp,' . $padre->id,
+            'rfc' => 'required|min:12|max:13|unique:padres,rfc,' . $padre->id,
             'fecha_nacimiento' => 'nullable|date',
             'domicilio' => 'nullable|string',
             'telefono' => 'required|string|max:20',
@@ -109,7 +96,7 @@ class PadreController extends Controller
         DB::transaction(function () use ($request, $padre) {
             $data = $request->only([
                 'nombre', 'apellido_paterno', 'apellido_materno', 'genero', 
-                'curp', 'fecha_nacimiento', 'domicilio', 'telefono', 'celular'
+                'rfc', 'fecha_nacimiento', 'domicilio', 'telefono', 'celular'
             ]);
 
             if ($request->hasFile('fotografia')) {

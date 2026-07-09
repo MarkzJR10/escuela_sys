@@ -12,17 +12,6 @@
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalRegistro">
                 <i class="fas fa-plus"></i> Nuevo Registro
             </button>
-            
-            <div class="card-tools">
-                <form action="{{ route('padres.index') }}" method="GET" class="input-group input-group-sm" style="width: 250px;">
-                    <input type="text" name="search" class="form-control float-right" placeholder="Buscar..." value="{{ $search }}">
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-default">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
         <div class="card-body">
             @if(session('success'))
@@ -41,12 +30,12 @@
                 </div>
             @endif
 
-            <table class="table table-bordered table-striped">
+            <table id="padres-table" class="table table-bordered table-striped">
                 <thead>
                     <tr>
                         <th>Foto</th>
                         <th>Nombre Completo</th>
-                        <th>CURP / Usuario</th>
+                        <th>RFC / Usuario</th>
                         <th>Contacto</th>
                         <th>Hijos</th>
                         <th>Acciones</th>
@@ -66,7 +55,7 @@
                             {{ $padre->nombre }} {{ $padre->apellido_paterno }} {{ $padre->apellido_materno }}
                         </td>
                         <td>
-                            <code>{{ $padre->curp }}</code><br>
+                            <code>{{ $padre->rfc }}</code><br>
                             <small class="text-muted">{{ $padre->user->email }}</small>
                         </td>
                         <td>
@@ -109,9 +98,6 @@
                     @endforeach
                 </tbody>
             </table>
-        </div>
-        <div class="card-footer clearfix">
-            {{ $padres->appends(['search' => $search])->links() }}
         </div>
     </div>
 
@@ -167,8 +153,8 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label>CURP</label>
-                                    <input type="text" name="curp" class="form-control" maxlength="18" required placeholder="18 caracteres" value="{{ old('curp') }}">
+                                    <label>RFC</label>
+                                    <input type="text" name="rfc" class="form-control" maxlength="13" required placeholder="12 o 13 caracteres" value="{{ old('rfc') }}">
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -331,11 +317,24 @@
     </div>
 @stop
 
+@section('plugins.Datatables', true)
+
 @section('js')
 <script>
     $(document).ready(function() {
-        // Lógica Facturación
-        $('.btn-facturacion').click(function() {
+        $('#padres-table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+            },
+            "pageLength": 10,
+            "responsive": true,
+            "columnDefs": [
+                { "orderable": false, "targets": [0, 4, 5] }
+            ]
+        });
+
+        // Lógica Facturación (delegada para funcionar con paginación/búsqueda de DataTable)
+        $(document).on('click', '.btn-facturacion', function() {
             let id = $(this).data('id');
             let url = $(this).data('url');
             let data = $(this).data('json');
@@ -361,8 +360,8 @@
             $('#modalFacturacion').modal('show');
         });
 
-        // Lógica Hijos
-        $('.btn-hijos').click(function() {
+        // Lógica Hijos (delegada para funcionar con paginación/búsqueda de DataTable)
+        $(document).on('click', '.btn-hijos', function() {
             let id = $(this).data('id');
             $('#listaHijos').html('<li class="list-group-item">Cargando...</li>');
             $('#modalHijos').modal('show');

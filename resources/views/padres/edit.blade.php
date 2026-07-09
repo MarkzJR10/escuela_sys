@@ -50,9 +50,9 @@
                 <div class="row">
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>CURP</label>
-                            <input type="text" name="curp" class="form-control" value="{{ old('curp', $padre->curp) }}" placeholder="18 caracteres">
-                            @error('curp') <span class="text-danger">{{ $message }}</span> @enderror
+                            <label>RFC</label>
+                            <input type="text" name="rfc" class="form-control" value="{{ old('rfc', $padre->rfc) }}" placeholder="12 o 13 caracteres">
+                            @error('rfc') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="col-md-4">

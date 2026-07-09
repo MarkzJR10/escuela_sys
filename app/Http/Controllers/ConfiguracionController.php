@@ -11,6 +11,7 @@ class ConfiguracionController extends Controller
     {
         $configs = [
             'costo_inscripcion' => Configuracion::get('costo_inscripcion', '0'),
+            'costo_reinscripcion' => Configuracion::get('costo_reinscripcion', '0'),
             'ciclo_actual' => Configuracion::get('ciclo_actual', date('Y') . '-' . (date('Y') + 1)),
         ];
 
@@ -21,10 +22,12 @@ class ConfiguracionController extends Controller
     {
         $request->validate([
             'costo_inscripcion' => 'required|numeric|min:0',
+            'costo_reinscripcion' => 'required|numeric|min:0',
             'ciclo_actual' => 'required|string|max:20',
         ]);
 
         Configuracion::set('costo_inscripcion', $request->costo_inscripcion, 'Costo de inscripción general');
+        Configuracion::set('costo_reinscripcion', $request->costo_reinscripcion, 'Costo de reinscripción general');
         Configuracion::set('ciclo_actual', $request->ciclo_actual, 'Ciclo escolar vigente para nuevos alumnos');
 
         return redirect()->route('configuraciones.index')->with('success', 'Configuración actualizada correctamente.');

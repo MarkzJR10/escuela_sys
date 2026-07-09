@@ -17,14 +17,7 @@ class PagoController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->get('search');
-        $alumnos = Alumno::with('gradoGrupo')
-            ->when($search, function($query) use ($search) {
-                $query->where('nombre', 'like', "%{$search}%")
-                      ->orWhere('apellidos', 'like', "%{$search}%")
-                      ->orWhere('matricula', 'like', "%{$search}%");
-            })
-            ->paginate(20);
+        $alumnos = Alumno::with('gradoGrupo')->get();
 
         return view('pagos.index', compact('alumnos'));
     }
@@ -111,7 +104,7 @@ class PagoController extends Controller
     {
         $pagos = Pago::with(['alumno', 'cajero', 'detalles'])
             ->orderBy('created_at', 'desc')
-            ->paginate(30);
+            ->get();
 
         return view('contabilidad.ventas', compact('pagos'));
     }

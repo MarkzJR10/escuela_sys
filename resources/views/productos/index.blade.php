@@ -18,7 +18,7 @@
 @section('content')
     <div class="card">
         <div class="card-body table-responsive">
-            <table class="table table-hover table-striped">
+            <table id="productos-table" class="table table-hover table-striped">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -67,4 +67,23 @@
             </table>
         </div>
     </div>
+@stop
+
+@section('plugins.Datatables', true)
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        $('#productos-table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+            },
+            "pageLength": 10,
+            "responsive": true,
+            "columnDefs": [
+                { "orderable": false, "targets": 5 }
+            ]
+        });
+    });
+</script>
 @stop

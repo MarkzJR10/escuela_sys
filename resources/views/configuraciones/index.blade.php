@@ -29,6 +29,12 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="costo_reinscripcion">Costo de Reinscripción ($)</label>
+                            <input type="number" step="0.01" name="costo_reinscripcion" class="form-control" id="costo_reinscripcion" value="{{ $configs['costo_reinscripcion'] }}" required>
+                            <small class="text-muted">Este monto se cargará al generar adeudos de reinscripción masivos para alumnos activos.</small>
+                        </div>
+
+                        <div class="form-group">
                             <label for="ciclo_actual">Ciclo Escolar Actual</label>
                             <input type="text" name="ciclo_actual" class="form-control" id="ciclo_actual" value="{{ $configs['ciclo_actual'] }}" placeholder="Ej: 2025-2026" required>
                             <small class="text-muted">Se utilizará para el concepto del adeudo (Ej: Inscripción 2025-2026).</small>

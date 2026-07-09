@@ -46,8 +46,9 @@
                                     <th style="width: 8%">#</th>
                                     <th style="width: 15%">Matrícula</th>
                                     <th>Nombre</th>
-                                    <th style="width: 15%">Promedio</th>
-                                    <th style="width: 15%">Conducta</th>
+                                    <th style="width: 12%">Promedio</th>
+                                    <th style="width: 12%">Conducta</th>
+                                    <th style="width: 12%" class="text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -64,6 +65,14 @@
                                         <td class="text-uppercase text-muted">{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</td>
                                         <td>{{ number_format($alumno->promedio_calculado, 2) }}</td>
                                         <td>{{ number_format($alumno->conducta_calculada, 1) }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ route('cuadro_honor.diploma', ['alumno' => $alumno->id, 'trimestre' => $selectedTrimestreId, 'lugar' => $index + 1]) }}" 
+                                               class="btn btn-outline-primary btn-sm rounded-pill font-weight-bold shadow-sm" 
+                                               target="_blank" 
+                                               title="Generar Diploma PDF">
+                                                <i class="fas fa-certificate text-warning mr-1"></i> Diploma
+                                            </a>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

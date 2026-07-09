@@ -20,32 +20,40 @@ class CicloController extends Controller
 
         $adeudos = collect();
         if ($cicloSeleccionado) {
-            $adeudos = Adeudo::where('tipo', 'colegiatura')
-                ->whereHas('alumno', function ($q) {
+            $adeudos = Adeudo::whereHas('alumno', function ($q) {
                     $q->where('activo', true);
                 })
                 ->where(function ($q) use ($cicloSeleccionado) {
-                    // Filtrar adeudos que corresponden a los meses del ciclo seleccionado
-                    $partes = explode('-', $cicloSeleccionado);
-                    if (count($partes) === 2) {
-                        $anio1 = $partes[0]; // ej. "2025"
-                        $anio2 = $partes[1]; // ej. "2026"
+                    $q->where(function ($subQ) use ($cicloSeleccionado) {
+                        $subQ->where('tipo', 'colegiatura')
+                             ->where(function ($monthQ) use ($cicloSeleccionado) {
+                                 $partes = explode('-', $cicloSeleccionado);
+                                 if (count($partes) === 2) {
+                                     $anio1 = $partes[0]; // ej. "2025"
+                                     $anio2 = $partes[1]; // ej. "2026"
 
-                        $q->where(function ($sub) use ($anio1) {
-                            // Sep-Dic del primer año
-                            for ($m = 9; $m <= 12; $m++) {
-                                $sub->orWhere('periodo', $anio1 . '-' . str_pad($m, 2, '0', STR_PAD_LEFT));
-                            }
-                        })->orWhere(function ($sub) use ($anio2) {
-                            // Ene-Jun del segundo año
-                            for ($m = 1; $m <= 6; $m++) {
-                                $sub->orWhere('periodo', $anio2 . '-' . str_pad($m, 2, '0', STR_PAD_LEFT));
-                            }
-                        });
-                    }
+                                     $monthQ->where(function ($sub) use ($anio1) {
+                                         // Sep-Dic del primer año
+                                         for ($m = 9; $m <= 12; $m++) {
+                                             $sub->orWhere('periodo', $anio1 . '-' . str_pad($m, 2, '0', STR_PAD_LEFT));
+                                         }
+                                     })->orWhere(function ($sub) use ($anio2) {
+                                         // Ene-Jun del segundo año
+                                         for ($m = 1; $m <= 6; $m++) {
+                                             $sub->orWhere('periodo', $anio2 . '-' . str_pad($m, 2, '0', STR_PAD_LEFT));
+                                         }
+                                     });
+                                 }
+                             });
+                    })
+                    ->orWhere(function ($subQ) use ($cicloSeleccionado) {
+                        $subQ->where('tipo', 'especial')
+                             ->where('concepto', 'Reinscripción ' . $cicloSeleccionado);
+                    });
                 })
                 ->with('alumno.gradoGrupo')
                 ->orderBy('alumno_id')
+                ->orderByRaw("FIELD(tipo, 'especial', 'colegiatura')")
                 ->orderBy('periodo')
                 ->get();
         }
@@ -140,5 +148,65 @@ class CicloController extends Controller
 
         return redirect()->route('ciclos.index', ['ciclo' => $ciclo])
             ->with('success', "Ciclo registrado exitosamente. Se crearon {$insertados} adeudos. ({$omitidos} ya existían y se omitieron).");
+    }
+
+    /**
+     * Registrar adeudos masivos de reinscripción para todos los alumnos activos.
+     */
+    public function registrarReinscripcionMasivo(Request $request)
+    {
+        $request->validate([
+            'ciclo' => 'required|string|max:20',
+        ]);
+
+        $ciclo = $request->input('ciclo');
+        $costoReinscripcion = (float) Configuracion::get('costo_reinscripcion', 0);
+
+        if ($costoReinscripcion <= 0) {
+            return redirect()->back()->with('error', 'El costo de reinscripción no está configurado o es menor/igual a cero. Configúrelo en la sección de Configuración General.');
+        }
+
+        // Obtener alumnos activos
+        $alumnos = Alumno::where('activo', true)->get();
+
+        if ($alumnos->isEmpty()) {
+            return redirect()->back()->with('warning', 'No hay alumnos activos para registrar reinscripción.');
+        }
+
+        $insertados = 0;
+        $omitidos = 0;
+        $concepto = "Reinscripción $ciclo";
+
+        DB::beginTransaction();
+        try {
+            foreach ($alumnos as $alumno) {
+                // Verificar que no exista ya para este alumno y este ciclo
+                $existe = Adeudo::where('alumno_id', $alumno->id)
+                    ->where('tipo', 'especial')
+                    ->where('concepto', $concepto)
+                    ->exists();
+
+                if (!$existe) {
+                    Adeudo::create([
+                        'alumno_id'   => $alumno->id,
+                        'tipo'        => 'especial',
+                        'concepto'    => $concepto,
+                        'monto_base'  => $costoReinscripcion,
+                        'monto_actual' => $costoReinscripcion,
+                        'status'      => 'pendiente',
+                    ]);
+                    $insertados++;
+                } else {
+                    $omitidos++;
+                }
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Error al registrar reinscripciones: ' . $e->getMessage());
+        }
+
+        return redirect()->route('ciclos.index', ['ciclo' => $ciclo])
+            ->with('success', "Adeudos de reinscripción registrados exitosamente. Se crearon {$insertados} adeudos. ({$omitidos} ya existían y se omitieron).");
     }
 }
