@@ -14,7 +14,8 @@ class Pago extends Model
         'user_id',
         'total',
         'referencia_ticket',
-        'fecha_pago'
+        'fecha_pago',
+        'corte_id'
     ];
 
     protected $casts = [
@@ -34,5 +35,10 @@ class Pago extends Model
     public function detalles()
     {
         return $this->hasMany(PagoDetalle::class);
+    }
+
+    public function corte()
+    {
+        return $this->belongsTo(Corte::class);
     }
 }

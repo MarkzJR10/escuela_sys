@@ -146,6 +146,7 @@ class AppServiceProvider extends ServiceProvider
                         ['text' => 'Efectivo en Cajas', 'url' => 'contabilidad/efectivo-cajas', 'icon' => 'fas fa-fw fa-cash-register'],
                         ['text' => 'Discrepancias', 'url' => 'contabilidad/discrepancias', 'icon' => 'fas fa-fw fa-exclamation-circle'],
                         ['text' => 'Gastos', 'url' => 'contabilidad/gastos', 'icon' => 'fas fa-fw fa-file-invoice'],
+                        ['text' => 'Corte de Caja', 'url' => 'contabilidad/corte-caja', 'icon' => 'fas fa-fw fa-file-invoice-dollar'],
                     ],
                 ]);
                 $event->menu->add(['text' => 'Catálogo de Productos', 'url' => 'productos', 'icon' => 'fas fa-fw fa-box']);

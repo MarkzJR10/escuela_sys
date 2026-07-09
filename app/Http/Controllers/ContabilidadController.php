@@ -8,6 +8,8 @@ use App\Models\Adeudo;
 use App\Models\Gasto;
 use App\Models\Discrepancia;
 use App\Models\User;
+use App\Models\Corte;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -190,5 +192,114 @@ class ContabilidadController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Gasto registrado correctamente.');
+    }
+
+    /**
+     * Pantalla de Corte de Caja
+     */
+    public function corteCaja(Request $request)
+    {
+        $userId = Auth::id();
+
+        // 1. Cobros pendientes (pagos sin corte asignado)
+        $pagosPendientes = Pago::where('user_id', $userId)
+            ->whereNull('corte_id')
+            ->where('status', 'completado')
+            ->get();
+        $totalCobrado = $pagosPendientes->sum('total');
+
+        // 2. Gastos pendientes (gastos sin corte asignado)
+        $gastosPendientes = Gasto::where('user_id', $userId)
+            ->whereNull('corte_id')
+            ->get();
+        $totalGastado = $gastosPendientes->sum('monto');
+
+        // 3. Historial de cortes (cada cajero ve solo sus propios cortes)
+        $cortes = Corte::where('user_id', $userId)->with('cajero')->orderBy('id', 'desc')->get();
+
+        return view('contabilidad.corte_caja', compact('totalCobrado', 'totalGastado', 'cortes', 'pagosPendientes', 'gastosPendientes'));
+    }
+
+    /**
+     * Procesar/Generar Corte de Caja
+     */
+    public function storeCorteCaja(Request $request)
+    {
+        try {
+            $corte = DB::transaction(function() {
+                $userId = Auth::id();
+                
+                // 1. Obtener transacciones pendientes
+                $pagosPendientes = Pago::where('user_id', $userId)
+                    ->whereNull('corte_id')
+                    ->where('status', 'completado')
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+                    
+                $gastosPendientes = Gasto::where('user_id', $userId)
+                    ->whereNull('corte_id')
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+                    
+                $totalCobrado = $pagosPendientes->sum('total');
+                $totalGastado = $gastosPendientes->sum('monto');
+                
+                if ($pagosPendientes->isEmpty() && $gastosPendientes->isEmpty()) {
+                    throw new \Exception('No hay cobros ni gastos pendientes para generar un corte.');
+                }
+                
+                // 2. Determinar fecha de inicio
+                $ultimoCorte = Corte::where('user_id', $userId)->orderBy('id', 'desc')->first();
+                if ($ultimoCorte) {
+                    $fechaInicio = $ultimoCorte->fecha_fin;
+                } else {
+                    $fechas = collect();
+                    if ($pagosPendientes->isNotEmpty()) $fechas->push($pagosPendientes->first()->created_at);
+                    if ($gastosPendientes->isNotEmpty()) $fechas->push($gastosPendientes->first()->created_at);
+                    $fechaInicio = $fechas->min() ?: now();
+                }
+                
+                $fechaFin = now();
+                
+                // 3. Crear el registro de Corte
+                $corte = Corte::create([
+                    'user_id' => $userId,
+                    'fecha_inicio' => $fechaInicio,
+                    'fecha_fin' => $fechaFin,
+                    'total_cobrado' => $totalCobrado,
+                    'total_gastado' => $totalGastado
+                ]);
+                
+                // 4. Asignar el corte_id a los pagos y gastos correspondientes
+                Pago::whereIn('id', $pagosPendientes->pluck('id'))->update(['corte_id' => $corte->id]);
+                Gasto::whereIn('id', $gastosPendientes->pluck('id'))->update(['corte_id' => $corte->id]);
+                
+                return $corte;
+            });
+
+            return redirect()->route('contabilidad.corte_caja')
+                ->with('success', 'Corte de caja #' . $corte->id . ' generado correctamente.')
+                ->with('open_corte_pdf_url', route('contabilidad.corte_caja.pdf', $corte->id));
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Generar e Imprimir PDF del Corte de Caja
+     */
+    public function pdfCorteCaja(Corte $corte)
+    {
+        // El cajero solo puede ver sus propios cortes, el administrador todos
+        if (!Auth::user()->hasRole('administrador') && $corte->user_id !== Auth::id()) {
+            abort(403, 'No tiene permiso para ver este corte de caja.');
+        }
+
+        $corte->load(['cajero', 'pagos.alumno', 'gastos']);
+
+        $pdf = Pdf::loadView('contabilidad.corte_caja_pdf', compact('corte'));
+        
+        return $pdf->stream('Corte_Caja_' . $corte->id . '_' . str_replace(' ', '_', $corte->cajero->name) . '.pdf');
     }
 }

@@ -109,14 +109,14 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label>Teléfono</label>
+                            <label>Teléfono de Emergencia</label>
                             <input type="text" name="telefono" class="form-control" value="{{ old('telefono') }}">
                             @error('telefono') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label>Celular</label>
+                            <label>Celular de Emergencia</label>
                             <input type="text" name="celular" class="form-control" value="{{ old('celular') }}">
                             @error('celular') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>

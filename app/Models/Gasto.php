@@ -10,7 +10,7 @@ class Gasto extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'concepto', 'monto', 'fecha', 'observaciones'
+        'user_id', 'concepto', 'monto', 'fecha', 'observaciones', 'corte_id'
     ];
 
     protected $casts = [
@@ -20,5 +20,10 @@ class Gasto extends Model
     public function cajero()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function corte()
+    {
+        return $this->belongsTo(Corte::class);
     }
 }

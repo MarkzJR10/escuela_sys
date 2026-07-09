@@ -169,6 +169,10 @@ Route::middleware('auth')->group(function () {
 
         Route::get('gastos', [ContabilidadController::class, 'gastos'])->name('gastos.index');
         Route::post('gastos', [ContabilidadController::class, 'storeGasto'])->name('gastos.store');
+
+        Route::get('corte-caja', [ContabilidadController::class, 'corteCaja'])->name('corte_caja');
+        Route::post('corte-caja', [ContabilidadController::class, 'storeCorteCaja'])->name('corte_caja.store');
+        Route::get('corte-caja/{corte}/pdf', [ContabilidadController::class, 'pdfCorteCaja'])->name('corte_caja.pdf');
     });
 
     Route::middleware(['role:administrador'])->group(function () {
