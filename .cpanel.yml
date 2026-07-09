@@ -3,14 +3,25 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home3/nessmedi/public_html/escuela_sys/
     
-    # 1. Sincronizar archivos eficientemente
-    - /bin/rsync -av --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='node_modules' --exclude='storage' ./ $DEPLOYPATH
+    # 1. Crear directorios de cache y almacenamiento si no existen
+    - mkdir -p $DEPLOYPATH/storage/framework/cache/data
+    - mkdir -p $DEPLOYPATH/storage/framework/views
+    - mkdir -p $DEPLOYPATH/storage/framework/sessions
+    - mkdir -p $DEPLOYPATH/storage/logs
+    - mkdir -p $DEPLOYPATH/bootstrap/cache
+
+    # 2. Desplegar archivos excluyendo carpetas locales, vendor y .env para evitar que rsync las borre
+    - /bin/rsync -av --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='node_modules' --exclude='storage' --exclude='vendor' --exclude='.env' ./ $DEPLOYPATH
     
-    # 2. Forzar automáticamente los permisos correctos exigidos por cPanel
+    # 3. Asegurar permisos de escritura
+    - chmod -R 755 $DEPLOYPATH/storage
+    - chmod -R 755 $DEPLOYPATH/bootstrap/cache
+    
+    # 4. Forzar automáticamente los permisos correctos exigidos por cPanel
     - /bin/find $DEPLOYPATH -type d -exec chmod 755 {} \;
     - /bin/find $DEPLOYPATH -type f -exec chmod 644 {} \;
     
-    # 3. Limpiar la caché de Laravel de forma automática en cada deploy
+    # 5. Limpiar la caché de Laravel de forma automática en cada deploy
     - /usr/local/bin/php $DEPLOYPATH/artisan config:clear
     - /usr/local/bin/php $DEPLOYPATH/artisan route:clear
     - /usr/local/bin/php $DEPLOYPATH/artisan cache:clear
