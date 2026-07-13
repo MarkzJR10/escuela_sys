@@ -27,7 +27,7 @@ class PagoController extends Controller
      */
     public function create(Alumno $alumno)
     {
-        $adeudos = $alumno->adeudos()->where('status', 'pendiente')->get();
+        $adeudos = $alumno->adeudos()->whereIn('status', ['pendiente', 'vencido'])->get();
         return view('pagos.create', compact('alumno', 'adeudos'));
     }
 
@@ -56,7 +56,7 @@ class PagoController extends Controller
 
             foreach ($request->adeudo_ids as $adeudoId) {
                 $adeudo = Adeudo::findOrFail($adeudoId);
-                $montoDebido = $adeudo->monto_actual; // Usamos el monto calculado con recargos si aplica
+                $montoDebido = $adeudo->monto_calculado; // Usamos el monto calculado con recargos si aplica
                 $descuento = floatval($request->descuentos[$adeudoId] ?? 0);
                 $montoFinal = $montoDebido - $descuento;
 

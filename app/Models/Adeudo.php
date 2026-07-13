@@ -113,7 +113,17 @@ class Adeudo extends Model
             }
         }
 
-        // REGLA: Si el periodo ya pasó, el monto_actual ya debe tener los recargos acumulados (vía comando)
+        // REGLA: Si el periodo ya pasó, calculamos dinámicamente los recargos acumulados por meses vencidos
+        if ($this->periodo < $periodoActual) {
+            $fechaPeriodo = Carbon::parse($this->periodo . '-01');
+            $fechaActual = Carbon::now()->startOfMonth();
+            $mesesTranscurridos = (int) $fechaPeriodo->diffInMonths($fechaActual);
+            
+            // 1 recargo inicial (día 11) + 1 recargo por cada mes transcurrido (día 1)
+            $recargos = 1 + $mesesTranscurridos;
+            return $this->monto_base + ($this->monto_base * 0.10 * $recargos);
+        }
+
         return $this->monto_actual;
     }
 }
