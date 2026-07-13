@@ -42,7 +42,7 @@
                                     <td>{{ $adeudo->alumno->nombre }} {{ $adeudo->alumno->apellido_paterno }} {{ $adeudo->alumno->apellido_materno }}</td>
                                     <td>{{ $adeudo->alumno->gradoGrupo->grado ?? '' }} "{{ $adeudo->alumno->gradoGrupo->grupo ?? '' }}"</td>
                                     <td>{{ $adeudo->concepto }}</td>
-                                    <td class="text-right text-danger font-weight-bold">${{ number_format($adeudo->monto_actual, 2) }}</td>
+                                    <td class="text-right text-danger font-weight-bold">${{ number_format($adeudo->monto_calculado, 2) }}</td>
                                     <td>
                                         <a href="{{ route('pagos.create', $adeudo->alumno->id) }}" class="btn btn-sm btn-success"><i class="fas fa-cash-register"></i> Ir a Caja</a>
                                     </td>
