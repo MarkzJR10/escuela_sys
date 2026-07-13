@@ -70,7 +70,7 @@ class PortalPadreController extends Controller
         $especiales = $adeudos->where('tipo', 'especial');
         $ventas = $adeudos->where('tipo', 'venta');
 
-        $totalAdeudo = $adeudos->sum('monto_actual');
+        $totalAdeudo = $adeudos->sum('monto_calculado');
 
         return view('portal_padre.estado_cuenta', compact('alumno', 'colegiaturas', 'especiales', 'ventas', 'totalAdeudo'));
     }

@@ -124,7 +124,7 @@ class ReporteCobranzaController extends Controller
         $especiales = $adeudos->where('tipo', 'especial');
         $ventas = $adeudos->where('tipo', 'venta');
 
-        $totalAdeudo = $adeudos->sum('monto_actual');
+        $totalAdeudo = $adeudos->sum('monto_calculado');
 
         $pagosRecientes = Pago::where('alumno_id', $alumnoId)
             ->with('detalles.adeudo')

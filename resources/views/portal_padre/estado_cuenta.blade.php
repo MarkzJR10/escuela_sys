@@ -42,7 +42,7 @@
                                         @endif
                                     </td>
                                     <td class="text-right font-weight-bold @if($adeudo->status == 'vencido') text-danger @endif">
-                                        ${{ number_format($adeudo->monto_actual, 2) }}
+                                        ${{ number_format($adeudo->monto_calculado, 2) }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -74,7 +74,7 @@
                                         @endif
                                     </td>
                                     <td class="text-right font-weight-bold @if($adeudo->status == 'vencido') text-danger @endif">
-                                        ${{ number_format($adeudo->monto_actual, 2) }}
+                                        ${{ number_format($adeudo->monto_calculado, 2) }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -106,7 +106,7 @@
                                         @endif
                                     </td>
                                     <td class="text-right font-weight-bold @if($adeudo->status == 'vencido') text-danger @endif">
-                                        ${{ number_format($adeudo->monto_actual, 2) }}
+                                        ${{ number_format($adeudo->monto_calculado, 2) }}
                                     </td>
                                 </tr>
                             @endforeach
