@@ -30,14 +30,14 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @php $granTotal = 0; @php
+                            @php $granTotal = 0; @endphp
                             @foreach($cajas as $caja)
                             <tr>
                                 <td>{{ $caja->cajero->name ?? 'Sistema' }}</td>
                                 <td class="text-center">{{ $caja->total_tickets }}</td>
                                 <td class="text-right font-weight-bold text-success">${{ number_format($caja->total_cobrado, 2) }}</td>
                             </tr>
-                            @php $granTotal += $caja->total_cobrado; @php
+                            @php $granTotal += $caja->total_cobrado; @endphp
                             @endforeach
                         </tbody>
                         <tfoot>

@@ -114,16 +114,16 @@ class AlumnoController extends Controller
                         $status = 'vencido';
                         // Calculamos cuántos meses han pasado desde el vencimiento (día 11 del mes del periodo)
                         $fechaVencimiento = Carbon::parse($periodo . '-11');
-                        $mesesVencidos = $fechaVencimiento->diffInMonths($hoy);
+                        $mesesVencidos = (int) $fechaVencimiento->diffInMonths($hoy);
                         
                         for ($i = 0; $i <= $mesesVencidos; $i++) {
-                            $montoActual *= 1.10;
+                            $montoActual += $alumno->colegiatura * 0.10;
                         }
                     } elseif ($periodo === $hoy->format('Y-m')) {
                         // Mes actual
                         if ($hoy->day >= 11) {
                             $status = 'vencido';
-                            $montoActual *= 1.10;
+                            $montoActual += $alumno->colegiatura * 0.10;
                         } else {
                             $status = 'pendiente';
                         }

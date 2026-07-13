@@ -43,14 +43,14 @@ class GenerarAdeudosMensuales extends Command
             
             $this->info("Se activaron $activados colegiaturas para el nuevo mes.");
 
-            // 2. Aplicar recargo acumulado (+10%) a todo lo que ya estaba VENCIDO antes de este mes
+            // 2. Aplicar recargo acumulado (+10% del monto base) a todo lo que ya estaba VENCIDO antes de este mes
             $vencidosPrevios = Adeudo::where('status', 'vencido')
                 ->where('periodo', '!=', $periodoActual)
                 ->get();
 
             foreach ($vencidosPrevios as $adeudo) {
                 $adeudo->update([
-                    'monto_actual' => $adeudo->monto_actual * 1.10
+                    'monto_actual' => $adeudo->monto_actual + ($adeudo->monto_base * 0.10)
                 ]);
             }
             $this->info("Se aplicó recargo acumulado a " . $vencidosPrevios->count() . " adeudos vencidos previos.");

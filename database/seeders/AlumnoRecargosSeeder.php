@@ -125,10 +125,10 @@ class AlumnoRecargosSeeder extends Seeder
                 // Día 11 del mes de origen: Primer recargo del 10%
                 $montoActual = $montoBase * 1.10;
                 
-                // Meses subsiguientes hasta hoy: Recargo acumulativo (+10% cada primer día de mes)
-                $mesesTranscurridos = $current->diffInMonths($endMonth);
+                // Meses subsiguientes hasta hoy: Recargo acumulativo (+10% cada primer día de mes sobre el monto base)
+                $mesesTranscurridos = (int) $current->diffInMonths($endMonth);
                 for ($i = 0; $i < $mesesTranscurridos; $i++) {
-                    $montoActual *= 1.10;
+                    $montoActual += $montoBase * 0.10;
                 }
             }
 
