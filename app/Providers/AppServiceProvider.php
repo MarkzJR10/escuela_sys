@@ -132,6 +132,7 @@ class AppServiceProvider extends ServiceProvider
                         ['text' => 'Reporte de Cobranza', 'url' => 'reportes/cobranza', 'icon' => 'fas fa-fw fa-hand-holding-usd'],
                         ['text' => 'Pendientes por Mes', 'url' => 'reportes/pendientes-mes', 'icon' => 'fas fa-fw fa-calendar-times'],
                         ['text' => 'Historial Colegiaturas', 'url' => 'reportes/historial-colegiaturas', 'icon' => 'fas fa-fw fa-history'],
+                        ['text' => 'Adeudos Especiales', 'url' => 'reportes/adeudos-especiales', 'icon' => 'fas fa-fw fa-star'],
                         ['text' => 'Exportar Saldos (Excel)', 'url' => 'reportes/exportar-saldos', 'icon' => 'fas fa-fw fa-file-excel'],
                     ],
                 ]);

@@ -157,4 +157,37 @@ class ReporteCobranzaController extends Controller
 
         return view('reportes.historial_colegiaturas', compact('gradoGrupos', 'adeudos'));
     }
+
+    /**
+     * Reporte de adeudos especiales por concepto.
+     */
+    public function adeudosEspeciales(Request $request)
+    {
+        $conceptos = \App\Models\Adeudo::where('tipo', 'especial')
+            ->distinct()
+            ->pluck('concepto');
+
+        $conceptoSeleccionado = $request->input('concepto');
+        $adeudos = collect();
+
+        $totalAsignado = 0;
+        $totalPagado = 0;
+        $totalPendiente = 0;
+
+        if ($conceptoSeleccionado) {
+            $adeudos = \App\Models\Adeudo::with('alumno.gradoGrupo')
+                ->where('tipo', 'especial')
+                ->where('concepto', $conceptoSeleccionado)
+                ->get();
+
+            $totalAsignado = $adeudos->sum('monto_calculado');
+            $totalPagado = $adeudos->where('status', 'pagado')->sum('monto_calculado');
+            $totalPendiente = $adeudos->whereIn('status', ['pendiente', 'vencido'])->sum('monto_calculado');
+        }
+
+        return view('reportes.adeudos_especiales', compact(
+            'conceptos', 'conceptoSeleccionado', 'adeudos', 
+            'totalAsignado', 'totalPagado', 'totalPendiente'
+        ));
+    }
 }

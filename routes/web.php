@@ -129,6 +129,7 @@ Route::middleware('auth')->group(function () {
     Route::get('reportes/estado-cuenta', [ReporteCobranzaController::class, 'estadoCuenta'])->name('reportes.estado_cuenta');
     Route::get('reportes/detalle-alumno/{alumno}', [ReporteCobranzaController::class, 'detalleAlumno'])->name('reportes.detalle_alumno');
     Route::get('reportes/historial-colegiaturas', [ReporteCobranzaController::class, 'historialColegiaturas'])->name('reportes.historial_colegiaturas');
+    Route::get('reportes/adeudos-especiales', [ReporteCobranzaController::class, 'adeudosEspeciales'])->name('reportes.adeudos_especiales');
     Route::get('reportes/exportar-saldos', [ComplementosController::class, 'exportarSaldosExcel'])->name('reportes.exportar_saldos');
 
     // Fase 4: Portal Padre
