@@ -24,7 +24,7 @@ class ContabilidadController extends Controller
     {
         $fecha = $request->input('fecha', now()->toDateString());
         
-        $pagos = Pago::with(['alumno', 'cajero', 'detalles'])
+        $pagos = Pago::with(['alumno', 'cajero', 'detalles.adeudo'])
             ->whereDate('fecha_pago', $fecha)
             ->where('status', 'completado')
             ->orderBy('id', 'desc')

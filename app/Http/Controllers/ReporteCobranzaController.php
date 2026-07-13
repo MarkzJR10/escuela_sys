@@ -19,38 +19,41 @@ class ReporteCobranzaController extends Controller
         // Totales generales
         $totalColegiaturas = Adeudo::where('tipo', 'colegiatura')
             ->whereIn('status', ['pendiente', 'vencido'])
-            ->sum('monto_actual');
+            ->get()
+            ->sum('monto_calculado');
 
         $totalEspeciales = Adeudo::where('tipo', 'especial')
             ->whereIn('status', ['pendiente', 'vencido'])
-            ->sum('monto_actual');
+            ->get()
+            ->sum('monto_calculado');
 
         $totalVentasCredito = Adeudo::where('tipo', 'venta')
             ->whereIn('status', ['pendiente', 'vencido'])
-            ->sum('monto_actual');
+            ->get()
+            ->sum('monto_calculado');
 
         $totalGeneral = $totalColegiaturas + $totalEspeciales + $totalVentasCredito;
 
         // Detalle por alumno
-        $alumnos = Alumno::with('gradoGrupo')
+        $alumnos = Alumno::with(['gradoGrupo', 'adeudos'])
             ->where('activo', true)
             ->orderBy('apellido_paterno')
             ->get()
             ->map(function ($alumno) {
-                $alumno->colegiaturas_pendientes = $alumno->adeudos()
+                $alumno->colegiaturas_pendientes = $alumno->adeudos
                     ->where('tipo', 'colegiatura')
                     ->whereIn('status', ['pendiente', 'vencido'])
-                    ->sum('monto_actual');
+                    ->sum('monto_calculado');
                 
-                $alumno->adeudos_especiales = $alumno->adeudos()
+                $alumno->adeudos_especiales = $alumno->adeudos
                     ->where('tipo', 'especial')
                     ->whereIn('status', ['pendiente', 'vencido'])
-                    ->sum('monto_actual');
+                    ->sum('monto_calculado');
 
-                $alumno->creditos = $alumno->adeudos()
+                $alumno->creditos = $alumno->adeudos
                     ->where('tipo', 'venta')
                     ->whereIn('status', ['pendiente', 'vencido'])
-                    ->sum('monto_actual');
+                    ->sum('monto_calculado');
 
                 $alumno->saldo_total = $alumno->colegiaturas_pendientes 
                     + $alumno->adeudos_especiales 
@@ -78,7 +81,7 @@ class ReporteCobranzaController extends Controller
             ->orderBy('alumno_id')
             ->get();
 
-        $total = $adeudos->sum('monto_actual');
+        $total = $adeudos->sum('monto_calculado');
 
         return view('reportes.pendientes_mes', compact('adeudos', 'mes', 'total'));
     }
@@ -124,7 +127,7 @@ class ReporteCobranzaController extends Controller
         $totalAdeudo = $adeudos->sum('monto_actual');
 
         $pagosRecientes = Pago::where('alumno_id', $alumnoId)
-            ->with('detalles')
+            ->with('detalles.adeudo')
             ->orderBy('fecha_pago', 'desc')
             ->take(20)
             ->get();

@@ -12,9 +12,9 @@ class SaldosExport implements FromCollection, WithHeadings, WithMapping
     public function collection()
     {
         return Alumno::with(['gradoGrupo', 'adeudos' => function($q) {
-            $q->where('status', 'pendiente');
+            $q->whereIn('status', ['pendiente', 'vencido']);
         }])->get()->filter(function($alumno) {
-            return $alumno->adeudos->sum('monto_actual') > 0;
+            return $alumno->adeudos->sum('monto_calculado') > 0;
         });
     }
 
@@ -32,8 +32,9 @@ class SaldosExport implements FromCollection, WithHeadings, WithMapping
 
     public function map($alumno): array
     {
-        $colegiaturas = $alumno->adeudos->where('tipo', 'colegiatura')->sum('monto_actual');
-        $especiales = $alumno->adeudos->where('tipo', 'especial')->sum('monto_actual');
+        $colegiaturas = $alumno->adeudos->where('tipo', 'colegiatura')->sum('monto_calculado');
+        $especiales = $alumno->adeudos->where('tipo', 'especial')->sum('monto_calculado');
+        $ventas = $alumno->adeudos->where('tipo', 'venta')->sum('monto_calculado');
 
         return [
             $alumno->matricula,
@@ -41,7 +42,7 @@ class SaldosExport implements FromCollection, WithHeadings, WithMapping
             ($alumno->gradoGrupo->grado ?? '') . ' "' . ($alumno->gradoGrupo->grupo ?? '') . '"',
             number_format($colegiaturas, 2),
             number_format($especiales, 2),
-            number_format($colegiaturas + $especiales, 2),
+            number_format($colegiaturas + $especiales + $ventas, 2),
         ];
     }
 }

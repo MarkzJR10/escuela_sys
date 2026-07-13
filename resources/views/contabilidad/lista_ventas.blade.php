@@ -46,7 +46,7 @@
                                 <td>
                                     <ul class="list-unstyled mb-0 pl-0">
                                         @foreach($pago->detalles as $detalle)
-                                            <li>- {{ $detalle->concepto ?? 'Pago' }} (${{ number_format($detalle->monto_pagado, 2) }})</li>
+                                            <li>- {{ optional($detalle->adeudo)->tipo == 'colegiatura' ? 'Colegiatura ' . optional($detalle->adeudo)->mes_nombre . ' ' . optional($detalle->adeudo)->anio : (optional($detalle->adeudo)->concepto ?? 'Pago') }} (${{ number_format($detalle->monto_pagado, 2) }})</li>
                                         @endforeach
                                     </ul>
                                 </td>
