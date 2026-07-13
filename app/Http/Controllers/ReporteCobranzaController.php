@@ -18,15 +18,15 @@ class ReporteCobranzaController extends Controller
     {
         // Totales generales
         $totalColegiaturas = Adeudo::where('tipo', 'colegiatura')
-            ->where('status', 'pendiente')
+            ->whereIn('status', ['pendiente', 'vencido'])
             ->sum('monto_actual');
 
         $totalEspeciales = Adeudo::where('tipo', 'especial')
-            ->where('status', 'pendiente')
+            ->whereIn('status', ['pendiente', 'vencido'])
             ->sum('monto_actual');
 
-        $totalVentasCredito = Adeudo::where('tipo', 'venta_credito')
-            ->where('status', 'pendiente')
+        $totalVentasCredito = Adeudo::where('tipo', 'venta')
+            ->whereIn('status', ['pendiente', 'vencido'])
             ->sum('monto_actual');
 
         $totalGeneral = $totalColegiaturas + $totalEspeciales + $totalVentasCredito;
@@ -39,17 +39,17 @@ class ReporteCobranzaController extends Controller
             ->map(function ($alumno) {
                 $alumno->colegiaturas_pendientes = $alumno->adeudos()
                     ->where('tipo', 'colegiatura')
-                    ->where('status', 'pendiente')
+                    ->whereIn('status', ['pendiente', 'vencido'])
                     ->sum('monto_actual');
                 
                 $alumno->adeudos_especiales = $alumno->adeudos()
                     ->where('tipo', 'especial')
-                    ->where('status', 'pendiente')
+                    ->whereIn('status', ['pendiente', 'vencido'])
                     ->sum('monto_actual');
 
                 $alumno->creditos = $alumno->adeudos()
-                    ->where('tipo', 'venta_credito')
-                    ->where('status', 'pendiente')
+                    ->where('tipo', 'venta')
+                    ->whereIn('status', ['pendiente', 'vencido'])
                     ->sum('monto_actual');
 
                 $alumno->saldo_total = $alumno->colegiaturas_pendientes 
@@ -73,7 +73,7 @@ class ReporteCobranzaController extends Controller
         $mes = $request->input('mes', now()->format('Y-m'));
 
         $adeudos = Adeudo::with('alumno.gradoGrupo')
-            ->where('status', 'pendiente')
+            ->whereIn('status', ['pendiente', 'vencido'])
             ->where('periodo', $mes)
             ->orderBy('alumno_id')
             ->get();
@@ -112,19 +112,16 @@ class ReporteCobranzaController extends Controller
     {
         $alumno = Alumno::with(['gradoGrupo', 'padre'])->findOrFail($alumnoId);
 
-        $adeudosActuales = $alumno->adeudos()
-            ->where('status', 'pendiente')
-            ->where('periodo', '>=', now()->startOfYear()->format('Y-m'))
-            ->orderBy('periodo')
+        $adeudos = $alumno->adeudos()
+            ->whereIn('status', ['pendiente', 'vencido'])
+            ->orderBy('periodo', 'asc')
             ->get();
 
-        $adeudosAnteriores = $alumno->adeudos()
-            ->where('status', 'pendiente')
-            ->where('periodo', '<', now()->startOfYear()->format('Y-m'))
-            ->orderBy('periodo')
-            ->get();
+        $colegiaturas = $adeudos->where('tipo', 'colegiatura');
+        $especiales = $adeudos->where('tipo', 'especial');
+        $ventas = $adeudos->where('tipo', 'venta');
 
-        $totalAdeudo = $adeudosActuales->sum('monto_actual') + $adeudosAnteriores->sum('monto_actual');
+        $totalAdeudo = $adeudos->sum('monto_actual');
 
         $pagosRecientes = Pago::where('alumno_id', $alumnoId)
             ->with('detalles')
@@ -133,7 +130,7 @@ class ReporteCobranzaController extends Controller
             ->get();
 
         return view('reportes.detalle_alumno', compact(
-            'alumno', 'adeudosActuales', 'adeudosAnteriores', 
+            'alumno', 'colegiaturas', 'especiales', 'ventas', 
             'totalAdeudo', 'pagosRecientes'
         ));
     }

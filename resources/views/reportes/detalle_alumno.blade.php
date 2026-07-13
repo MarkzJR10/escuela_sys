@@ -41,45 +41,124 @@
             <!-- ADEUDOS -->
             <div class="row mt-4">
                 <div class="col-12">
-                    <h5 class="text-danger border-bottom pb-2"><i class="fas fa-exclamation-triangle"></i> Cargos Pendientes</h5>
+                    <h5 class="text-danger border-bottom pb-2 mb-3"><i class="fas fa-exclamation-triangle"></i> Cargos Pendientes</h5>
                 </div>
-                <div class="col-12 table-responsive">
-                    <table class="table table-sm table-striped">
-                        <thead>
-                            <tr>
-                                <th>Concepto</th>
-                                <th>Periodo</th>
-                                <th>Fecha Vencimiento</th>
-                                <th class="text-right">Monto Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($adeudosAnteriores as $adeudo)
+                <div class="col-12">
+                    @php $hasAdeudos = false; @endphp
+
+                    <!-- COLEGIATURAS -->
+                    @if($colegiaturas->isNotEmpty())
+                        @php $hasAdeudos = true; @endphp
+                        <h6 class="text-primary font-weight-bold mt-2"><i class="fas fa-book mr-1"></i> Colegiaturas</h6>
+                        <table class="table table-sm table-striped table-hover mb-4">
+                            <thead>
                                 <tr>
-                                    <td>{{ $adeudo->concepto }} <span class="badge badge-danger">Vencido</span></td>
-                                    <td>{{ $adeudo->periodo }}</td>
-                                    <td>10 del mes</td>
-                                    <td class="text-right text-danger">${{ number_format($adeudo->monto_actual, 2) }}</td>
+                                    <th>Concepto</th>
+                                    <th>Periodo</th>
+                                    <th>Estado</th>
+                                    <th class="text-right" style="width: 150px;">Monto</th>
                                 </tr>
-                            @endforeach
-                            @foreach($adeudosActuales as $adeudo)
+                            </thead>
+                            <tbody>
+                                @foreach($colegiaturas as $adeudo)
+                                    <tr>
+                                        <td>{{ $adeudo->concepto }}</td>
+                                        <td>{{ $adeudo->periodo }}</td>
+                                        <td>
+                                            @if($adeudo->status == 'vencido')
+                                                <span class="badge badge-danger">Vencido</span>
+                                            @else
+                                                <span class="badge badge-warning">Pendiente</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-right font-weight-bold @if($adeudo->status == 'vencido') text-danger @endif">
+                                            ${{ number_format($adeudo->monto_actual, 2) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+
+                    <!-- ADEUDOS ESPECIALES -->
+                    @if($especiales->isNotEmpty())
+                        @php $hasAdeudos = true; @endphp
+                        <h6 class="text-info font-weight-bold mt-2"><i class="fas fa-star mr-1"></i> Adeudos Especiales</h6>
+                        <table class="table table-sm table-striped table-hover mb-4">
+                            <thead>
                                 <tr>
-                                    <td>{{ $adeudo->concepto }}</td>
-                                    <td>{{ $adeudo->periodo }}</td>
-                                    <td>10 del mes</td>
-                                    <td class="text-right">${{ number_format($adeudo->monto_actual, 2) }}</td>
+                                    <th>Concepto</th>
+                                    <th>Estado</th>
+                                    <th class="text-right" style="width: 150px;">Monto</th>
                                 </tr>
-                            @endforeach
-                            @if($adeudosAnteriores->isEmpty() && $adeudosActuales->isEmpty())
-                                <tr><td colspan="4" class="text-center text-success">El alumno no presenta adeudos en este momento.</td></tr>
-                            @else
+                            </thead>
+                            <tbody>
+                                @foreach($especiales as $adeudo)
+                                    <tr>
+                                        <td>{{ $adeudo->concepto }}</td>
+                                        <td>
+                                            @if($adeudo->status == 'vencido')
+                                                <span class="badge badge-danger">Vencido</span>
+                                            @else
+                                                <span class="badge badge-warning">Pendiente</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-right font-weight-bold @if($adeudo->status == 'vencido') text-danger @endif">
+                                            ${{ number_format($adeudo->monto_actual, 2) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+
+                    <!-- VENTAS Y PRODUCTOS -->
+                    @if($ventas->isNotEmpty())
+                        @php $hasAdeudos = true; @endphp
+                        <h6 class="text-success font-weight-bold mt-2"><i class="fas fa-shopping-cart mr-1"></i> Ventas y Consumos (Crédito)</h6>
+                        <table class="table table-sm table-striped table-hover mb-4">
+                            <thead>
                                 <tr>
-                                    <th colspan="3" class="text-right">Total a Pagar:</th>
-                                    <th class="text-right text-danger h5">${{ number_format($totalAdeudo, 2) }}</th>
+                                    <th>Concepto</th>
+                                    <th>Estado</th>
+                                    <th class="text-right" style="width: 150px;">Monto</th>
                                 </tr>
-                            @endif
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach($ventas as $adeudo)
+                                    <tr>
+                                        <td>{{ $adeudo->concepto }}</td>
+                                        <td>
+                                            @if($adeudo->status == 'vencido')
+                                                <span class="badge badge-danger">Vencido</span>
+                                            @else
+                                                <span class="badge badge-warning">Pendiente</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-right font-weight-bold @if($adeudo->status == 'vencido') text-danger @endif">
+                                            ${{ number_format($adeudo->monto_actual, 2) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+
+                    @if(!$hasAdeudos)
+                        <div class="alert alert-success text-center py-3"><i class="fas fa-check-circle mr-1"></i> El alumno no presenta adeudos en este momento.</div>
+                    @else
+                        <div class="row">
+                            <div class="col-8"></div>
+                            <div class="col-4">
+                                <table class="table table-sm table-bordered">
+                                    <tr class="bg-light">
+                                        <th class="text-right">Total General Pendiente:</th>
+                                        <th class="text-right text-danger h5 font-weight-bold">${{ number_format($totalAdeudo, 2) }}</th>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
 

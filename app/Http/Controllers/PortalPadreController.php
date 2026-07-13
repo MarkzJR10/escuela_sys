@@ -61,18 +61,17 @@ class PortalPadreController extends Controller
             abort(403);
         }
 
-        $adeudosAnteriores = Adeudo::where('alumno_id', $alumno->id)
-            ->where('status', 'pendiente')
-            ->where('periodo', '<', now()->format('Y-m'))
+        $adeudos = Adeudo::where('alumno_id', $alumno->id)
+            ->whereIn('status', ['pendiente', 'vencido'])
+            ->orderBy('periodo', 'asc')
             ->get();
 
-        $adeudosActuales = Adeudo::where('alumno_id', $alumno->id)
-            ->where('status', 'pendiente')
-            ->where('periodo', '>=', now()->format('Y-m'))
-            ->get();
+        $colegiaturas = $adeudos->where('tipo', 'colegiatura');
+        $especiales = $adeudos->where('tipo', 'especial');
+        $ventas = $adeudos->where('tipo', 'venta');
 
-        $totalAdeudo = $adeudosAnteriores->sum('monto_actual') + $adeudosActuales->sum('monto_actual');
+        $totalAdeudo = $adeudos->sum('monto_actual');
 
-        return view('portal_padre.estado_cuenta', compact('alumno', 'adeudosAnteriores', 'adeudosActuales', 'totalAdeudo'));
+        return view('portal_padre.estado_cuenta', compact('alumno', 'colegiaturas', 'especiales', 'ventas', 'totalAdeudo'));
     }
 }
