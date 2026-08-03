@@ -28,18 +28,32 @@
                             <td>{{ $alumno->nombre }} {{ $alumno->apellidos }}</td>
                             <td>{{ $alumno->gradoGrupo->grado }} {{ $alumno->gradoGrupo->grupo }}</td>
                             <td>
-                                <form action="{{ route('colegiaturas.update', $alumno) }}" method="POST" class="form-inline">
+                                <form action="{{ route('colegiaturas.update', $alumno) }}" method="POST" class="form-inline student-colegiatura-form">
                                     @csrf
                                     @method('PATCH')
-                                    <div class="input-group input-group-sm">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">$</span>
+                                    <div class="form-row align-items-center">
+                                        <div class="col-auto">
+                                            <select name="colegiatura_id" class="form-control form-control-sm select-colegiatura-base" data-student-id="{{ $alumno->id }}">
+                                                <option value="">-- Personalizada --</option>
+                                                @foreach($colegiaturas as $c)
+                                                    <option value="{{ $c->id }}" {{ $alumno->colegiatura_id == $c->id ? 'selected' : '' }} data-monto="{{ $c->monto }}">
+                                                        {{ $c->nombre }} (${{ number_format($c->monto, 2) }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
-                                        <input type="number" name="colegiatura" step="0.01" class="form-control" value="{{ $alumno->colegiatura }}" placeholder="Sin asignar">
-                                        <div class="input-group-append">
-                                            <button type="submit" class="btn btn-primary">
-                                                <i class="fas fa-save"></i>
-                                            </button>
+                                        <div class="col-auto">
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">$</span>
+                                                </div>
+                                                <input type="number" name="colegiatura" id="amount-input-{{ $alumno->id }}" step="0.01" class="form-control amount-input-field" value="{{ $alumno->colegiatura }}" placeholder="Sin asignar" {{ $alumno->colegiatura_id ? 'readonly' : '' }}>
+                                                <div class="input-group-append">
+                                                    <button type="submit" class="btn btn-primary btn-sm" title="Guardar">
+                                                        <i class="fas fa-save"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </form>
@@ -88,6 +102,20 @@
             "columnDefs": [
                 { "orderable": false, "targets": [2, 3, 4] } // Disable ordering on form field, status and actions
             ]
+        });
+
+        // Sincronizar Colegiatura Base con Monto
+        $(document).on('change', '.select-colegiatura-base', function() {
+            var studentId = $(this).data('student-id');
+            var selected = $(this).find('option:selected');
+            var monto = selected.data('monto');
+            var inputField = $('#amount-input-' + studentId);
+
+            if (monto !== undefined && monto !== '') {
+                inputField.val(monto).attr('readonly', true);
+            } else {
+                inputField.val('').attr('readonly', false);
+            }
         });
     });
 </script>

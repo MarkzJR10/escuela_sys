@@ -13,6 +13,7 @@ class Pago extends Model
         'alumno_id',
         'user_id',
         'total',
+        'metodo_pago',
         'referencia_ticket',
         'fecha_pago',
         'corte_id'

@@ -116,18 +116,31 @@
                     <span class="h5 text-success font-weight-bold" id="cart-total">$0.00</span>
                 </div>
                 <hr>
-                <div class="row">
-                    <div class="col-6">
-                        <button class="btn btn-outline-primary btn-block btn-lg" id="btn-adeudo" disabled onclick="processSale('cargar_adeudo')">
-                            <i class="fas fa-hand-holding-usd"></i><br><small>Cargar a Adeudo</small>
-                        </button>
+                <div class="form-group mb-3 px-2">
+                    <label class="font-weight-bold"><i class="fas fa-wallet mr-1"></i> Método de Pago:</label>
+                    <div class="custom-control custom-radio mb-2">
+                        <input class="custom-control-input radio-metodo-pago" type="radio" id="metodo-efectivo" name="pos_metodo_pago" value="efectivo" checked>
+                        <label for="metodo-efectivo" class="custom-control-label">
+                            <i class="fas fa-money-bill-wave text-success mr-1"></i> Efectivo
+                        </label>
                     </div>
-                    <div class="col-6">
-                        <button class="btn btn-success btn-block btn-lg" id="btn-cobrar" disabled onclick="processSale('pago_inmediato')">
-                            <i class="fas fa-cash-register"></i><br><strong>Cobrar</strong>
-                        </button>
+                    <div class="custom-control custom-radio mb-2">
+                        <input class="custom-control-input radio-metodo-pago" type="radio" id="metodo-tarjeta" name="pos_metodo_pago" value="tarjeta">
+                        <label for="metodo-tarjeta" class="custom-control-label">
+                            <i class="fas fa-credit-card text-primary mr-1"></i> Tarjeta Crédito/Débito
+                        </label>
+                    </div>
+                    <div class="custom-control custom-radio mb-2" id="metodo-credito-wrapper">
+                        <input class="custom-control-input radio-metodo-pago" type="radio" id="metodo-credito" name="pos_metodo_pago" value="credito">
+                        <label for="metodo-credito" class="custom-control-label">
+                            <i class="fas fa-hand-holding-usd text-warning mr-1"></i> A Crédito (Pendiente)
+                        </label>
                     </div>
                 </div>
+                <hr>
+                <button class="btn btn-success btn-block btn-lg" id="btn-cobrar" disabled onclick="submitPOSSale()">
+                    <i class="fas fa-cash-register"></i> <span id="btn-cobrar-text" class="ml-1"><strong>Cobrar (Efectivo)</strong></span>
+                </button>
             </div>
         </div>
     </div>
@@ -248,10 +261,26 @@
                 tipo: tipo,
                 cantidad: 1,
                 descuento: 0,
+                monto_pagar: tipo === 'adeudo_existente' ? parseFloat(item.monto_calculado) : null,
                 stock: tipo === 'producto' ? item.stock : null
             });
         }
         renderCart();
+    }
+
+    function updateAbono(index, value) {
+        let maxVal = parseFloat(cart[index].precio);
+        let val = parseFloat(value) || 0;
+        if (val > maxVal) {
+            val = maxVal;
+            toastr.warning(`El abono no puede superar el saldo pendiente de $${maxVal.toFixed(2)}`);
+        }
+        if (val < 0.01) {
+            val = 0.01;
+        }
+        cart[index].monto_pagar = val;
+        renderCart(false);
+        updateTotalOnly();
     }
 
     function updateDiscount(index, value) {
@@ -277,7 +306,26 @@
         if (fullRender) {
             let html = '';
             cart.forEach((item, index) => {
-                let subtotal = (item.precio * item.cantidad) - item.descuento;
+                let subtotal = 0;
+                let inputHtml = '';
+                
+                if (item.tipo === 'producto') {
+                    subtotal = (item.precio * item.cantidad) - item.descuento;
+                    inputHtml = `
+                        <input type="number" class="form-control form-control-sm d-inline-block" style="width: 80px;" 
+                            placeholder="Desc." value="${item.descuento}" onchange="updateDiscount(${index}, this.value)">
+                        <small class="text-muted ml-1">Desc.</small>
+                    `;
+                } else {
+                    subtotal = item.monto_pagar;
+                    inputHtml = `
+                        <input type="number" class="form-control form-control-sm d-inline-block" style="width: 90px;" 
+                            placeholder="Abonar" value="${item.monto_pagar}" min="0.01" max="${item.precio}" step="0.01"
+                            onchange="updateAbono(${index}, this.value)">
+                        <small class="text-muted ml-1">Monto a Pagar (Abono)</small>
+                    `;
+                }
+
                 let qtyControl = item.tipo === 'producto' ? `
                     <div class="d-flex align-items-center justify-content-center">
                         <button class="btn btn-xs btn-outline-secondary px-1 py-0" onclick="decrementCartQty(${index})"><i class="fas fa-minus fa-xs"></i></button>
@@ -291,9 +339,7 @@
                         <small class="badge badge-${item.tipo === 'producto' ? 'info' : 'warning'}">${item.tipo === 'producto' ? 'P' : 'A'}</small> 
                         ${item.nombre}
                         <div class="mt-1">
-                            <input type="number" class="form-control form-control-sm d-inline-block" style="width: 80px;" 
-                                placeholder="Desc." value="${item.descuento}" onchange="updateDiscount(${index}, this.value)">
-                            <small class="text-muted ml-1">Desc.</small>
+                            ${inputHtml}
                         </div>
                     </td>
                     <td class="text-center">${qtyControl}</td>
@@ -312,7 +358,11 @@
     function updateTotalOnly() {
         let total = 0;
         cart.forEach(item => {
-            total += (item.precio * item.cantidad) - item.descuento;
+            if (item.tipo === 'producto') {
+                total += (item.precio * item.cantidad) - item.descuento;
+            } else {
+                total += item.monto_pagar;
+            }
         });
         $('#cart-total').text(`$${total.toFixed(2)}`);
     }
@@ -322,18 +372,53 @@
         let hasOnlyProducts = cart.every(i => i.tipo === 'producto');
         
         $('#btn-cobrar').prop('disabled', !hasCart);
-        // Solo se puede cargar a adeudo si hay productos nuevos. 
-        // Si hay adeudos existentes en el carrito, cargar a adeudo no tiene sentido (ya lo son).
-        // Sin embargo, el requerimiento dice "pagar adeudos... o agregar producto... se queda como pendiente"
-        $('#btn-adeudo').prop('disabled', !hasCart || !hasOnlyProducts);
+
+        // Si el carrito tiene adeudos existentes, no se permite "A Crédito"
+        if (!hasOnlyProducts) {
+            $('#metodo-credito').prop('disabled', true);
+            $('#metodo-credito-wrapper').addClass('text-muted');
+            if ($('#metodo-credito').is(':checked')) {
+                $('#metodo-efectivo').prop('checked', true).trigger('change');
+            }
+        } else {
+            // Permitir "A Crédito" si sólo hay productos nuevos
+            $('#metodo-credito').prop('disabled', false);
+            $('#metodo-credito-wrapper').removeClass('text-muted');
+        }
     }
 
-    function processSale(metodo) {
+    $(document).on('change', '.radio-metodo-pago', function() {
+        let val = $(this).val();
+        let btn = $('#btn-cobrar');
+        let btnText = $('#btn-cobrar-text');
+        
+        if (val === 'efectivo') {
+            btn.removeClass('btn-primary btn-warning').addClass('btn-success');
+            btnText.html('<strong>Cobrar (Efectivo)</strong>');
+        } else if (val === 'tarjeta') {
+            btn.removeClass('btn-success btn-warning').addClass('btn-primary');
+            btnText.html('<strong>Cobrar (Tarjeta)</strong>');
+        } else if (val === 'credito') {
+            btn.removeClass('btn-success btn-primary').addClass('btn-warning');
+            btnText.html('<strong>Cargar a Crédito</strong>');
+        }
+    });
+
+    function submitPOSSale() {
         if (!selectedAlumno || cart.length === 0) return;
 
+        let metodoPago = $('input[name="pos_metodo_pago"]:checked').val();
+        let title = '¿Procesar Cobro?';
+        let text = 'Se generará el recibo de pago.';
+        
+        if (metodoPago === 'credito') {
+            title = '¿Cargar a Crédito?';
+            text = 'Los productos se agregarán como adeudo pendiente a la cuenta del alumno.';
+        }
+
         Swal.fire({
-            title: metodo === 'pago_inmediato' ? '¿Procesar Cobro?' : '¿Cargar a Adeudo?',
-            text: metodo === 'pago_inmediato' ? 'Se generará el recibo de pago.' : 'Los productos se agregarán a la cuenta del alumno.',
+            title: title,
+            text: text,
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Sí, continuar',
@@ -344,7 +429,7 @@
                     _token: '{{ csrf_token() }}',
                     alumno_id: selectedAlumno.id,
                     items: cart,
-                    metodo: metodo
+                    metodo_pago: metodoPago
                 }).catch(error => {
                     Swal.showValidationMessage(
                         `Error: ${error.responseJSON.message || 'No se pudo procesar la venta'}`
@@ -356,8 +441,7 @@
             if (result.value && result.value.success) {
                 const response = result.value;
                 
-                // Si hay pago, intentamos abrir el ticket inmediatamente antes del alert final
-                // para que el navegador lo asocie mejor con el click del usuario
+                // Si hay pago, intentamos abrir el ticket inmediatamente
                 if (response.pago_id) {
                     const ticketUrl = `{{ url('pagos/ticket') }}/${response.pago_id}`;
                     window.open(ticketUrl, '_blank');
@@ -369,7 +453,6 @@
                     icon: 'success',
                     confirmButtonText: 'Aceptar'
                 }).then(() => {
-                    // Recargar para limpiar todo y refrescar saldos
                     location.reload();
                 });
             }

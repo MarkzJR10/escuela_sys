@@ -28,7 +28,8 @@ class AlumnoController extends Controller
     {
         $gradoGrupos = GradoGrupo::all();
         $padres = Padre::with('user')->get();
-        return view('alumnos.create', compact('gradoGrupos', 'padres'));
+        $colegiaturas = \App\Models\Colegiatura::all();
+        return view('alumnos.create', compact('gradoGrupos', 'padres', 'colegiaturas'));
     }
 
     public function store(Request $request)
@@ -46,6 +47,7 @@ class AlumnoController extends Controller
             'telefono' => 'nullable|string|max:20',
             'celular' => 'nullable|string|max:20',
             'grado_grupo_id' => 'required|exists:grado_grupos,id',
+            'colegiatura_id' => 'nullable|exists:colegiaturas,id',
             'colegiatura' => 'nullable|numeric|between:0,999999.99',
             'padre_id' => 'nullable|exists:padres,id',
             'fotografia' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -53,6 +55,15 @@ class AlumnoController extends Controller
 
         return DB::transaction(function () use ($request) {
             $data = $request->all();
+
+            if ($request->filled('colegiatura_id')) {
+                $colegiaturaBase = \App\Models\Colegiatura::find($request->colegiatura_id);
+                if ($colegiaturaBase) {
+                    $data['colegiatura'] = $colegiaturaBase->monto;
+                }
+            } else {
+                $data['colegiatura_id'] = null;
+            }
 
             if ($request->hasFile('fotografia')) {
                 $path = $request->file('fotografia')->store('alumnos', 'public');
@@ -154,7 +165,8 @@ class AlumnoController extends Controller
     {
         $gradoGrupos = GradoGrupo::all();
         $padres = Padre::with('user')->get();
-        return view('alumnos.edit', compact('alumno', 'gradoGrupos', 'padres'));
+        $colegiaturas = \App\Models\Colegiatura::all();
+        return view('alumnos.edit', compact('alumno', 'gradoGrupos', 'padres', 'colegiaturas'));
     }
 
     public function update(Request $request, Alumno $alumno)
@@ -172,12 +184,22 @@ class AlumnoController extends Controller
             'telefono' => 'nullable|string|max:20',
             'celular' => 'nullable|string|max:20',
             'grado_grupo_id' => 'required|exists:grado_grupos,id',
+            'colegiatura_id' => 'nullable|exists:colegiaturas,id',
             'colegiatura' => 'nullable|numeric|between:0,999999.99',
             'padre_id' => 'nullable|exists:padres,id',
             'fotografia' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $data = $request->all();
+
+        if ($request->filled('colegiatura_id')) {
+            $colegiaturaBase = \App\Models\Colegiatura::find($request->colegiatura_id);
+            if ($colegiaturaBase) {
+                $data['colegiatura'] = $colegiaturaBase->monto;
+            }
+        } else {
+            $data['colegiatura_id'] = null;
+        }
 
         if ($request->hasFile('fotografia')) {
             // Delete old photo if exists

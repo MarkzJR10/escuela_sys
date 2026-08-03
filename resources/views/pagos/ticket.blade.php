@@ -42,6 +42,9 @@
                 <b>Ticket #{{ $pago->referencia_ticket }}</b><br>
                 <br>
                 <b>Fecha de Pago:</b> {{ $pago->fecha_pago->format('d/m/Y') }}<br>
+                @if($pago->metodo_pago)
+                    <b>Método de Pago:</b> {{ ucfirst($pago->metodo_pago) }}<br>
+                @endif
                 <b>Estado:</b> <span class="badge badge-success">PAGADO</span>
             </div>
             <!-- /.col -->

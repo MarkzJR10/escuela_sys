@@ -19,6 +19,7 @@ class MenuSeeder extends Seeder
             ['text' => 'Gestión de Menús', 'url' => 'menus', 'icon' => 'fas fa-fw fa-list', 'roles' => ['administrador']],
             ['text' => 'Control de Periodos', 'url' => 'periodos', 'icon' => 'fas fa-fw fa-calendar-check', 'roles' => ['administrador']],
             ['text' => 'Conceptos SAT', 'url' => 'sat_conceptos', 'icon' => 'fas fa-fw fa-file-invoice-dollar', 'roles' => ['administrador']],
+            ['text' => 'Catálogo de Colegiaturas', 'url' => 'colegiaturas-config', 'icon' => 'fas fa-fw fa-money-bill-alt', 'roles' => ['administrador']],
             ['text' => 'Alumnos', 'url' => 'alumnos', 'icon' => 'fas fa-fw fa-user-graduate', 'roles' => ['administrador', 'coordinador']],
             ['text' => 'Grados y Grupos', 'url' => 'grado_grupos', 'icon' => 'fas fa-fw fa-layer-group', 'roles' => ['administrador', 'coordinador']],
             ['text' => 'Materias', 'url' => 'materias', 'icon' => 'fas fa-fw fa-book', 'roles' => ['administrador', 'coordinador']],

@@ -47,19 +47,21 @@ class POSController extends Controller
         $request->validate([
             'alumno_id' => 'required|exists:alumnos,id',
             'items' => 'required|array',
-            'metodo' => 'required|in:pago_inmediato,cargar_adeudo'
+            'metodo_pago' => 'required|in:efectivo,tarjeta,credito'
         ]);
 
         return DB::transaction(function () use ($request) {
             $alumno = Alumno::find($request->alumno_id);
             $pago = null;
             $totalPagado = 0;
+            $isPagoInmediato = in_array($request->metodo_pago, ['efectivo', 'tarjeta']);
 
-            if ($request->metodo === 'pago_inmediato') {
+            if ($isPagoInmediato) {
                 $pago = Pago::create([
                     'alumno_id' => $alumno->id,
                     'user_id' => Auth::id(),
                     'total' => 0,
+                    'metodo_pago' => $request->metodo_pago,
                     'referencia_ticket' => 'POS-' . time(),
                     'fecha_pago' => now()
                 ]);
@@ -70,25 +72,46 @@ class POSController extends Controller
 
                 if ($item['tipo'] === 'adeudo_existente') {
                     $adeudo = Adeudo::find($item['id']);
-                    if ($request->metodo === 'pago_inmediato') {
+                    if ($isPagoInmediato) {
                         $montoOriginal = $adeudo->monto_calculado;
-                        $montoFinal = $montoOriginal - $descuento;
                         
-                        $adeudo->update([
-                            'status' => 'pagado',
-                            'fecha_pago' => now(),
-                            'monto_actual' => $montoFinal
-                        ]);
+                        // Si se especificó un monto de abono, usamos ese valor, de lo contrario liquidamos completo
+                        $montoPagado = isset($item['monto_pagar']) ? (float)$item['monto_pagar'] : ($montoOriginal - $descuento);
+                        if ($montoPagado > ($montoOriginal - $descuento)) {
+                            $montoPagado = $montoOriginal - $descuento;
+                        }
+                        if ($montoPagado < 0) {
+                            $montoPagado = 0;
+                        }
+                        
+                        // Monto que queda pendiente tras restar el abono y el descuento
+                        $montoRestante = $montoOriginal - $montoPagado - $descuento;
+                        if ($montoRestante <= 0.01) {
+                            // Liquidado por completo
+                            $adeudo->update([
+                                'status' => 'pagado',
+                                'fecha_pago' => now(),
+                                'monto_actual' => 0
+                            ]);
+                        } else {
+                            // Abono parcial: disminuye el monto_actual pero sigue pendiente
+                            $adeudo->update([
+                                'monto_actual' => $montoRestante
+                                // status no se actualiza a pagado
+                            ]);
+                        }
 
                         PagoDetalle::create([
                             'pago_id' => $pago->id,
                             'adeudo_id' => $adeudo->id,
                             'monto_adeudo' => $montoOriginal,
                             'descuento' => $descuento,
-                            'monto_pagado' => $montoFinal,
-                            'notas' => $descuento > 0 ? "Descuento aplicado en caja" : null
+                            'monto_pagado' => $montoPagado,
+                            'notas' => $montoRestante > 0.01 
+                                ? "Abono parcial. Restante: $" . number_format($montoRestante, 2)
+                                : ($descuento > 0 ? "Descuento aplicado en caja" : null)
                         ]);
-                        $totalPagado += $montoFinal;
+                        $totalPagado += $montoPagado;
                     }
                 } else {
                     // Es un producto nuevo
@@ -107,11 +130,11 @@ class POSController extends Controller
                         'concepto' => $producto->nombre . ($item['cantidad'] > 1 ? " (x{$item['cantidad']})" : ""),
                         'monto_base' => $montoOriginal,
                         'monto_actual' => $montoFinal,
-                        'status' => $request->metodo === 'pago_inmediato' ? 'pagado' : 'pendiente',
-                        'fecha_pago' => $request->metodo === 'pago_inmediato' ? now() : null,
+                        'status' => $isPagoInmediato ? 'pagado' : 'pendiente',
+                        'fecha_pago' => $isPagoInmediato ? now() : null,
                     ]);
 
-                    if ($request->metodo === 'pago_inmediato') {
+                    if ($isPagoInmediato) {
                         PagoDetalle::create([
                             'pago_id' => $pago->id,
                             'adeudo_id' => $adeudo->id,
@@ -137,7 +160,7 @@ class POSController extends Controller
             return response()->json([
                 'success' => true,
                 'pago_id' => $pago ? $pago->id : null,
-                'message' => $request->metodo === 'pago_inmediato' ? 'Pago procesado exitosamente.' : 'Cargos añadidos a la cuenta del alumno.'
+                'message' => $isPagoInmediato ? 'Pago procesado exitosamente.' : 'Cargos añadidos a la cuenta del alumno (A Crédito).'
             ]);
         });
     }

@@ -115,6 +115,9 @@ class AppServiceProvider extends ServiceProvider
             if ($item = $buildItem('sat_conceptos', 'Conceptos SAT', 'fas fa-fw fa-file-invoice-dollar')) {
                 $configSubmenu[] = $item;
             }
+            if ($item = $buildItem('colegiaturas-config', 'Catálogo de Colegiaturas', 'fas fa-fw fa-money-bill-alt')) {
+                $configSubmenu[] = $item;
+            }
 
             if (!empty($configSubmenu)) {
                 $adminItems[] = [

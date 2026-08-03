@@ -10,23 +10,35 @@ class ColegiaturaController extends Controller
 {
     public function index(Request $request)
     {
-        $alumnos = Alumno::with('gradoGrupo')
+        $alumnos = Alumno::with(['gradoGrupo', 'colegiaturaBase'])
                          ->orderByRaw('colegiatura IS NULL DESC')
                          ->orderBy('nombre')
                          ->get();
+        $colegiaturas = \App\Models\Colegiatura::all();
 
-        return view('colegiaturas.index', compact('alumnos'));
+        return view('colegiaturas.index', compact('alumnos', 'colegiaturas'));
     }
 
     public function update(Request $request, Alumno $alumno)
     {
         $request->validate([
+            'colegiatura_id' => 'nullable|exists:colegiaturas,id',
             'colegiatura' => 'nullable|numeric|between:0,999999.99',
         ]);
 
-        $alumno->update([
-            'colegiatura' => $request->colegiatura
-        ]);
+        $data = [];
+        if ($request->filled('colegiatura_id')) {
+            $colegiaturaBase = \App\Models\Colegiatura::find($request->colegiatura_id);
+            if ($colegiaturaBase) {
+                $data['colegiatura_id'] = $colegiaturaBase->id;
+                $data['colegiatura'] = $colegiaturaBase->monto;
+            }
+        } else {
+            $data['colegiatura_id'] = null;
+            $data['colegiatura'] = $request->colegiatura;
+        }
+
+        $alumno->update($data);
 
         return redirect()->back()->with('success', 'Monto de colegiatura actualizado.');
     }

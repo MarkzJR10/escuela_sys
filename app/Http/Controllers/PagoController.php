@@ -40,6 +40,7 @@ class PagoController extends Controller
             'adeudo_ids' => 'required|array',
             'adeudo_ids.*' => 'exists:adeudos,id',
             'descuentos' => 'nullable|array',
+            'metodo_pago' => 'required|in:efectivo,tarjeta,transferencia',
         ]);
 
         return DB::transaction(function () use ($request, $alumno) {
@@ -50,6 +51,7 @@ class PagoController extends Controller
                 'alumno_id' => $alumno->id,
                 'user_id' => auth()->id(),
                 'total' => 0, // Se actualizará al final
+                'metodo_pago' => $request->metodo_pago,
                 'referencia_ticket' => $referencia,
                 'fecha_pago' => now(),
             ]);

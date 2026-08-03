@@ -57,6 +57,20 @@
                                 @endforelse
                             </tbody>
                         </table>
+                        <div class="p-3 border-top">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-0">
+                                        <label for="metodo_pago" class="mr-2"><i class="fas fa-wallet"></i> Método de Pago:</label>
+                                        <select name="metodo_pago" id="metodo_pago" class="form-control d-inline-block" style="width: auto;" required>
+                                            <option value="efectivo">Efectivo</option>
+                                            <option value="tarjeta">Tarjeta</option>
+                                            <option value="transferencia">Transferencia</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary float-right" id="btn-pay" disabled>

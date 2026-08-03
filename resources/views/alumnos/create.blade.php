@@ -98,23 +98,36 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
-                            <label>Colegiatura Mensual (Opcional)</label>
-                            <input type="number" step="0.01" name="colegiatura" class="form-control" value="{{ old('colegiatura') }}" placeholder="0.00">
-                            @error('colegiatura') <span class="text-danger">{{ $message }}</span> @enderror
+                            <label>Colegiatura Base (Opcional)</label>
+                            <select name="colegiatura_id" id="colegiatura_id" class="form-control">
+                                <option value="">-- Personalizada --</option>
+                                @foreach($colegiaturas as $c)
+                                    <option value="{{ $c->id }}" {{ old('colegiatura_id') == $c->id ? 'selected' : '' }} data-monto="{{ $c->monto }}">
+                                        {{ $c->nombre }} (${{ number_format($c->monto, 2) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('colegiatura_id') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                 </div>
 
-
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Monto de Colegiatura ($)</label>
+                            <input type="number" step="0.01" name="colegiatura" id="colegiatura" class="form-control" value="{{ old('colegiatura') }}" placeholder="0.00">
+                            @error('colegiatura') <span class="text-danger">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label>Teléfono de Emergencia</label>
                             <input type="text" name="telefono" class="form-control" value="{{ old('telefono') }}">
                             @error('telefono') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label>Celular de Emergencia</label>
                             <input type="text" name="celular" class="form-control" value="{{ old('celular') }}">
@@ -176,6 +189,29 @@
             let fileName = $(this).val().split('\\').pop();
             $(this).next('.custom-file-label').addClass("selected").html(fileName);
         });
+
+        // Sincronizar Colegiatura Base con Monto
+        $('#colegiatura_id').change(function() {
+            var selected = $(this).find('option:selected');
+            var monto = selected.data('monto');
+            if (monto !== undefined && monto !== '') {
+                $('#colegiatura').val(monto).attr('readonly', true);
+            } else {
+                $('#colegiatura').val('').attr('readonly', false);
+            }
+        });
+
+        // Al cargar la página
+        if ($('#colegiatura_id').val() !== '') {
+            var selected = $('#colegiatura_id').find('option:selected');
+            var monto = selected.data('monto');
+            if (monto !== undefined && monto !== '') {
+                $('#colegiatura').attr('readonly', true);
+                if ($('#colegiatura').val() === '') {
+                    $('#colegiatura').val(monto);
+                }
+            }
+        }
     });
 </script>
 @endpush

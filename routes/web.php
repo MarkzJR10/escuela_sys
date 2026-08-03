@@ -45,6 +45,7 @@ use App\Http\Controllers\AsistenciaMaestroController;
 use App\Http\Controllers\PortalPadreController;
 use App\Http\Controllers\ComplementosController;
 use App\Http\Controllers\CicloController;
+use App\Http\Controllers\ColegiaturaConfigController;
 
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
@@ -189,5 +190,8 @@ Route::middleware('auth')->group(function () {
         // Rutas de Configuración General
         Route::get('configuraciones', [ConfiguracionController::class, 'index'])->name('configuraciones.index');
         Route::post('configuraciones', [ConfiguracionController::class, 'update'])->name('configuraciones.update');
+
+        // CRUD Catálogo de Colegiaturas
+        Route::resource('colegiaturas-config', ColegiaturaConfigController::class);
     });
 });

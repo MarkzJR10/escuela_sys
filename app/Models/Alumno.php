@@ -22,6 +22,7 @@ class Alumno extends Model
         'telefono',
         'celular',
         'grado_grupo_id',
+        'colegiatura_id',
         'colegiatura',
         'fotografia',
         'padre_id'
@@ -30,6 +31,11 @@ class Alumno extends Model
     public function gradoGrupo()
     {
         return $this->belongsTo(GradoGrupo::class);
+    }
+
+    public function colegiaturaBase()
+    {
+        return $this->belongsTo(Colegiatura::class, 'colegiatura_id');
     }
 
     public function adeudos()
