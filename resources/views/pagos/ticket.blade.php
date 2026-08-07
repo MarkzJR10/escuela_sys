@@ -110,7 +110,7 @@
                             <th class="text-danger">Total Descuentos:</th>
                             <td class="text-right text-danger">-${{ number_format($totalDescuentos, 2) }}</td>
                         </tr>
-                        <tr style="font-size: 1.4rem;">
+                        <tr style="font-size: 1.4rem;" class="tr-total-pagado">
                             <th>Total Pagado:</th>
                             <td class="text-right font-weight-bold">${{ number_format($pago->total, 2) }}</td>
                         </tr>
@@ -139,8 +139,8 @@
 @section('css')
 <style>
     @media print {
-        /* Ocultar interfaz del sistema */
-        nav, .main-header, .main-sidebar, .content-header, .main-footer, .no-print {
+        /* Ocultar interfaz del sistema y elementos no imprimibles */
+        nav, .main-header, .main-sidebar, .content-header, .main-footer, .no-print, #printable-ticket .no-print {
             display: none !important;
         }
 
@@ -171,8 +171,8 @@
         }
 
         /* Transformar filas y columnas a 100% para tira continua de 35mm */
-        #printable-ticket .row, 
-        #printable-ticket .col-12, 
+        #printable-ticket .row:not(.no-print), 
+        #printable-ticket .col-12:not(.no-print), 
         #printable-ticket .col-sm-4, 
         #printable-ticket .col-6 {
             display: block !important;
@@ -232,6 +232,17 @@
 
         .table-responsive {
             overflow: visible !important;
+        }
+
+        /* Ajuste específico para que Total Pagado quede alineado en 35mm */
+        .tr-total-pagado {
+            font-size: 7.5pt !important;
+        }
+
+        .tr-total-pagado th, .tr-total-pagado td {
+            font-size: 7.5pt !important;
+            font-weight: bold !important;
+            white-space: nowrap !important;
         }
 
         .lead {
