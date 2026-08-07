@@ -16,8 +16,12 @@
         <div class="card card-primary">
             <div class="card-header">
                 <form action="{{ route('contabilidad.ventas') }}" method="GET" class="form-inline">
-                    <label for="fecha" class="mr-2">Fecha de consulta:</label>
-                    <input type="date" name="fecha" id="fecha" class="form-control mr-2" value="{{ $fecha }}">
+                    <label for="fecha_inicio" class="mr-2">Desde:</label>
+                    <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control mr-3" value="{{ $fechaInicio }}">
+                    
+                    <label for="fecha_fin" class="mr-2">Hasta:</label>
+                    <input type="date" name="fecha_fin" id="fecha_fin" class="form-control mr-3" value="{{ $fechaFin }}">
+                    
                     <button type="submit" class="btn btn-dark"><i class="fas fa-search"></i> Buscar</button>
                 </form>
             </div>
@@ -28,7 +32,7 @@
                         <thead class="thead-dark">
                             <tr>
                                 <th>Folio Ticket</th>
-                                <th>Hora</th>
+                                <th>Fecha y Hora</th>
                                 <th>Cajero</th>
                                 <th>Alumno</th>
                                 <th>Conceptos</th>
@@ -40,7 +44,7 @@
                             @foreach($pagos as $pago)
                             <tr>
                                 <td><span class="badge badge-info">#{{ str_pad($pago->id, 6, '0', STR_PAD_LEFT) }}</span><br><small>{{ $pago->referencia_ticket }}</small></td>
-                                <td>{{ $pago->fecha_pago->format('h:i A') }}</td>
+                                <td>{{ $pago->fecha_pago->format('d/m/Y h:i A') }}</td>
                                 <td>{{ $pago->cajero->name ?? 'Sistema' }}</td>
                                 <td>{{ $pago->alumno->nombre ?? 'Venta' }} {{ $pago->alumno->apellido_paterno ?? 'Público' }}</td>
                                 <td>
@@ -67,7 +71,7 @@
                         </tbody>
                     </table>
                 @else
-                    <div class="alert alert-info">No se encontraron ventas completadas para la fecha seleccionada.</div>
+                    <div class="alert alert-info">No se encontraron ventas completadas para el rango de fechas seleccionado.</div>
                 @endif
             </div>
         </div>

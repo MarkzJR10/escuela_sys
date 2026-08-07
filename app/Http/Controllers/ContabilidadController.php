@@ -22,15 +22,16 @@ class ContabilidadController extends Controller
      */
     public function listaVentas(Request $request)
     {
-        $fecha = $request->input('fecha', now()->toDateString());
+        $fechaInicio = $request->input('fecha_inicio', $request->input('fecha', now()->toDateString()));
+        $fechaFin = $request->input('fecha_fin', $request->input('fecha', now()->toDateString()));
         
         $pagos = Pago::with(['alumno', 'cajero', 'detalles.adeudo'])
-            ->whereDate('fecha_pago', $fecha)
+            ->whereBetween(DB::raw('DATE(fecha_pago)'), [$fechaInicio, $fechaFin])
             ->where('status', 'completado')
             ->orderBy('id', 'desc')
             ->get();
 
-        return view('contabilidad.lista_ventas', compact('pagos', 'fecha'));
+        return view('contabilidad.lista_ventas', compact('pagos', 'fechaInicio', 'fechaFin'));
     }
 
     /**
