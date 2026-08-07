@@ -54,9 +54,24 @@
                 <div class="tab-content" id="pos-tabs-content">
                     <!-- Catálogo de Productos -->
                     <div class="tab-pane fade show active" id="tabs-productos" role="tabpanel">
-                        <div class="row">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    </div>
+                                    <input type="text" id="product-search-input" class="form-control" placeholder="Buscar producto por nombre...">
+                                    <div class="input-group-append" id="btn-clear-prod-search" style="display: none;">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="clearProductSearch()">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" id="product-list-container">
                             @foreach($productos as $producto)
-                                <div class="col-md-4 col-sm-6 mb-3">
+                                <div class="col-md-4 col-sm-6 mb-3 product-card-wrapper" data-nombre="{{ strtolower($producto->nombre) }}">
                                     <div class="info-box bg-white shadow-sm h-100 product-card {{ $producto->stock <= 0 ? 'opacity-50' : '' }}" 
                                          onclick="{{ $producto->stock > 0 ? 'addToCart('.json_encode($producto).', \'producto\')' : 'toastr.error(\'Producto agotado.\')' }}">
                                         <span class="info-box-icon {{ $producto->stock > 0 ? 'bg-info' : 'bg-secondary' }}"><i class="fas fa-tag"></i></span>
@@ -74,6 +89,10 @@
                                     </div>
                                 </div>
                             @endforeach
+                            <div class="col-12 text-center text-muted py-4" id="no-products-found" style="display: none;">
+                                <i class="fas fa-box-open fa-2x mb-2 d-block"></i>
+                                <p class="mb-0">No se encontraron productos que coincidan con la búsqueda.</p>
+                            </div>
                         </div>
                     </div>
                     <!-- Adeudos Pendientes -->
@@ -189,7 +208,38 @@
                 $('#search-results').hide();
             }
         });
+
+        // Buscador de Productos en tiempo real
+        $('#product-search-input').on('keyup input', function() {
+            let term = $(this).val().toLowerCase().trim();
+            if (term.length > 0) {
+                $('#btn-clear-prod-search').show();
+            } else {
+                $('#btn-clear-prod-search').hide();
+            }
+
+            let matches = 0;
+            $('.product-card-wrapper').each(function() {
+                let nombre = $(this).attr('data-nombre') || '';
+                if (nombre.includes(term)) {
+                    $(this).show();
+                    matches++;
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            if (matches === 0 && $('.product-card-wrapper').length > 0) {
+                $('#no-products-found').show();
+            } else {
+                $('#no-products-found').hide();
+            }
+        });
     });
+
+    function clearProductSearch() {
+        $('#product-search-input').val('').trigger('input');
+    }
 
     function selectAlumno(alumno) {
         selectedAlumno = alumno;
