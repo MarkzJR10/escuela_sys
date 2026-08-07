@@ -3,134 +3,114 @@
 @section('title', 'Ticket de Pago ' . $pago->referencia_ticket)
 
 @section('content_header')
-    <h1>Comprobante de Pago</h1>
+    <h1 class="no-print">Comprobante de Pago</h1>
 @stop
 
 @section('content')
-    <div class="invoice p-3 mb-3" id="printable-ticket">
-        <!-- title row -->
-        <div class="row">
-            <div class="col-12">
-                <h4>
-                    <i class="fas fa-school"></i> Sistema Escolar
-                    <small class="float-right">Fecha: {{ $pago->fecha_pago->format('d/m/Y H:i') }}</small>
-                </h4>
-            </div>
-            <!-- /.col -->
-        </div>
-        <!-- info row -->
-        <div class="row invoice-info">
-            <div class="col-sm-4 invoice-col">
-                De
-                <address>
-                    <strong>Departamento de Caja</strong><br>
-                    Cajero: {{ $pago->cajero->name }}<br>
-                    ID Cajero: #{{ $pago->user_id }}
-                </address>
-            </div>
-            <!-- /.col -->
-            <div class="col-sm-4 invoice-col">
-                Para
-                <address>
-                    <strong>{{ $pago->alumno->nombre }} {{ $pago->alumno->apellido_paterno }} {{ $pago->alumno->apellido_materno }}</strong><br>
-                    Matrícula: <code>{{ $pago->alumno->matricula }}</code><br>
-                    Grado: {{ $pago->alumno->gradoGrupo->grado }} {{ $pago->alumno->gradoGrupo->grupo }}
-                </address>
-            </div>
-            <!-- /.col -->
-            <div class="col-sm-4 invoice-col">
-                <b>Ticket #{{ $pago->referencia_ticket }}</b><br>
-                <br>
-                <b>Fecha de Pago:</b> {{ $pago->fecha_pago->format('d/m/Y') }}<br>
-                @if($pago->metodo_pago)
-                    <b>Método de Pago:</b> {{ ucfirst($pago->metodo_pago) }}<br>
-                @endif
-                <b>Estado:</b> <span class="badge badge-success">PAGADO</span>
-            </div>
-            <!-- /.col -->
-        </div>
-        <!-- /.row -->
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card card-outline card-primary shadow-sm" id="printable-ticket">
+                <div class="card-body p-3">
+                    <!-- Encabezado del Ticket -->
+                    <div class="text-center ticket-header mb-2">
+                        <h5 class="font-weight-bold mb-1"><i class="fas fa-school"></i> Sistema Escolar</h5>
+                        <div class="small">Ticket #<strong>{{ $pago->referencia_ticket }}</strong></div>
+                        <div class="small text-muted ticket-fecha">Fecha: {{ $pago->fecha_pago->format('d/m/Y H:i') }}</div>
+                    </div>
 
-        <!-- Table row -->
-        <div class="row mt-4">
-            <div class="col-12 table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Concepto</th>
-                            <th class="text-right">Monto Original</th>
-                            <th class="text-right">Descuento Aplicado</th>
-                            <th class="text-right">Importe Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php $totalDescuentos = 0; $totalOriginal = 0; @endphp
-                        @foreach($pago->detalles as $detalle)
-                            <tr>
-                                <td>
-                                    {{ $detalle->adeudo->tipo == 'colegiatura' ? 'Colegiatura ' . $detalle->adeudo->mes_nombre . ' ' . $detalle->adeudo->anio : $detalle->adeudo->concepto }}
-                                    @if($detalle->notas)
-                                        <br><small class="text-info"><em>Nota: {{ $detalle->notas }}</em></small>
-                                    @endif
-                                </td>
-                                <td class="text-right">${{ number_format($detalle->monto_adeudo, 2) }}</td>
-                                <td class="text-right text-danger">-${{ number_format($detalle->descuento, 2) }}</td>
-                                <td class="text-right font-weight-bold">${{ number_format($detalle->monto_pagado, 2) }}</td>
+                    <div class="ticket-divider"></div>
+
+                    <!-- Datos del Alumno y Cajero -->
+                    <div class="ticket-info small my-2">
+                        <div><strong>Cajero:</strong> {{ $pago->cajero->name }}</div>
+                        <div><strong>Alumno:</strong> {{ $pago->alumno->nombre }} {{ $pago->alumno->apellido_paterno }} {{ $pago->alumno->apellido_materno }}</div>
+                        <div><strong>Matrícula:</strong> {{ $pago->alumno->matricula }}</div>
+                        <div><strong>Grado:</strong> {{ $pago->alumno->gradoGrupo->grado }} {{ $pago->alumno->gradoGrupo->grupo }}</div>
+                        @if($pago->metodo_pago)
+                            <div><strong>Método Pago:</strong> {{ ucfirst($pago->metodo_pago) }}</div>
+                        @endif
+                    </div>
+
+                    <div class="ticket-divider"></div>
+
+                    <!-- Tabla de Conceptos -->
+                    <table class="table table-borderless table-sm ticket-table my-2">
+                        <thead>
+                            <tr class="border-bottom">
+                                <th>Concepto</th>
+                                <th class="text-right">Total</th>
                             </tr>
-                            @php 
-                                $totalOriginal += $detalle->monto_adeudo; 
-                                $totalDescuentos += $detalle->descuento; 
-                            @endphp
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <!-- /.col -->
-        </div>
-        <!-- /.row -->
-
-        <div class="row">
-            <!-- accepted payments column -->
-            <div class="col-6">
-                <p class="lead">Notas Generales:</p>
-                <p class="text-muted well well-sm shadow-none" style="margin-top: 10px;">
-                    Este ticket sirve como comprobante oficial de pago para el ciclo escolar vigente.
-                    Consérvelo para cualquier aclaración futura.
-                </p>
-            </div>
-            <!-- /.col -->
-            <div class="col-6">
-                <div class="table-responsive">
-                    <table class="table">
-                        <tr>
-                            <th style="width:50%">Subtotal:</th>
-                            <td class="text-right">${{ number_format($totalOriginal, 2) }}</td>
-                        </tr>
-                        <tr>
-                            <th class="text-danger">Total Descuentos:</th>
-                            <td class="text-right text-danger">-${{ number_format($totalDescuentos, 2) }}</td>
-                        </tr>
-                        <tr style="font-size: 1.4rem;">
-                            <th>Total Pagado:</th>
-                            <td class="text-right font-weight-bold">${{ number_format($pago->total, 2) }}</td>
-                        </tr>
+                        </thead>
+                        <tbody>
+                            @php $totalDescuentos = 0; $totalOriginal = 0; @endphp
+                            @foreach($pago->detalles as $detalle)
+                                <tr>
+                                    <td>
+                                        {{ $detalle->adeudo->tipo == 'colegiatura' ? 'Colegiatura ' . $detalle->adeudo->mes_nombre . ' ' . $detalle->adeudo->anio : $detalle->adeudo->concepto }}
+                                        @if($detalle->descuento > 0)
+                                            <br><small class="text-danger">(Desc: -${{ number_format($detalle->descuento, 2) }})</small>
+                                        @endif
+                                        @if($detalle->notas)
+                                            <br><small class="text-muted"><em>{{ $detalle->notas }}</em></small>
+                                        @endif
+                                    </td>
+                                    <td class="text-right font-weight-bold align-top">
+                                        ${{ number_format($detalle->monto_pagado, 2) }}
+                                    </td>
+                                </tr>
+                                @php 
+                                    $totalOriginal += $detalle->monto_adeudo; 
+                                    $totalDescuentos += $detalle->descuento; 
+                                @endphp
+                            @endforeach
+                        </tbody>
                     </table>
+
+                    <div class="ticket-divider"></div>
+
+                    <!-- Totales -->
+                    <div class="ticket-totals small my-2">
+                        <div class="d-flex justify-content-between">
+                            <span>Subtotal:</span>
+                            <span>${{ number_format($totalOriginal, 2) }}</span>
+                        </div>
+                        @if($totalDescuentos > 0)
+                            <div class="d-flex justify-content-between text-danger">
+                                <span>Descuentos:</span>
+                                <span>-${{ number_format($totalDescuentos, 2) }}</span>
+                            </div>
+                        @endif
+                        <div class="d-flex justify-content-between font-weight-bold mt-1" style="font-size: 1.1em;">
+                            <span>Total Pagado:</span>
+                            <span>${{ number_format($pago->total, 2) }}</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-divider"></div>
+
+                    <!-- Mensaje Final -->
+                    <div class="text-center small ticket-footer mt-2">
+                        <p class="mb-0 font-weight-bold">¡Gracias por su pago!</p>
+                        <p class="text-muted mb-0" style="font-size: 0.85em;">Comprobante oficial de pago.</p>
+                    </div>
                 </div>
             </div>
-            <!-- /.col -->
-        </div>
-        <!-- /.row -->
 
-        <!-- this row will not appear when printing -->
-        <div class="row no-print">
-            <div class="col-12">
-                <button type="button" onclick="window.print();" class="btn btn-default"><i class="fas fa-print"></i> Imprimir</button>
-                <a href="{{ route('pagos.index') }}" class="btn btn-primary float-right" style="margin-right: 5px;">
-                    <i class="fas fa-plus"></i> Nuevo Cobro
-                </a>
-                <a href="{{ route('cartera.index') }}" class="btn btn-info float-right" style="margin-right: 5px;">
-                    <i class="fas fa-search"></i> Buscar Otro Alumno
-                </a>
+            <!-- Botones (No imprimibles) -->
+            <div class="row no-print mb-4">
+                <div class="col-12">
+                    <button type="button" onclick="window.print();" class="btn btn-success btn-block mb-2">
+                        <i class="fas fa-print"></i> Imprimir Ticket (Impresora Térmica 35mm)
+                    </button>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ route('pagos.index') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Nuevo Cobro
+                        </a>
+                        <a href="{{ route('cartera.index') }}" class="btn btn-info btn-sm">
+                            <i class="fas fa-search"></i> Buscar Otro Alumno
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -138,9 +118,89 @@
 
 @section('css')
 <style>
+    .ticket-divider {
+        border-top: 1px dashed #999;
+        margin: 8px 0;
+    }
+
     @media print {
-        .no-print {
+        /* Ocultar interfaz del sistema */
+        nav, .main-header, .main-sidebar, .content-header, .main-footer, .no-print, .card-header {
             display: none !important;
+        }
+
+        body, .content-wrapper, .wrapper, .container-fluid, .row, .col-md-6, .col-lg-5 {
+            background: #fff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        @page {
+            size: 35mm auto;
+            margin: 0mm;
+        }
+
+        #printable-ticket {
+            width: 35mm !important;
+            max-width: 35mm !important;
+            margin: 0 auto !important;
+            padding: 1mm !important;
+            font-family: 'Courier New', Courier, monospace, sans-serif !important;
+            font-size: 7.5pt !important;
+            line-height: 1.15 !important;
+            color: #000 !important;
+            background: #fff !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+        #printable-ticket .card-body {
+            padding: 1mm !important;
+        }
+
+        #printable-ticket h5 {
+            font-size: 8.5pt !important;
+            margin-bottom: 2px !important;
+        }
+
+        #printable-ticket .small, #printable-ticket div, #printable-ticket p {
+            font-size: 7pt !important;
+        }
+
+        .ticket-divider {
+            border-top: 1px dashed #000 !important;
+            margin: 3px 0 !important;
+        }
+
+        .ticket-table {
+            width: 100% !important;
+            margin: 3px 0 !important;
+        }
+
+        .ticket-table th, .ticket-table td {
+            padding: 1px 0 !important;
+            font-size: 6.5pt !important;
+            border: none !important;
+        }
+
+        .ticket-table thead tr {
+            border-bottom: 1px dashed #000 !important;
+        }
+
+        .ticket-totals {
+            font-size: 7pt !important;
+        }
+
+        .ticket-footer {
+            font-size: 6pt !important;
+        }
+
+        .text-muted {
+            color: #000 !important;
         }
     }
 </style>
