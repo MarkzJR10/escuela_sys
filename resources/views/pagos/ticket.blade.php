@@ -235,35 +235,33 @@
             display: none !important;
         }
 
-        /* Mostrar ÚNICAMENTE la plantilla térmica especial */
-        .thermal-print-only {
-            display: block !important;
-            width: 58mm !important;
-            max-width: 58mm !important;
-            margin: 0 auto !important;
-            padding: 2px !important;
-            box-sizing: border-box !important;
+        @page {
+            size: auto;
+            margin: 0;
         }
 
         html, body, .wrapper, .content-wrapper, .container-fluid, .content {
-            background: #ffffff !important;
+            display: block !important;
+            width: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: 100% !important;
+            background: #ffffff !important;
             box-shadow: none !important;
             border: none !important;
         }
 
-        @page {
-            size: 58mm auto;
-            margin: 0mm;
-        }
-
+        /* Mostrar ÚNICAMENTE la plantilla térmica especial a ancho completo */
         .thermal-print-only {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 2px 0 !important;
             font-family: 'Courier New', Courier, monospace, sans-serif !important;
-            font-size: 8.5pt !important;
-            line-height: 1.2 !important;
+            font-size: 9.5pt !important;
+            line-height: 1.25 !important;
             color: #000000 !important;
+            box-sizing: border-box !important;
         }
 
         .t-center { text-align: center !important; }
@@ -272,12 +270,12 @@
         .t-top { vertical-align: top !important; }
         
         .t-title {
-            font-size: 10.5pt !important;
+            font-size: 11pt !important;
             font-weight: bold !important;
         }
 
         .t-subtitle {
-            font-size: 8pt !important;
+            font-size: 8.5pt !important;
         }
 
         .t-line {
@@ -286,7 +284,7 @@
         }
 
         .t-info {
-            font-size: 8pt !important;
+            font-size: 9pt !important;
         }
 
         .t-table {
@@ -295,28 +293,28 @@
         }
 
         .t-table th, .t-table td {
-            font-size: 8pt !important;
+            font-size: 9pt !important;
             padding: 1px 0 !important;
         }
 
         .t-subnote {
-            font-size: 7.5pt !important;
+            font-size: 8pt !important;
         }
 
         .t-row {
             display: flex !important;
             justify-content: space-between !important;
-            font-size: 8.5pt !important;
+            font-size: 9pt !important;
         }
 
         .t-total {
-            font-size: 10.5pt !important;
+            font-size: 11pt !important;
             font-weight: bold !important;
             margin-top: 3px !important;
         }
 
         .t-footer {
-            font-size: 7.5pt !important;
+            font-size: 8pt !important;
             margin-top: 3px !important;
         }
     }
