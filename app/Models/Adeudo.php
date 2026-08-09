@@ -26,6 +26,11 @@ class Adeudo extends Model
         return $this->belongsTo(Alumno::class);
     }
 
+    public function pagoDetalle()
+    {
+        return $this->hasOne(PagoDetalle::class);
+    }
+
     /**
      * Calcula el monto actual basado en la fecha del sistema o una fecha dada.
      * 

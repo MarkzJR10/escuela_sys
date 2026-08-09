@@ -32,9 +32,16 @@
             <div class="col-sm-4 invoice-col">
                 Para
                 <address>
-                    <strong>{{ $pago->alumno->nombre }} {{ $pago->alumno->apellido_paterno }} {{ $pago->alumno->apellido_materno }}</strong><br>
-                    Matrícula: <code>{{ $pago->alumno->matricula }}</code><br>
-                    Grado: {{ $pago->alumno->gradoGrupo->grado }} {{ $pago->alumno->gradoGrupo->grupo }}
+                    @if($pago->alumno && $pago->alumno->padre)
+                        <strong>Tutor: {{ $pago->alumno->padre->nombre }} {{ $pago->alumno->padre->apellido_paterno }}</strong><br>
+                        <small class="text-muted">Alumno: {{ $pago->alumno->nombre }} {{ $pago->alumno->apellido_paterno }} (Matrícula: {{ $pago->alumno->matricula }})</small><br>
+                    @else
+                        <strong>{{ $pago->alumno->nombre ?? 'Cliente' }} {{ $pago->alumno->apellido_paterno ?? '' }} {{ $pago->alumno->apellido_materno ?? '' }}</strong><br>
+                        @if($pago->alumno)
+                            Matrícula: <code>{{ $pago->alumno->matricula }}</code><br>
+                            Grado: {{ $pago->alumno->gradoGrupo->grado ?? '' }} {{ $pago->alumno->gradoGrupo->grupo ?? '' }}
+                        @endif
+                    @endif
                 </address>
             </div>
             <!-- /.col -->

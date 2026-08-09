@@ -180,25 +180,31 @@
 
 @section('js')
 <script>
-    let selectedAlumno = null;
+    let selectedCliente = null; // { tipo: 'alumno'|'padre', id, nombre, info, raw }
+    let hijosList = []; // Si es padre
     let cart = [];
 
     $(document).ready(function() {
         $('#alumno-search').on('keyup', function() {
             let term = $(this).val();
-            if (term.length < 3) {
+            if (term.length < 2) {
                 $('#search-results').hide();
                 return;
             }
 
             $.get('{{ route("pos.buscar_alumno") }}', { term: term }, function(data) {
                 let html = '';
-                data.forEach(alumno => {
-                    html += `<a href="#" class="list-group-item list-group-item-action" onclick="selectAlumno(${JSON.stringify(alumno).replace(/"/g, '&quot;')})">
-                        <strong>${alumno.nombre} ${alumno.apellido_paterno}</strong><br>
-                        <small>Matrícula: ${alumno.matricula} | ${alumno.grado_grupo.grado} ${alumno.grado_grupo.grupo}</small>
-                    </a>`;
-                });
+                if (data.length === 0) {
+                    html = '<div class="list-group-item text-muted">No se encontraron resultados</div>';
+                } else {
+                    data.forEach(item => {
+                        let icon = item.tipo === 'padre' ? '<i class="fas fa-user-tie text-primary mr-1"></i>' : '<i class="fas fa-user-graduate text-success mr-1"></i>';
+                        html += `<a href="#" class="list-group-item list-group-item-action" onclick="selectCliente(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                            <strong>${icon}${item.nombre}</strong><br>
+                            <small class="text-muted">${item.info}</small>
+                        </a>`;
+                    });
+                }
                 $('#search-results').html(html).show();
             });
         });
@@ -241,31 +247,39 @@
         $('#product-search-input').val('').trigger('input');
     }
 
-    function selectAlumno(alumno) {
-        selectedAlumno = alumno;
+    function selectCliente(cliente) {
+        selectedCliente = cliente;
         $('#alumno-search').val('');
         $('#search-results').hide();
         $('#selected-alumno').show();
-        $('#alumno-nombre').text(`${alumno.nombre} ${alumno.apellido_paterno} ${alumno.apellido_materno || ''}`);
-        $('#alumno-info').text(`Matrícula: ${alumno.matricula} | ${alumno.grado_grupo.grado} ${alumno.grado_grupo.grupo}`);
+        $('#alumno-nombre').html(`${cliente.tipo === 'padre' ? '<i class="fas fa-user-tie text-primary mr-2"></i>' : '<i class="fas fa-user-graduate text-success mr-2"></i>'}${cliente.nombre}`);
+        $('#alumno-info').text(cliente.info);
+
+        if (cliente.tipo === 'padre') {
+            hijosList = cliente.raw.alumnos || [];
+        } else {
+            hijosList = [cliente.raw];
+        }
+
         updateButtons();
-        loadAdeudos(alumno.id);
+        loadAdeudos(cliente.id, cliente.tipo);
     }
 
     function resetPOS() {
-        selectedAlumno = null;
+        selectedCliente = null;
+        hijosList = [];
         cart = [];
         $('#selected-alumno').hide();
-        $('#adeudos-list').html('<p class="text-center text-muted p-4">Selecciona un alumno para ver sus adeudos.</p>');
+        $('#adeudos-list').html('<p class="text-center text-muted p-4">Selecciona un alumno o padre para ver sus adeudos.</p>');
         renderCart();
         updateButtons();
     }
 
-    function loadAdeudos(alumnoId) {
-        $.get(`{{ url('pos/adeudos') }}/${alumnoId}`, function(data) {
+    function loadAdeudos(clienteId, tipoCliente) {
+        $.get(`{{ url('pos/adeudos') }}/${clienteId}`, { tipo_cliente: tipoCliente }, function(data) {
             let html = '';
             if (data.length === 0) {
-                html = '<p class="text-center text-muted p-4">No tiene adeudos pendientes.</p>';
+                html = '<p class="text-center text-muted p-4">No hay adeudos pendientes para este cliente/hijos.</p>';
             } else {
                 data.forEach(adeudo => {
                     let statusClass = 'secondary';
@@ -273,13 +287,15 @@
                     if (adeudo.status === 'pendiente') statusClass = 'warning';
                     if (adeudo.status === 'programado') statusClass = 'info';
 
+                    let tagHijo = tipoCliente === 'padre' ? `<span class="badge badge-light border border-secondary text-dark ml-2"><i class="fas fa-child text-info mr-1"></i>${adeudo.alumno_nombre}</span>` : '';
+
                     html += `<div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" onclick="addToCart(${JSON.stringify(adeudo).replace(/"/g, '&quot;')}, 'adeudo_existente')">
                         <div>
                             <span class="badge badge-${statusClass} mr-2">${adeudo.status.toUpperCase()}</span>
-                            <strong>${adeudo.concepto}</strong><br>
+                            <strong>${adeudo.concepto}</strong>${tagHijo}<br>
                             <small class="text-muted">${adeudo.periodo || ''}</small>
                         </div>
-                        <span class="h6 mb-0">$${parseFloat(adeudo.monto_calculado).toFixed(2)}</span>
+                        <span class="h6 mb-0 text-primary font-weight-bold">$${parseFloat(adeudo.monto_calculado).toFixed(2)}</span>
                     </div>`;
                 });
             }
@@ -288,8 +304,8 @@
     }
 
     function addToCart(item, tipo) {
-        if (!selectedAlumno) {
-            toastr.warning('Primero selecciona un alumno.');
+        if (!selectedCliente) {
+            toastr.warning('Primero selecciona un Alumno o Padre/Tutor.');
             return;
         }
 
@@ -304,6 +320,7 @@
             toastr.info('Este adeudo ya está en el carrito.');
             return;
         } else {
+            let defaultAlumnoId = (selectedCliente.tipo === 'padre' && hijosList.length > 0) ? hijosList[0].id : (item.alumno_id || selectedCliente.id);
             cart.push({
                 id: item.id,
                 nombre: tipo === 'producto' ? item.nombre : item.concepto,
@@ -312,6 +329,7 @@
                 cantidad: 1,
                 descuento: 0,
                 notas: '',
+                alumno_id: item.alumno_id || defaultAlumnoId,
                 monto_pagar: tipo === 'adeudo_existente' ? parseFloat(item.monto_calculado) : null,
                 stock: tipo === 'producto' ? item.stock : null
             });
@@ -336,12 +354,16 @@
 
     function updateDiscount(index, value) {
         cart[index].descuento = parseFloat(value) || 0;
-        renderCart(false); // No volver a renderizar los inputs para no perder el foco
+        renderCart(false);
         updateTotalOnly();
     }
 
     function updateNotas(index, value) {
         cart[index].notas = value;
+    }
+
+    function updateItemAlumno(index, alumnoId) {
+        cart[index].alumno_id = parseInt(alumnoId);
     }
 
     function removeFromCart(index) {
@@ -385,6 +407,19 @@
                     `;
                 }
 
+                // Selector de hijo si el cliente seleccionado es Padre
+                let selectorHijoHtml = '';
+                if (selectedCliente && selectedCliente.tipo === 'padre' && hijosList.length > 0) {
+                    let options = hijosList.map(h => `<option value="${h.id}" ${item.alumno_id == h.id ? 'selected' : ''}>${h.nombre} ${h.apellido_paterno}</option>`).join('');
+                    selectorHijoHtml = `
+                        <div class="mt-1">
+                            <select class="form-control form-control-sm text-info font-weight-bold" onchange="updateItemAlumno(${index}, this.value)">
+                                ${options}
+                            </select>
+                        </div>
+                    `;
+                }
+
                 let notaHtml = `
                     <div class="mt-1">
                         <input type="text" class="form-control form-control-sm" 
@@ -405,6 +440,7 @@
                     <td>
                         <small class="badge badge-${item.tipo === 'producto' ? 'info' : 'warning'}">${item.tipo === 'producto' ? 'P' : 'A'}</small> 
                         <strong>${item.nombre}</strong>
+                        ${selectorHijoHtml}
                         <div class="mt-1">
                             ${inputHtml}
                             ${notaHtml}
@@ -441,7 +477,6 @@
         
         $('#btn-cobrar').prop('disabled', !hasCart);
 
-        // Si el carrito tiene adeudos existentes, no se permite "A Crédito"
         if (!hasOnlyProducts) {
             $('#metodo-credito').prop('disabled', true);
             $('#metodo-credito-wrapper').addClass('text-muted');
@@ -449,7 +484,6 @@
                 $('#metodo-efectivo').prop('checked', true).trigger('change');
             }
         } else {
-            // Permitir "A Crédito" si sólo hay productos nuevos
             $('#metodo-credito').prop('disabled', false);
             $('#metodo-credito-wrapper').removeClass('text-muted');
         }
@@ -473,7 +507,7 @@
     });
 
     function submitPOSSale() {
-        if (!selectedAlumno || cart.length === 0) return;
+        if (!selectedCliente || cart.length === 0) return;
 
         let metodoPago = $('input[name="pos_metodo_pago"]:checked').val();
         let title = '¿Procesar Cobro?';
@@ -495,12 +529,13 @@
             preConfirm: () => {
                 return $.post('{{ route("pos.procesar") }}', {
                     _token: '{{ csrf_token() }}',
-                    alumno_id: selectedAlumno.id,
+                    tipo_cliente: selectedCliente.tipo,
+                    cliente_id: selectedCliente.id,
                     items: cart,
                     metodo_pago: metodoPago
                 }).catch(error => {
                     Swal.showValidationMessage(
-                        `Error: ${error.responseJSON.message || 'No se pudo procesar la venta'}`
+                        `Error: ${error.responseJSON ? (error.responseJSON.message || 'No se pudo procesar la venta') : 'Error de servidor'}`
                     );
                 });
             },
@@ -509,7 +544,6 @@
             if (result.value && result.value.success) {
                 const response = result.value;
                 
-                // Si hay pago, intentamos abrir el ticket inmediatamente
                 if (response.pago_id) {
                     const ticketUrl = `{{ url('pagos/ticket') }}/${response.pago_id}`;
                     window.open(ticketUrl, '_blank');

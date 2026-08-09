@@ -45,7 +45,7 @@ class ColegiaturaController extends Controller
 
     public function adeudos(Alumno $alumno)
     {
-        $adeudos = $alumno->adeudos()->orderBy('periodo', 'desc')->get();
+        $adeudos = $alumno->adeudos()->with('pagoDetalle.pago')->orderBy('periodo', 'desc')->get();
         return view('adeudos.index', compact('alumno', 'adeudos'));
     }
 }

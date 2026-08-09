@@ -34,7 +34,8 @@
                                 <th>Folio Ticket</th>
                                 <th>Fecha y Hora</th>
                                 <th>Cajero</th>
-                                <th>Alumno</th>
+                                <th>Padre / Tutor</th>
+                                <th>Alumno(s)</th>
                                 <th>Conceptos</th>
                                 <th class="text-right">Total</th>
                                 <th>Acciones</th>
@@ -42,11 +43,41 @@
                         </thead>
                         <tbody>
                             @foreach($pagos as $pago)
+                            @php
+                                // Obtener todos los alumnos asociados a los detalles del ticket
+                                $alumnosDetalles = $pago->detalles->map(function($d) {
+                                    return $d->adeudo ? $d->adeudo->alumno : null;
+                                })->filter()->unique('id');
+
+                                if ($alumnosDetalles->isEmpty() && $pago->alumno) {
+                                    $alumnosDetalles = collect([$pago->alumno]);
+                                }
+
+                                // Obtener padre/tutor si existe
+                                $padreObj = $pago->alumno->padre ?? null;
+                            @endphp
                             <tr>
                                 <td><span class="badge badge-info">#{{ str_pad($pago->id, 6, '0', STR_PAD_LEFT) }}</span><br><small>{{ $pago->referencia_ticket }}</small></td>
                                 <td>{{ $pago->fecha_pago->format('d/m/Y h:i A') }}</td>
                                 <td>{{ $pago->cajero->name ?? 'Sistema' }}</td>
-                                <td>{{ $pago->alumno->nombre ?? 'Venta' }} {{ $pago->alumno->apellido_paterno ?? 'Público' }}</td>
+                                <td>
+                                    @if($padreObj)
+                                        <i class="fas fa-user-tie text-primary mr-1"></i><strong>{{ $padreObj->nombre }} {{ $padreObj->apellido_paterno }}</strong>
+                                    @else
+                                        <span class="text-muted">---</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($alumnosDetalles->isNotEmpty())
+                                        <ul class="list-unstyled mb-0 pl-0">
+                                            @foreach($alumnosDetalles as $al)
+                                                <li><i class="fas fa-user-graduate text-success mr-1"></i>{{ $al->nombre }} {{ $al->apellido_paterno }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        <span class="text-muted">General</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <ul class="list-unstyled mb-0 pl-0">
                                         @foreach($pago->detalles as $detalle)
@@ -92,7 +123,7 @@
             "responsive": true,
             "order": [[0, "desc"]],
             "columnDefs": [
-                { "orderable": false, "targets": 6 }
+                { "orderable": false, "targets": 7 }
             ]
         });
     });

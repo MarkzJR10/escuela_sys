@@ -25,7 +25,7 @@ class ContabilidadController extends Controller
         $fechaInicio = $request->input('fecha_inicio', $request->input('fecha', now()->toDateString()));
         $fechaFin = $request->input('fecha_fin', $request->input('fecha', now()->toDateString()));
         
-        $pagos = Pago::with(['alumno', 'cajero', 'detalles.adeudo'])
+        $pagos = Pago::with(['alumno.padre', 'cajero', 'detalles.adeudo.alumno'])
             ->whereBetween(DB::raw('DATE(fecha_pago)'), [$fechaInicio, $fechaFin])
             ->where('status', 'completado')
             ->orderBy('id', 'desc')
