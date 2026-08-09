@@ -146,67 +146,67 @@
 @section('css')
 <style>
     @media print {
-        /* Ocultar interfaz del sistema y elementos no imprimibles */
-        nav, .main-header, .main-sidebar, .content-header, .main-footer, .no-print, #printable-ticket .no-print {
+        /* Ocultar elementos de navegación y botones no imprimibles */
+        nav, .main-header, .main-sidebar, .content-header, .main-footer, .no-print, .btn, form, iframe {
             display: none !important;
         }
 
-        html, body {
-            width: 58mm !important;
+        /* Forzar que el ticket permanezca visible y centrado/escalado */
+        html, body, .wrapper, .content-wrapper, .container-fluid, .content {
+            display: block !important;
+            visibility: visible !important;
+            background: #ffffff !important;
+            color: #000000 !important;
             margin: 0 !important;
             padding: 0 !important;
-            background: #fff !important;
-            color: #000 !important;
-        }
-
-        .content-wrapper, .wrapper, .container-fluid, .content {
-            background: #fff !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            width: 58mm !important;
-            max-width: 58mm !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
         }
 
         @page {
-            size: 58mm auto;
+            size: auto;
             margin: 0mm;
         }
 
         #printable-ticket {
-            width: 48mm !important;
-            max-width: 48mm !important;
+            display: block !important;
+            visibility: visible !important;
+            width: 58mm !important;
+            max-width: 100% !important;
             margin: 0 auto !important;
-            padding: 1mm !important;
-            font-family: Arial, Helvetica, sans-serif, monospace !important;
-            font-size: 8pt !important;
+            padding: 4px 2px !important;
+            font-family: 'Courier New', Courier, monospace, sans-serif !important;
+            font-size: 8.5pt !important;
             line-height: 1.2 !important;
-            color: #000 !important;
-            background: #fff !important;
+            color: #000000 !important;
+            background: #ffffff !important;
             border: none !important;
             box-shadow: none !important;
-            box-sizing: border-box !important;
-            word-wrap: break-word !important;
-            overflow-wrap: break-word !important;
         }
 
-        /* Transformar filas y columnas a 100% para tira de 58mm */
-        #printable-ticket .row:not(.no-print), 
-        #printable-ticket .col-12:not(.no-print), 
-        #printable-ticket .col-sm-4, 
+        #printable-ticket * {
+            visibility: visible !important;
+        }
+
+        /* Hacer que filas y columnas se apilen verticalmente en el ticket térmico */
+        #printable-ticket .row,
+        #printable-ticket .col-12,
+        #printable-ticket .col-sm-4,
         #printable-ticket .col-6 {
             display: block !important;
             width: 100% !important;
             max-width: 100% !important;
-            flex: none !important;
+            float: none !important;
             padding: 0 !important;
             margin: 0 !important;
         }
 
         #printable-ticket h4 {
-            font-size: 9pt !important;
+            font-size: 9.5pt !important;
             font-weight: bold !important;
             text-align: center !important;
-            margin-bottom: 3px !important;
+            margin-bottom: 4px !important;
         }
 
         #printable-ticket h4 small {
@@ -229,7 +229,6 @@
             margin-bottom: 4px !important;
         }
 
-        /* Ocultar columnas intermedias no esenciales para ajustar a 58mm al imprimir */
         .col-original, .col-descuento {
             display: none !important;
         }
@@ -238,14 +237,13 @@
             width: 100% !important;
             margin: 4px 0 !important;
             font-size: 7.5pt !important;
-            table-layout: fixed !important;
         }
 
         .table th, .table td {
             padding: 1px 0 !important;
             border: none !important;
             background: transparent !important;
-            word-break: break-word !important;
+            color: #000 !important;
         }
 
         .table thead tr {
@@ -256,13 +254,12 @@
             overflow: visible !important;
         }
 
-        /* Ajuste específico para que Total Pagado quede alineado */
         .tr-total-pagado {
-            font-size: 8.5pt !important;
+            font-size: 9pt !important;
         }
 
         .tr-total-pagado th, .tr-total-pagado td {
-            font-size: 8.5pt !important;
+            font-size: 9pt !important;
             font-weight: bold !important;
         }
 
