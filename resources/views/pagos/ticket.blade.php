@@ -148,8 +148,9 @@
         <div class="ticket-container">
             <!-- Header / Logo -->
             <div class="t-center t-mb-3">
-                <h1 class="t-title">SISTEMA ESCOLAR</h1>
-                <p class="t-subtitle">COMPROBANTE OFICIAL DE PAGO</p>
+                <h1 class="t-title">IBEROAMERICANO</h1>
+                <h1 class="t-title">DE CADEREYTA</h1>
+                <p class="t-subtitle">COMPROBANTE DE PAGO</p>
                 <p class="t-folio">Folio: {{ $pago->referencia_ticket }}</p>
             </div>
 
