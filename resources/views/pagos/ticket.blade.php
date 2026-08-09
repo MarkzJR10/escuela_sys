@@ -151,34 +151,45 @@
             display: none !important;
         }
 
-        body, .content-wrapper, .wrapper, .container-fluid {
+        html, body {
+            width: 58mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            color: #000 !important;
+        }
+
+        .content-wrapper, .wrapper, .container-fluid, .content {
             background: #fff !important;
             margin: 0 !important;
             padding: 0 !important;
-            width: 100% !important;
+            width: 58mm !important;
+            max-width: 58mm !important;
         }
 
         @page {
-            size: 58mm 297mm;
+            size: 58mm auto;
             margin: 0mm;
         }
 
         #printable-ticket {
-            width: 58mm !important;
-            max-width: 58mm !important;
+            width: 48mm !important;
+            max-width: 48mm !important;
             margin: 0 auto !important;
-            padding: 3mm 2mm !important;
-            font-family: 'Courier New', Courier, monospace, sans-serif !important;
-            font-size: 8.5pt !important;
+            padding: 1mm !important;
+            font-family: Arial, Helvetica, sans-serif, monospace !important;
+            font-size: 8pt !important;
             line-height: 1.2 !important;
             color: #000 !important;
             background: #fff !important;
             border: none !important;
             box-shadow: none !important;
             box-sizing: border-box !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
         }
 
-        /* Transformar filas y columnas a 100% para tira continua de 58mm */
+        /* Transformar filas y columnas a 100% para tira de 58mm */
         #printable-ticket .row:not(.no-print), 
         #printable-ticket .col-12:not(.no-print), 
         #printable-ticket .col-sm-4, 
@@ -192,30 +203,30 @@
         }
 
         #printable-ticket h4 {
-            font-size: 10pt !important;
+            font-size: 9pt !important;
             font-weight: bold !important;
             text-align: center !important;
-            margin-bottom: 4px !important;
+            margin-bottom: 3px !important;
         }
 
         #printable-ticket h4 small {
             display: block !important;
             float: none !important;
-            font-size: 8pt !important;
-            margin-top: 3px;
+            font-size: 7.5pt !important;
+            margin-top: 2px;
         }
 
         .invoice-info {
-            margin-top: 6px !important;
-            margin-bottom: 6px !important;
-            font-size: 8pt !important;
+            margin-top: 4px !important;
+            margin-bottom: 4px !important;
+            font-size: 7.5pt !important;
             border-top: 1px dashed #000 !important;
             border-bottom: 1px dashed #000 !important;
-            padding: 4px 0 !important;
+            padding: 3px 0 !important;
         }
 
         .invoice-col {
-            margin-bottom: 5px !important;
+            margin-bottom: 4px !important;
         }
 
         /* Ocultar columnas intermedias no esenciales para ajustar a 58mm al imprimir */
@@ -225,14 +236,16 @@
 
         .table {
             width: 100% !important;
-            margin: 5px 0 !important;
-            font-size: 8pt !important;
+            margin: 4px 0 !important;
+            font-size: 7.5pt !important;
+            table-layout: fixed !important;
         }
 
         .table th, .table td {
-            padding: 2px 0 !important;
+            padding: 1px 0 !important;
             border: none !important;
             background: transparent !important;
+            word-break: break-word !important;
         }
 
         .table thead tr {
@@ -243,30 +256,29 @@
             overflow: visible !important;
         }
 
-        /* Ajuste específico para que Total Pagado quede alineado en 58mm */
+        /* Ajuste específico para que Total Pagado quede alineado */
         .tr-total-pagado {
-            font-size: 9.5pt !important;
+            font-size: 8.5pt !important;
         }
 
         .tr-total-pagado th, .tr-total-pagado td {
-            font-size: 9.5pt !important;
+            font-size: 8.5pt !important;
             font-weight: bold !important;
-            white-space: nowrap !important;
         }
 
         .lead {
-            font-size: 8pt !important;
+            font-size: 7.5pt !important;
             font-weight: bold !important;
-            margin-top: 6px !important;
-            margin-bottom: 3px !important;
+            margin-top: 4px !important;
+            margin-bottom: 2px !important;
             border-top: 1px dashed #000 !important;
-            padding-top: 3px !important;
+            padding-top: 2px !important;
         }
 
         .well {
-            font-size: 7.5pt !important;
+            font-size: 7pt !important;
             padding: 0 !important;
-            margin-bottom: 6px !important;
+            margin-bottom: 4px !important;
         }
 
         .badge-success {
