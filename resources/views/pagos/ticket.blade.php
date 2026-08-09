@@ -143,81 +143,123 @@
         </div>
     </div>
 
-    <!-- PLANTILLA TÉRMICA ESPECIAL (Oculta en pantalla, visible SOLO al imprimir) -->
+    <!-- PLANTILLA TÉRMICA ESPECIAL PARA IMPRESORA POS (Oculta en pantalla, visible SOLO al imprimir, basada en Recibo.vue) -->
     <div class="thermal-print-only">
-        <div class="t-center t-title">SISTEMA ESCOLAR</div>
-        <div class="t-center t-subtitle">COMPROBANTE OFICIAL DE PAGO</div>
-        <div class="t-line"></div>
-        
-        <div class="t-info">
-            <div>Ticket #: {{ $pago->referencia_ticket }}</div>
-            <div>Fecha: {{ $pago->fecha_pago->format('d/m/Y H:i') }}</div>
-            <div>Cajero: {{ $pago->cajero->name ?? 'Sistema' }}</div>
-            @if($pago->metodo_pago)
-                <div>Método Pago: {{ strtoupper($pago->metodo_pago) }}</div>
-            @endif
-            <div class="t-line"></div>
-            
-            @if($pago->alumno && $pago->alumno->padre)
-                <div>Tutor: {{ $pago->alumno->padre->nombre }} {{ $pago->alumno->padre->apellido_paterno }}</div>
-                <div>Alumno: {{ $pago->alumno->nombre }} {{ $pago->alumno->apellido_paterno }}</div>
-                <div>Matrícula: {{ $pago->alumno->matricula }}</div>
-            @else
-                <div>Alumno: {{ $pago->alumno->nombre ?? 'Cliente' }} {{ $pago->alumno->apellido_paterno ?? '' }}</div>
-                @if($pago->alumno)
-                    <div>Matrícula: {{ $pago->alumno->matricula }}</div>
+        <div class="ticket-container">
+            <!-- Header / Logo -->
+            <div class="t-center t-mb-3">
+                <h1 class="t-title">SISTEMA ESCOLAR</h1>
+                <p class="t-subtitle">COMPROBANTE OFICIAL DE PAGO</p>
+                <p class="t-folio">Folio: {{ $pago->referencia_ticket }}</p>
+            </div>
+
+            <!-- Divider -->
+            <div class="t-divider"></div>
+
+            <!-- Ticket Details -->
+            <div class="t-details">
+                <div class="t-flex-between">
+                    <span class="t-bold">FECHA:</span>
+                    <span>{{ $pago->fecha_pago->format('d/m/Y H:i') }}</span>
+                </div>
+                <div class="t-flex-between">
+                    <span class="t-bold">CAJERO:</span>
+                    <span class="t-truncate">{{ $pago->cajero->name ?? 'Sistema' }}</span>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="t-divider"></div>
+
+            <!-- Client Info -->
+            <div class="t-client">
+                @if($pago->alumno && $pago->alumno->padre)
+                    <div class="t-bold t-uppercase t-mb-05">TUTOR:</div>
+                    <div class="t-pl-1 t-mb-1">
+                        <p class="t-bold t-truncate">{{ $pago->alumno->padre->nombre }} {{ $pago->alumno->padre->apellido_paterno }}</p>
+                    </div>
+                    <div class="t-bold t-uppercase t-mb-05">ALUMNO:</div>
+                    <div class="t-pl-1">
+                        <p class="t-bold t-truncate">{{ $pago->alumno->nombre }} {{ $pago->alumno->apellido_paterno }}</p>
+                        <p>Matrícula: {{ $pago->alumno->matricula }}</p>
+                    </div>
+                @else
+                    <div class="t-bold t-uppercase t-mb-05">ALUMNO:</div>
+                    <div class="t-pl-1">
+                        <p class="t-bold t-truncate">{{ $pago->alumno->nombre ?? 'Cliente' }} {{ $pago->alumno->apellido_paterno ?? '' }}</p>
+                        @if($pago->alumno)
+                            <p>Matrícula: {{ $pago->alumno->matricula }}</p>
+                            <p>Grado: {{ $pago->alumno->gradoGrupo->grado ?? '' }} {{ $pago->alumno->gradoGrupo->grupo ?? '' }}</p>
+                        @endif
+                    </div>
                 @endif
-            @endif
-        </div>
+            </div>
 
-        <div class="t-line"></div>
+            <!-- Divider -->
+            <div class="t-divider"></div>
 
-        <table class="t-table">
-            <thead>
-                <tr>
-                    <th class="t-left">CONCEPTO</th>
-                    <th class="t-right">TOTAL</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php $tOriginal = 0; $tDesc = 0; @endphp
-                @foreach($pago->detalles as $detalle)
-                    <tr>
-                        <td class="t-left">
-                            {{ $detalle->adeudo->tipo == 'colegiatura' ? 'Colegiatura ' . $detalle->adeudo->mes_nombre . ' ' . $detalle->adeudo->anio : $detalle->adeudo->concepto }}
+            <!-- Sale Details / Items -->
+            <div class="t-items">
+                <div class="t-bold t-uppercase t-mb-1">DESGLOSE DE PAGOS:</div>
+                <div class="t-item-list">
+                    @php $tOriginal = 0; $tDesc = 0; @endphp
+                    @foreach($pago->detalles as $detalle)
+                        <div class="t-item-row">
+                            <div class="t-flex-between t-bold t-leading-tight">
+                                <span class="t-item-name">{{ $detalle->adeudo->tipo == 'colegiatura' ? 'Colegiatura ' . $detalle->adeudo->mes_nombre . ' ' . $detalle->adeudo->anio : $detalle->adeudo->concepto }}</span>
+                                <span>${{ number_format($detalle->monto_pagado, 2) }}</span>
+                            </div>
                             @if($detalle->notas)
-                                <br><span class="t-subnote">({{ $detalle->notas }})</span>
+                                <p class="t-item-note">Nota: {{ $detalle->notas }}</p>
                             @endif
-                        </td>
-                        <td class="t-right t-top">${{ number_format($detalle->monto_pagado, 2) }}</td>
-                    </tr>
-                    @php $tOriginal += $detalle->monto_adeudo; $tDesc += $detalle->descuento; @endphp
-                @endforeach
-            </tbody>
-        </table>
-
-        <div class="t-line"></div>
-
-        @if($tDesc > 0)
-            <div class="t-row">
-                <span>Subtotal:</span>
-                <span>${{ number_format($tOriginal, 2) }}</span>
+                        </div>
+                        @php $tOriginal += $detalle->monto_adeudo; $tDesc += $detalle->descuento; @endphp
+                    @endforeach
+                </div>
             </div>
-            <div class="t-row">
-                <span>Descuento:</span>
-                <span>-${{ number_format($tDesc, 2) }}</span>
+
+            <!-- Divider -->
+            <div class="t-divider"></div>
+
+            <!-- Summary / Totals -->
+            <div class="t-summary">
+                @if($tDesc > 0)
+                    <div class="t-flex-between">
+                        <span>Subtotal:</span>
+                        <span>${{ number_format($tOriginal, 2) }}</span>
+                    </div>
+                    <div class="t-flex-between">
+                        <span>Descuento:</span>
+                        <span>-${{ number_format($tDesc, 2) }}</span>
+                    </div>
+                @endif
+                <div class="t-flex-between t-total-row">
+                    <span>TOTAL PAGADO:</span>
+                    <span>${{ number_format($pago->total, 2) }}</span>
+                </div>
+                <div class="t-flex-between">
+                    <span class="t-bold">MÉTODO:</span>
+                    <span class="t-bold t-uppercase">{{ $pago->metodo_pago ?? 'efectivo' }}</span>
+                </div>
             </div>
-        @endif
 
-        <div class="t-row t-total">
-            <span>TOTAL PAGADO:</span>
-            <span>${{ number_format($pago->total, 2) }}</span>
-        </div>
+            <!-- Divider -->
+            <div class="t-divider"></div>
 
-        <div class="t-line"></div>
-        <div class="t-center t-footer">
-            ¡Gracias por su pago!<br>
-            Conserve este comprobante.
+            <!-- Signatures stacked (POS ticket style) -->
+            <div class="t-signatures">
+                <div class="t-sign-line">
+                    <p class="t-bold">FIRMA TUTOR / ALUMNO</p>
+                    <p class="t-subtext">(Conformidad)</p>
+                </div>
+            </div>
+
+            <!-- Footer Message -->
+            <div class="t-footer">
+                <p class="t-bold">¡GRACIAS POR TU PREFERENCIA!</p>
+                <p>Conserva este comprobante para aclaraciones.</p>
+                <p class="t-copy">SISTEMA ESCOLAR © {{ date('Y') }}</p>
+            </div>
         </div>
     </div>
 @stop
@@ -235,87 +277,164 @@
             display: none !important;
         }
 
-        @page {
-            size: auto;
-            margin: 0;
+        @page { 
+            size: 58mm auto; /* Ancho físico del papel de la ticketera */
+            margin: 0; 
         }
 
         html, body, .wrapper, .content-wrapper, .container-fluid, .content {
-            display: block !important;
-            width: 100% !important;
+            background-color: #ffffff !important; 
+            color: #000000 !important;
             margin: 0 !important;
             padding: 0 !important;
-            background: #ffffff !important;
+            width: 100% !important;
             box-shadow: none !important;
             border: none !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
-        /* Mostrar ÚNICAMENTE la plantilla térmica especial a ancho completo */
+        /* Mostrar ÚNICAMENTE la plantilla térmica especial alineada exactamente a 42mm con margen de seguridad 1.5mm */
         .thermal-print-only {
             display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-            padding: 2px 0 !important;
-            font-family: 'Courier New', Courier, monospace, sans-serif !important;
-            font-size: 9.5pt !important;
-            line-height: 1.25 !important;
+            width: 42mm !important;
+            margin-left: 1.5mm !important;
+            margin-right: auto !important;
+            padding: 4px 2px !important;
+            font-family: system-ui, -apple-system, sans-serif !important;
+            font-size: 10px !important;
             color: #000000 !important;
-            box-sizing: border-box !important;
+        }
+
+        .ticket-container {
+            width: 42mm !important;
+            color: #000000 !important;
+        }
+
+        /* Pure black text without dithering */
+        .thermal-print-only * {
+            color: #000000 !important;
+            text-shadow: none !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .t-center { text-align: center !important; }
-        .t-left { text-align: left !important; }
-        .t-right { text-align: right !important; }
-        .t-top { vertical-align: top !important; }
-        
+        .t-bold { font-weight: bold !important; }
+        .t-uppercase { text-transform: uppercase !important; }
+        .t-mb-3 { margin-bottom: 8px !important; }
+        .t-mb-1 { margin-bottom: 4px !important; }
+        .t-mb-05 { margin-bottom: 2px !important; }
+        .t-pl-1 { padding-left: 4px !important; }
+        .t-leading-tight { line-height: 1.15 !important; }
+
         .t-title {
-            font-size: 11pt !important;
+            font-size: 12px !important;
             font-weight: bold !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            margin: 0 0 2px 0 !important;
         }
 
         .t-subtitle {
-            font-size: 8.5pt !important;
+            font-size: 10px !important;
+            font-weight: bold !important;
+            text-transform: uppercase !important;
+            margin: 0 0 2px 0 !important;
         }
 
-        .t-line {
-            border-top: 1px dashed #000 !important;
-            margin: 4px 0 !important;
+        .t-folio {
+            font-size: 9px !important;
+            font-family: monospace !important;
+            margin: 2px 0 0 0 !important;
         }
 
-        .t-info {
-            font-size: 9pt !important;
+        .t-divider {
+            border-bottom: 1px dashed #000000 !important;
+            margin: 6px 0 !important;
         }
 
-        .t-table {
-            width: 100% !important;
-            margin: 3px 0 !important;
+        .t-details, .t-client, .t-summary {
+            font-size: 10px !important;
         }
 
-        .t-table th, .t-table td {
-            font-size: 9pt !important;
-            padding: 1px 0 !important;
-        }
-
-        .t-subnote {
-            font-size: 8pt !important;
-        }
-
-        .t-row {
+        .t-flex-between {
             display: flex !important;
             justify-content: space-between !important;
-            font-size: 9pt !important;
         }
 
-        .t-total {
-            font-size: 11pt !important;
+        .t-truncate {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 65% !important;
+        }
+
+        .t-items {
+            margin-bottom: 6px !important;
+        }
+
+        .t-item-list {
+            padding-left: 2px !important;
+        }
+
+        .t-item-row {
+            border-bottom: 1px solid #f0f0f0 !important;
+            padding-bottom: 3px !important;
+            margin-bottom: 3px !important;
+        }
+
+        .t-item-name {
+            max-width: 70% !important;
+            word-break: break-words !important;
+        }
+
+        .t-item-note {
+            font-size: 8.5px !important;
+            font-style: italic !important;
+            color: #000000 !important;
+            margin: 2px 0 0 0 !important;
+            word-break: break-words !important;
+        }
+
+        .t-total-row {
+            font-size: 11px !important;
             font-weight: bold !important;
-            margin-top: 3px !important;
+        }
+
+        .t-signatures {
+            margin-top: 12px !important;
+            text-align: center !important;
+            font-size: 10px !important;
+        }
+
+        .t-sign-line {
+            width: 90px !important;
+            margin: 0 auto !important;
+            padding-top: 8px !important;
+            border-top: 1px solid #000000 !important;
+        }
+
+        .t-subtext {
+            font-size: 9px !important;
+            margin: 0 !important;
         }
 
         .t-footer {
-            font-size: 8pt !important;
-            margin-top: 3px !important;
+            margin-top: 14px !important;
+            text-align: center !important;
+            font-size: 9px !important;
+            line-height: 1.15 !important;
+            font-weight: 500 !important;
+        }
+
+        .t-footer p {
+            margin: 2px 0 !important;
+        }
+
+        .t-copy {
+            margin-top: 5px !important;
+            font-weight: bold !important;
         }
     }
 </style>
