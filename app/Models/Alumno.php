@@ -25,7 +25,9 @@ class Alumno extends Model
         'colegiatura_id',
         'colegiatura',
         'fotografia',
-        'padre_id'
+        'padre_id',
+        'activo',
+        'estatus'
     ];
 
     public function gradoGrupo()

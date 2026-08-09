@@ -187,10 +187,15 @@ class AlumnoController extends Controller
             'colegiatura_id' => 'nullable|exists:colegiaturas,id',
             'colegiatura' => 'nullable|numeric|between:0,999999.99',
             'padre_id' => 'nullable|exists:padres,id',
+            'estatus' => 'nullable|in:regular,baja,egresado',
             'fotografia' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $data = $request->all();
+
+        if ($request->filled('estatus')) {
+            $data['activo'] = ($request->estatus === 'regular');
+        }
 
         if ($request->filled('colegiatura_id')) {
             $colegiaturaBase = \App\Models\Colegiatura::find($request->colegiatura_id);

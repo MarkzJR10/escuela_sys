@@ -31,6 +31,7 @@
                         <th>Nombre Completo</th>
                         <th>CURP</th>
                         <th>Grado y Grupo</th>
+                        <th>Estatus</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -40,7 +41,17 @@
                         <td><code>{{ $alumno->matricula }}</code></td>
                         <td>{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</td>
                         <td>{{ $alumno->curp }}</td>
-                        <td>{{ $alumno->gradoGrupo->grado }} {{ $alumno->gradoGrupo->grupo }}</td>
+                        <td>{{ $alumno->gradoGrupo->grado ?? '' }} {{ $alumno->gradoGrupo->grupo ?? '' }}</td>
+                        <td>
+                            @php $st = strtolower($alumno->estatus ?? 'regular'); @endphp
+                            @if($st === 'baja')
+                                <span class="badge badge-danger">Baja</span>
+                            @elseif($st === 'egresado')
+                                <span class="badge badge-secondary">Egresado</span>
+                            @else
+                                <span class="badge badge-success">Regular</span>
+                            @endif
+                        </td>
                         <td>
                             <a href="{{ route('alumnos.edit', $alumno) }}" class="btn btn-warning btn-sm" title="Editar">
                                 <i class="fas fa-edit"></i>
@@ -73,7 +84,7 @@
             "pageLength": 10,
             "responsive": true,
             "columnDefs": [
-                { "orderable": false, "targets": 4 } // Disable ordering on "Acciones" column
+                { "orderable": false, "targets": 5 } // Disable ordering on "Acciones" column
             ]
         });
     });

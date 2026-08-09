@@ -311,6 +311,7 @@
                 tipo: tipo,
                 cantidad: 1,
                 descuento: 0,
+                notas: '',
                 monto_pagar: tipo === 'adeudo_existente' ? parseFloat(item.monto_calculado) : null,
                 stock: tipo === 'producto' ? item.stock : null
             });
@@ -339,6 +340,10 @@
         updateTotalOnly();
     }
 
+    function updateNotas(index, value) {
+        cart[index].notas = value;
+    }
+
     function removeFromCart(index) {
         cart.splice(index, 1);
         renderCart();
@@ -362,19 +367,31 @@
                 if (item.tipo === 'producto') {
                     subtotal = (item.precio * item.cantidad) - item.descuento;
                     inputHtml = `
-                        <input type="number" class="form-control form-control-sm d-inline-block" style="width: 80px;" 
-                            placeholder="Desc." value="${item.descuento}" onchange="updateDiscount(${index}, this.value)">
-                        <small class="text-muted ml-1">Desc.</small>
+                        <div class="d-flex align-items-center mb-1">
+                            <input type="number" class="form-control form-control-sm d-inline-block mr-1" style="width: 80px;" 
+                                placeholder="0" value="${item.descuento || 0}" onchange="updateDiscount(${index}, this.value)">
+                            <small class="text-muted">Desc.</small>
+                        </div>
                     `;
                 } else {
                     subtotal = item.monto_pagar;
                     inputHtml = `
-                        <input type="number" class="form-control form-control-sm d-inline-block" style="width: 90px;" 
-                            placeholder="Abonar" value="${item.monto_pagar}" min="0.01" max="${item.precio}" step="0.01"
-                            onchange="updateAbono(${index}, this.value)">
-                        <small class="text-muted ml-1">Monto a Pagar (Abono)</small>
+                        <div class="d-flex align-items-center mb-1">
+                            <input type="number" class="form-control form-control-sm d-inline-block mr-1" style="width: 90px;" 
+                                placeholder="Abonar" value="${item.monto_pagar}" min="0.01" max="${item.precio}" step="0.01"
+                                onchange="updateAbono(${index}, this.value)">
+                            <small class="text-muted">Abono</small>
+                        </div>
                     `;
                 }
+
+                let notaHtml = `
+                    <div class="mt-1">
+                        <input type="text" class="form-control form-control-sm" 
+                            placeholder="Nota opcional..." value="${item.notas || ''}" 
+                            oninput="updateNotas(${index}, this.value)">
+                    </div>
+                `;
 
                 let qtyControl = item.tipo === 'producto' ? `
                     <div class="d-flex align-items-center justify-content-center">
@@ -387,14 +404,15 @@
                 html += `<tr>
                     <td>
                         <small class="badge badge-${item.tipo === 'producto' ? 'info' : 'warning'}">${item.tipo === 'producto' ? 'P' : 'A'}</small> 
-                        ${item.nombre}
+                        <strong>${item.nombre}</strong>
                         <div class="mt-1">
                             ${inputHtml}
+                            ${notaHtml}
                         </div>
                     </td>
-                    <td class="text-center">${qtyControl}</td>
-                    <td class="text-right">$${subtotal.toFixed(2)}</td>
-                    <td class="text-right">
+                    <td class="text-center align-top pt-2">${qtyControl}</td>
+                    <td class="text-right align-top pt-2">$${subtotal.toFixed(2)}</td>
+                    <td class="text-right align-top pt-2">
                         <button class="btn btn-xs btn-link text-danger" onclick="removeFromCart(${index})"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>`;

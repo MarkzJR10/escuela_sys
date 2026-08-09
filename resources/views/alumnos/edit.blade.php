@@ -99,6 +99,20 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
+                            <label>Estatus del Alumno</label>
+                            <select name="estatus" class="form-control">
+                                <option value="regular" {{ old('estatus', $alumno->estatus ?? 'regular') == 'regular' ? 'selected' : '' }}>Regular (Activo)</option>
+                                <option value="baja" {{ old('estatus', $alumno->estatus) == 'baja' ? 'selected' : '' }}>Baja</option>
+                                <option value="egresado" {{ old('estatus', $alumno->estatus) == 'egresado' ? 'selected' : '' }}>Egresado</option>
+                            </select>
+                            @error('estatus') <span class="text-danger">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
                             <label>Colegiatura Base (Opcional)</label>
                             <select name="colegiatura_id" id="colegiatura_id" class="form-control">
                                 <option value="">-- Personalizada --</option>

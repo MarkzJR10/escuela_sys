@@ -140,4 +140,18 @@ class AdeudoController extends Controller
 
         return redirect()->back()->with('success', 'Proceso ejecutado correctamente.')->with('command_output', $output);
     }
+
+    /**
+     * Cancelar individualmente un adeudo no pagado.
+     */
+    public function cancelarAdeudo(Adeudo $adeudo)
+    {
+        if ($adeudo->status === 'pagado') {
+            return redirect()->back()->with('error', 'No se puede cancelar un adeudo que ya ha sido pagado. Debe cancelar el ticket o pago registrado primero.');
+        }
+
+        $adeudo->update(['status' => 'cancelado']);
+
+        return redirect()->back()->with('success', 'El adeudo ha sido marcado como cancelado.');
+    }
 }

@@ -27,6 +27,7 @@
                         <th>Monto Actual</th>
                         <th>Estado</th>
                         <th>Fecha Pago</th>
+                        <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -35,7 +36,7 @@
                         $totalEspecial = 0;
                     @endphp
                     @forelse($adeudos as $index => $adeudo)
-                        <tr>
+                        <tr class="{{ $adeudo->status == 'cancelado' ? 'text-muted bg-light' : '' }}">
                             <td>{{ $index + 1 }}</td>
                             <td>
                                 @if($adeudo->tipo == 'colegiatura')
@@ -55,7 +56,7 @@
                             <td>
                                 <strong>${{ number_format($adeudo->monto_calculado, 2) }}</strong>
                                 @php 
-                                    if($adeudo->status != 'pagado') {
+                                    if($adeudo->status != 'pagado' && $adeudo->status != 'cancelado') {
                                         if($adeudo->tipo == 'colegiatura') $totalColegiatura += $adeudo->monto_calculado;
                                         else $totalEspecial += $adeudo->monto_calculado;
                                     }
@@ -66,15 +67,31 @@
                                     <span class="badge badge-success">Pagado</span>
                                 @elseif($adeudo->status == 'vencido')
                                     <span class="badge badge-danger">Vencido</span>
+                                @elseif($adeudo->status == 'cancelado')
+                                    <span class="badge badge-secondary">Cancelado</span>
                                 @else
                                     <span class="badge badge-warning">Pendiente</span>
                                 @endif
                             </td>
                             <td>{{ $adeudo->fecha_pago ? \Carbon\Carbon::parse($adeudo->fecha_pago)->format('d/m/Y') : '---' }}</td>
+                            <td class="text-center">
+                                @if($adeudo->status != 'pagado' && $adeudo->status != 'cancelado')
+                                    <form action="{{ route('adeudos.cancelar', $adeudo->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de cancelar este adeudo?');">
+                                        @csrf
+                                        <button type="submit" class="btn btn-xs btn-outline-danger" title="Cancelar Adeudo">
+                                            <i class="fas fa-ban"></i> Cancelar
+                                        </button>
+                                    </form>
+                                @elseif($adeudo->status == 'pagado')
+                                    <span class="text-muted"><small>Pagado</small></span>
+                                @else
+                                    <span class="text-muted"><small>Sin acción</small></span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No hay adeudos registrados para este alumno.</td>
+                            <td colspan="8" class="text-center">No hay adeudos registrados para este alumno.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -116,7 +133,10 @@
             },
             "pageLength": 10,
             "responsive": true,
-            "order": [[0, "asc"]]
+            "order": [[0, "asc"]],
+            "columnDefs": [
+                { "orderable": false, "targets": 7 }
+            ]
         });
     });
 </script>

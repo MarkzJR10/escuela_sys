@@ -20,10 +20,7 @@ class CicloController extends Controller
 
         $adeudos = collect();
         if ($cicloSeleccionado) {
-            $adeudos = Adeudo::whereHas('alumno', function ($q) {
-                    $q->where('activo', true);
-                })
-                ->where(function ($q) use ($cicloSeleccionado) {
+            $adeudos = Adeudo::where(function ($q) use ($cicloSeleccionado) {
                     $q->where(function ($subQ) use ($cicloSeleccionado) {
                         $subQ->where('tipo', 'colegiatura')
                              ->where(function ($monthQ) use ($cicloSeleccionado) {
@@ -66,15 +63,14 @@ class CicloController extends Controller
             $opciones[] = $a . '-' . ($a + 1);
         }
 
-        return view('ciclos.index', compact('cicloSeleccionado', 'adeudos', 'opciones', 'cicloActual'));
+        // Lista de todos los alumnos para los filtros
+        $alumnosLista = Alumno::orderBy('apellido_paterno')->orderBy('nombre')->get();
+
+        return view('ciclos.index', compact('cicloSeleccionado', 'adeudos', 'opciones', 'cicloActual', 'alumnosLista'));
     }
 
     /**
-     * Registrar adeudos masivos de colegiatura para todos los alumnos activos.
-     *
-     * Crea un adeudo por mes del ciclo escolar (Sep-Dic, Ene-Jun) para cada
-     * alumno activo que tenga un monto de colegiatura definido,
-     * solo si el adeudo no existe ya.
+     * Registrar adeudos masivos de colegiatura para alumnos activos con estatus regular.
      */
     public function registrarMasivo(Request $request)
     {
@@ -92,14 +88,15 @@ class CicloController extends Controller
         $anio1 = (int) $partes[0]; // ej. 2025
         $anio2 = (int) $partes[1]; // ej. 2026
 
-        // Obtener alumnos activos que tengan colegiatura definida
+        // NO generar adeudos a alumnos en baja ni egresados
         $alumnos = Alumno::where('activo', true)
+            ->where('estatus', 'regular')
             ->whereNotNull('colegiatura')
             ->where('colegiatura', '>', 0)
             ->get();
 
         if ($alumnos->isEmpty()) {
-            return redirect()->back()->with('warning', 'No hay alumnos activos con colegiatura definida.');
+            return redirect()->back()->with('warning', 'No hay alumnos activos regulares con colegiatura definida.');
         }
 
         // Construir los meses del ciclo: Sep-Dic del año 1, Ene-Jun del año 2
@@ -151,7 +148,7 @@ class CicloController extends Controller
     }
 
     /**
-     * Registrar adeudos masivos de reinscripción para todos los alumnos activos.
+     * Registrar adeudos masivos de reinscripción para alumnos activos con estatus regular.
      */
     public function registrarReinscripcionMasivo(Request $request)
     {
@@ -166,11 +163,13 @@ class CicloController extends Controller
             return redirect()->back()->with('error', 'El costo de reinscripción no está configurado o es menor/igual a cero. Configúrelo en la sección de Configuración General.');
         }
 
-        // Obtener alumnos activos
-        $alumnos = Alumno::where('activo', true)->get();
+        // NO generar a alumnos baja o egresados
+        $alumnos = Alumno::where('activo', true)
+            ->where('estatus', 'regular')
+            ->get();
 
         if ($alumnos->isEmpty()) {
-            return redirect()->back()->with('warning', 'No hay alumnos activos para registrar reinscripción.');
+            return redirect()->back()->with('warning', 'No hay alumnos activos regulares para registrar reinscripción.');
         }
 
         $insertados = 0;
@@ -208,5 +207,73 @@ class CicloController extends Controller
 
         return redirect()->route('ciclos.index', ['ciclo' => $ciclo])
             ->with('success', "Adeudos de reinscripción registrados exitosamente. Se crearon {$insertados} adeudos. ({$omitidos} ya existían y se omitieron).");
+    }
+
+    /**
+     * Eliminar adeudos masivamente de un ciclo con opciones de filtrado.
+     */
+    public function eliminarMasivo(Request $request)
+    {
+        $request->validate([
+            'ciclo'          => 'required|string|max:20',
+            'estatus_alumno' => 'nullable|string|in:todos,regular,baja,egresado',
+            'alumno_id'      => 'nullable|exists:alumnos,id',
+            'tipo_adeudo'    => 'nullable|string|in:todos,colegiatura,especial',
+        ]);
+
+        $ciclo = $request->input('ciclo');
+        $estatusAlumno = $request->input('estatus_alumno', 'todos');
+        $alumnoId = $request->input('alumno_id');
+        $tipoAdeudo = $request->input('tipo_adeudo', 'todos');
+
+        $query = Adeudo::whereIn('status', ['pendiente', 'vencido', 'programado'])
+            ->where(function ($q) use ($ciclo, $tipoAdeudo) {
+                if ($tipoAdeudo === 'todos' || $tipoAdeudo === 'colegiatura') {
+                    $q->where(function ($subQ) use ($ciclo) {
+                        $subQ->where('tipo', 'colegiatura')
+                             ->where(function ($monthQ) use ($ciclo) {
+                                 $partes = explode('-', $ciclo);
+                                 if (count($partes) === 2) {
+                                     $anio1 = $partes[0];
+                                     $anio2 = $partes[1];
+                                     $monthQ->where(function ($sub) use ($anio1) {
+                                         for ($m = 9; $m <= 12; $m++) {
+                                             $sub->orWhere('periodo', $anio1 . '-' . str_pad($m, 2, '0', STR_PAD_LEFT));
+                                         }
+                                     })->orWhere(function ($sub) use ($anio2) {
+                                         for ($m = 1; $m <= 6; $m++) {
+                                             $sub->orWhere('periodo', $anio2 . '-' . str_pad($m, 2, '0', STR_PAD_LEFT));
+                                         }
+                                     });
+                                 }
+                             });
+                    });
+                }
+
+                if ($tipoAdeudo === 'todos' || $tipoAdeudo === 'especial') {
+                    $orCondition = ($tipoAdeudo === 'todos') ? 'orWhere' : 'where';
+                    $q->$orCondition(function ($subQ) use ($ciclo) {
+                        $subQ->where('tipo', 'especial')
+                             ->where('concepto', 'Reinscripción ' . $ciclo);
+                    });
+                }
+            });
+
+        // Filtrar por alumno específico si fue seleccionado
+        if (!empty($alumnoId)) {
+            $query->where('alumno_id', $alumnoId);
+        }
+
+        // Filtrar por estatus del alumno (regular, baja, egresado)
+        if (!empty($estatusAlumno) && $estatusAlumno !== 'todos') {
+            $query->whereHas('alumno', function ($q) use ($estatusAlumno) {
+                $q->where('estatus', $estatusAlumno);
+            });
+        }
+
+        $eliminados = $query->delete();
+
+        return redirect()->route('ciclos.index', ['ciclo' => $ciclo])
+            ->with('success', "Se eliminaron {$eliminados} adeudos no pagados del ciclo {$ciclo} según los filtros especificados.");
     }
 }

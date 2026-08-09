@@ -101,15 +101,20 @@ class POSController extends Controller
                             ]);
                         }
 
+                        $notasCustom = isset($item['notas']) ? trim($item['notas']) : null;
+                        $notasAuto = $montoRestante > 0.01 
+                            ? "Abono parcial. Restante: $" . number_format($montoRestante, 2)
+                            : ($descuento > 0 ? "Descuento aplicado en caja" : null);
+
+                        $notasFinales = implode(' | ', array_filter([$notasCustom, $notasAuto]));
+
                         PagoDetalle::create([
                             'pago_id' => $pago->id,
                             'adeudo_id' => $adeudo->id,
                             'monto_adeudo' => $montoOriginal,
                             'descuento' => $descuento,
                             'monto_pagado' => $montoPagado,
-                            'notas' => $montoRestante > 0.01 
-                                ? "Abono parcial. Restante: $" . number_format($montoRestante, 2)
-                                : ($descuento > 0 ? "Descuento aplicado en caja" : null)
+                            'notas' => $notasFinales ?: null
                         ]);
                         $totalPagado += $montoPagado;
                     }
@@ -123,6 +128,7 @@ class POSController extends Controller
 
                     $montoOriginal = $producto->precio * $item['cantidad'];
                     $montoFinal = $montoOriginal - $descuento;
+                    $notasCustom = isset($item['notas']) ? trim($item['notas']) : null;
                     
                     $adeudo = Adeudo::create([
                         'alumno_id' => $alumno->id,
@@ -135,13 +141,16 @@ class POSController extends Controller
                     ]);
 
                     if ($isPagoInmediato) {
+                        $notasAuto = $descuento > 0 ? "Descuento aplicado en caja" : null;
+                        $notasFinales = implode(' | ', array_filter([$notasCustom, $notasAuto]));
+
                         PagoDetalle::create([
                             'pago_id' => $pago->id,
                             'adeudo_id' => $adeudo->id,
                             'monto_adeudo' => $montoOriginal,
                             'descuento' => $descuento,
                             'monto_pagado' => $montoFinal,
-                            'notas' => $descuento > 0 ? "Descuento aplicado en caja" : null
+                            'notas' => $notasFinales ?: null
                         ]);
                         $totalPagado += $montoFinal;
                     }

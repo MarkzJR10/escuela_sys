@@ -80,6 +80,7 @@ Route::middleware('auth')->group(function () {
     Route::get('adeudos/buscar-alumnos', [AdeudoController::class, 'buscarAlumnosAjax'])->name('adeudos.buscar_alumnos');
     Route::get('adeudos/recargos-manual', [AdeudoController::class, 'showRecargosManual'])->name('adeudos.recargos_manual');
     Route::post('adeudos/recargos-manual', [AdeudoController::class, 'ejecutarRecargosManual'])->name('adeudos.ejecutar_recargos_manual');
+    Route::post('adeudos/{adeudo}/cancelar', [AdeudoController::class, 'cancelarAdeudo'])->name('adeudos.cancelar');
 
     // Rutas de Pagos (Caja)
     Route::get('pagos', [PagoController::class, 'index'])->name('pagos.index');
@@ -152,6 +153,7 @@ Route::middleware('auth')->group(function () {
     Route::get('ciclos', [CicloController::class, 'index'])->name('ciclos.index');
     Route::post('ciclos/registrar-masivo', [CicloController::class, 'registrarMasivo'])->name('ciclos.registrar_masivo');
     Route::post('ciclos/registrar-reinscripcion-masivo', [CicloController::class, 'registrarReinscripcionMasivo'])->name('ciclos.registrar_reinscripcion_masivo');
+    Route::post('ciclos/eliminar-masivo', [CicloController::class, 'eliminarMasivo'])->name('ciclos.eliminar_masivo');
     
     // Fase 4: Turnos y Asistencia Maestros
     Route::get('asistencia-maestros', [AsistenciaMaestroController::class, 'index'])->name('asistencia_maestros.index');

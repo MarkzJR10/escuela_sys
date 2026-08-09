@@ -74,9 +74,12 @@ class MigrarGradoController extends Controller
         $request->validate(['alumno_id' => 'required|exists:alumnos,id']);
         
         $alumno = Alumno::findOrFail($request->alumno_id);
-        $alumno->update(['activo' => false]);
+        $alumno->update([
+            'activo' => false,
+            'estatus' => 'baja'
+        ]);
 
-        return redirect()->back()->with('success', "Alumno {$alumno->nombre} marcado como inactivo.");
+        return redirect()->back()->with('success', "Alumno {$alumno->nombre} marcado como baja.");
     }
 
     /**
@@ -87,9 +90,12 @@ class MigrarGradoController extends Controller
         $request->validate(['alumno_id' => 'required|exists:alumnos,id']);
         
         $alumno = Alumno::findOrFail($request->alumno_id);
-        $alumno->update(['activo' => true]);
+        $alumno->update([
+            'activo' => true,
+            'estatus' => 'regular'
+        ]);
 
-        return redirect()->back()->with('success', "Alumno {$alumno->nombre} reactivado exitosamente.");
+        return redirect()->back()->with('success', "Alumno {$alumno->nombre} reactivado como regular exitosamente.");
     }
 
     /**

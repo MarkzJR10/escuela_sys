@@ -57,6 +57,7 @@
                                     <th>Periodo</th>
                                     <th>Estado</th>
                                     <th class="text-right" style="width: 150px;">Monto</th>
+                                    <th class="text-center" style="width: 120px;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -74,6 +75,14 @@
                                         <td class="text-right font-weight-bold @if($adeudo->status == 'vencido') text-danger @endif">
                                             ${{ number_format($adeudo->monto_calculado, 2) }}
                                         </td>
+                                        <td class="text-center">
+                                            <form action="{{ route('adeudos.cancelar', $adeudo->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de cancelar este adeudo de colegiatura?');">
+                                                @csrf
+                                                <button type="submit" class="btn btn-xs btn-outline-danger" title="Cancelar Adeudo">
+                                                    <i class="fas fa-ban"></i> Cancelar
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -90,6 +99,7 @@
                                     <th>Concepto</th>
                                     <th>Estado</th>
                                     <th class="text-right" style="width: 150px;">Monto</th>
+                                    <th class="text-center" style="width: 120px;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -105,6 +115,14 @@
                                         </td>
                                         <td class="text-right font-weight-bold @if($adeudo->status == 'vencido') text-danger @endif">
                                             ${{ number_format($adeudo->monto_calculado, 2) }}
+                                        </td>
+                                        <td class="text-center">
+                                            <form action="{{ route('adeudos.cancelar', $adeudo->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de cancelar este adeudo especial?');">
+                                                @csrf
+                                                <button type="submit" class="btn btn-xs btn-outline-danger" title="Cancelar Adeudo">
+                                                    <i class="fas fa-ban"></i> Cancelar
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -122,6 +140,7 @@
                                     <th>Concepto</th>
                                     <th>Estado</th>
                                     <th class="text-right" style="width: 150px;">Monto</th>
+                                    <th class="text-center" style="width: 120px;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -137,6 +156,14 @@
                                         </td>
                                         <td class="text-right font-weight-bold @if($adeudo->status == 'vencido') text-danger @endif">
                                             ${{ number_format($adeudo->monto_calculado, 2) }}
+                                        </td>
+                                        <td class="text-center">
+                                            <form action="{{ route('adeudos.cancelar', $adeudo->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de cancelar este adeudo de venta?');">
+                                                @csrf
+                                                <button type="submit" class="btn btn-xs btn-outline-danger" title="Cancelar Adeudo">
+                                                    <i class="fas fa-ban"></i> Cancelar
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -176,12 +203,18 @@
                                 <th>Conceptos Pagados</th>
                                 <th>Cajero</th>
                                 <th class="text-right">Total Pagado</th>
+                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($pagosRecientes as $pago)
-                                <tr>
-                                    <td>#{{ str_pad($pago->id, 6, '0', STR_PAD_LEFT) }} <br><small class="text-muted">{{ $pago->referencia_ticket }}</small></td>
+                                <tr class="{{ $pago->status == 'cancelado' ? 'text-muted bg-light' : '' }}">
+                                    <td>
+                                        #{{ str_pad($pago->id, 6, '0', STR_PAD_LEFT) }} <br><small class="text-muted">{{ $pago->referencia_ticket }}</small>
+                                        @if($pago->status == 'cancelado')
+                                            <span class="badge badge-secondary ml-1">CANCELADO</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $pago->fecha_pago->format('d/m/Y h:i A') }}</td>
                                     <td>
                                         <ul class="list-unstyled mb-0">
@@ -191,10 +224,22 @@
                                         </ul>
                                     </td>
                                     <td>{{ $pago->cajero->name ?? 'Sistema' }}</td>
-                                    <td class="text-right font-weight-bold text-success">${{ number_format($pago->total, 2) }}</td>
+                                    <td class="text-right font-weight-bold {{ $pago->status == 'cancelado' ? 'text-muted' : 'text-success' }}">${{ number_format($pago->total, 2) }}</td>
+                                    <td class="text-center">
+                                        @if($pago->status != 'cancelado')
+                                            <form action="{{ route('contabilidad.ventas.cancelar', $pago->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de cancelar este ticket de pago? Los adeudos volverán a estado pendiente.');">
+                                                @csrf
+                                                <button type="submit" class="btn btn-xs btn-danger" title="Cancelar Ticket de Pago">
+                                                    <i class="fas fa-trash-alt"></i> Cancelar Ticket
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="text-muted"><small>Cancelado</small></span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="text-center">No hay registros de pagos recientes.</td></tr>
+                                <tr><td colspan="6" class="text-center">No hay registros de pagos recientes.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
