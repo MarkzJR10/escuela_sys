@@ -159,25 +159,26 @@
         }
 
         @page {
-            size: 35mm auto;
+            size: 58mm 297mm;
             margin: 0mm;
         }
 
         #printable-ticket {
-            width: 35mm !important;
-            max-width: 35mm !important;
+            width: 58mm !important;
+            max-width: 58mm !important;
             margin: 0 auto !important;
-            padding: 2mm 1mm !important;
+            padding: 3mm 2mm !important;
             font-family: 'Courier New', Courier, monospace, sans-serif !important;
-            font-size: 7.5pt !important;
-            line-height: 1.15 !important;
+            font-size: 8.5pt !important;
+            line-height: 1.2 !important;
             color: #000 !important;
             background: #fff !important;
             border: none !important;
             box-shadow: none !important;
+            box-sizing: border-box !important;
         }
 
-        /* Transformar filas y columnas a 100% para tira continua de 35mm */
+        /* Transformar filas y columnas a 100% para tira continua de 58mm */
         #printable-ticket .row:not(.no-print), 
         #printable-ticket .col-12:not(.no-print), 
         #printable-ticket .col-sm-4, 
@@ -191,44 +192,45 @@
         }
 
         #printable-ticket h4 {
-            font-size: 8.5pt !important;
+            font-size: 10pt !important;
+            font-weight: bold !important;
             text-align: center !important;
-            margin-bottom: 3px !important;
+            margin-bottom: 4px !important;
         }
 
         #printable-ticket h4 small {
             display: block !important;
             float: none !important;
-            font-size: 7pt !important;
-            margin-top: 2px;
+            font-size: 8pt !important;
+            margin-top: 3px;
         }
 
         .invoice-info {
-            margin-top: 4px !important;
-            margin-bottom: 4px !important;
-            font-size: 7pt !important;
+            margin-top: 6px !important;
+            margin-bottom: 6px !important;
+            font-size: 8pt !important;
             border-top: 1px dashed #000 !important;
             border-bottom: 1px dashed #000 !important;
-            padding: 3px 0 !important;
+            padding: 4px 0 !important;
         }
 
         .invoice-col {
-            margin-bottom: 4px !important;
+            margin-bottom: 5px !important;
         }
 
-        /* Ocultar columnas intermedias para ajustar a 35mm al imprimir */
+        /* Ocultar columnas intermedias no esenciales para ajustar a 58mm al imprimir */
         .col-original, .col-descuento {
             display: none !important;
         }
 
         .table {
             width: 100% !important;
-            margin: 4px 0 !important;
-            font-size: 6.5pt !important;
+            margin: 5px 0 !important;
+            font-size: 8pt !important;
         }
 
         .table th, .table td {
-            padding: 1px 0 !important;
+            padding: 2px 0 !important;
             border: none !important;
             background: transparent !important;
         }
@@ -241,30 +243,30 @@
             overflow: visible !important;
         }
 
-        /* Ajuste específico para que Total Pagado quede alineado en 35mm */
+        /* Ajuste específico para que Total Pagado quede alineado en 58mm */
         .tr-total-pagado {
-            font-size: 7.5pt !important;
+            font-size: 9.5pt !important;
         }
 
         .tr-total-pagado th, .tr-total-pagado td {
-            font-size: 7.5pt !important;
+            font-size: 9.5pt !important;
             font-weight: bold !important;
             white-space: nowrap !important;
         }
 
         .lead {
-            font-size: 7pt !important;
+            font-size: 8pt !important;
             font-weight: bold !important;
-            margin-top: 4px !important;
-            margin-bottom: 2px !important;
+            margin-top: 6px !important;
+            margin-bottom: 3px !important;
             border-top: 1px dashed #000 !important;
-            padding-top: 2px !important;
+            padding-top: 3px !important;
         }
 
         .well {
-            font-size: 6pt !important;
+            font-size: 7.5pt !important;
             padding: 0 !important;
-            margin-bottom: 4px !important;
+            margin-bottom: 6px !important;
         }
 
         .badge-success {
