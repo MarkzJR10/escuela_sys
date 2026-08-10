@@ -25,7 +25,7 @@
                     @forelse($alumnos as $alumno)
                         <tr>
                             <td><code>{{ $alumno->matricula }}</code></td>
-                            <td>{{ $alumno->nombre }} {{ $alumno->apellidos }}</td>
+                            <td>{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</td>
                             <td>{{ $alumno->gradoGrupo->grado }} {{ $alumno->gradoGrupo->grupo }}</td>
                             <td class="text-center">
                                 <a href="{{ route('colegiaturas.adeudos', $alumno->id) }}" class="btn btn-info btn-sm">
