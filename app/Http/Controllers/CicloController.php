@@ -271,6 +271,9 @@ class CicloController extends Controller
             });
         }
 
+        // Solo eliminar adeudos que no tengan ningun abono o registro de pago asociado
+        $query->doesntHave('pagosDetalles');
+
         $eliminados = $query->delete();
 
         return redirect()->route('ciclos.index', ['ciclo' => $ciclo])
