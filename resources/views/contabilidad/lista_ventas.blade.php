@@ -90,9 +90,9 @@
                                     <a href="{{ route('pagos.ticket', $pago->id) }}" target="_blank" class="btn btn-sm btn-primary mb-1" title="Reimprimir Ticket">
                                         <i class="fas fa-print"></i>
                                     </a>
-                                    <form action="{{ route('contabilidad.ventas.cancelar', $pago->id) }}" method="POST" class="d-inline-block">
+                                    <form id="cancel-form-{{ $pago->id }}" action="{{ route('contabilidad.ventas.cancelar', $pago->id) }}" method="POST" class="d-inline-block">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-danger mb-1" onclick="return confirm('¿Está seguro de CANCELAR este ticket? Los adeudos volverán a estar pendientes para cobro.')" title="Cancelar Ticket">
+                                        <button type="button" class="btn btn-sm btn-danger mb-1 btn-cancelar-ticket" data-id="{{ $pago->id }}" data-folio="#{{ str_pad($pago->id, 6, '0', STR_PAD_LEFT) }}" title="Cancelar Ticket">
                                             <i class="fas fa-ban"></i>
                                         </button>
                                     </form>
@@ -111,6 +111,7 @@
 @stop
 
 @section('plugins.Datatables', true)
+@section('plugins.Sweetalert2', true)
 
 @section('js')
 <script>
@@ -125,6 +126,28 @@
             "columnDefs": [
                 { "orderable": false, "targets": 7 }
             ]
+        });
+
+        $(document).on('click', '.btn-cancelar-ticket', function(e) {
+            e.preventDefault();
+            let pagoId = $(this).data('id');
+            let folio = $(this).data('folio');
+            let form = $('#cancel-form-' + pagoId);
+
+            Swal.fire({
+                title: '¿Cancelar Ticket ' + folio + '?',
+                text: "Los adeudos vinculados a esta venta volverán a estar pendientes de cobro y el ticket pasará a ventas canceladas.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, cancelar ticket',
+                cancelButtonText: 'No, mantener ticket'
+            }).then((result) => {
+                if (result.value || result.isConfirmed) {
+                    form.submit();
+                }
+            });
         });
     });
 </script>

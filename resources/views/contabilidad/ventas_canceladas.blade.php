@@ -12,8 +12,10 @@
         <div class="card card-danger">
             <div class="card-header">
                 <form action="{{ route('contabilidad.ventas_canceladas') }}" method="GET" class="form-inline">
-                    <label for="fecha" class="mr-2">Fecha original del ticket:</label>
-                    <input type="date" name="fecha" id="fecha" class="form-control mr-2" value="{{ $fecha }}">
+                    <label for="fecha_inicio" class="mr-2">Desde:</label>
+                    <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control mr-3" value="{{ $fechaInicio ?? $fecha }}">
+                    <label for="fecha_fin" class="mr-2">Hasta:</label>
+                    <input type="date" name="fecha_fin" id="fecha_fin" class="form-control mr-3" value="{{ $fechaFin ?? $fecha }}">
                     <button type="submit" class="btn btn-dark"><i class="fas fa-search"></i> Buscar Cancelados</button>
                 </form>
             </div>

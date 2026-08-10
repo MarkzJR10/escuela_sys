@@ -16,6 +16,7 @@ class Pago extends Model
         'metodo_pago',
         'referencia_ticket',
         'fecha_pago',
+        'status',
         'corte_id'
     ];
 

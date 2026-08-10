@@ -41,20 +41,23 @@ class ContabilidadController extends Controller
     {
         DB::transaction(function () use ($pago) {
             // Marcar el pago como cancelado
-            $pago->update(['status' => 'cancelado']);
+            $pago->status = 'cancelado';
+            $pago->save();
 
             // Revertir los adeudos a pendiente
             foreach ($pago->detalles as $detalle) {
                 if ($detalle->adeudo_id) {
                     $adeudo = Adeudo::find($detalle->adeudo_id);
                     if ($adeudo) {
-                        $adeudo->update(['status' => 'pendiente', 'fecha_pago' => null]);
+                        $adeudo->status = 'pendiente';
+                        $adeudo->fecha_pago = null;
+                        $adeudo->save();
                     }
                 }
             }
         });
 
-        return redirect()->back()->with('success', 'Ticket #'.$pago->id.' cancelado exitosamente. Los adeudos han vuelto a estado pendiente.');
+        return redirect()->back()->with('success', 'Ticket #'.str_pad($pago->id, 6, '0', STR_PAD_LEFT).' cancelado exitosamente. Los adeudos han vuelto a estado pendiente.');
     }
 
     /**
@@ -62,15 +65,19 @@ class ContabilidadController extends Controller
      */
     public function ventasCanceladas(Request $request)
     {
-        $fecha = $request->input('fecha', now()->toDateString());
+        $fechaInicio = $request->input('fecha_inicio', $request->input('fecha', now()->toDateString()));
+        $fechaFin = $request->input('fecha_fin', $request->input('fecha', now()->toDateString()));
         
         $pagos = Pago::with(['alumno', 'cajero', 'detalles'])
-            ->whereDate('fecha_pago', $fecha)
+            ->where(function($q) use ($fechaInicio, $fechaFin) {
+                $q->whereBetween(DB::raw('DATE(fecha_pago)'), [$fechaInicio, $fechaFin])
+                  ->orWhereBetween(DB::raw('DATE(updated_at)'), [$fechaInicio, $fechaFin]);
+            })
             ->where('status', 'cancelado')
             ->orderBy('updated_at', 'desc') // fecha de cancelación
             ->get();
 
-        return view('contabilidad.ventas_canceladas', compact('pagos', 'fecha'));
+        return view('contabilidad.ventas_canceladas', compact('pagos', 'fechaInicio', 'fechaFin'));
     }
 
     /**
