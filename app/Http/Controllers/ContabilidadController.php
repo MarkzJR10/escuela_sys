@@ -99,22 +99,23 @@ class ContabilidadController extends Controller
     }
 
     /**
-     * Reporte de Ventas por Producto x Fecha
+     * Reporte de Ventas por Producto x Fecha (Rango de Fechas)
      */
     public function ventasProductoFecha(Request $request)
     {
-        $fecha = $request->input('fecha', now()->toDateString());
+        $fechaInicio = $request->input('fecha_inicio', $request->input('fecha', now()->toDateString()));
+        $fechaFin = $request->input('fecha_fin', $request->input('fecha', now()->toDateString()));
 
-        // Obtener detalles de productos vendidos (adeudos de tipo venta_credito o venta directa ligados a pagos de hoy)
-        $detalles = PagoDetalle::join('adeudos', 'pago_detalles.adeudo_id', '=', 'adeudos.id')
-            ->whereHas('pago', function($q) use ($fecha) {
-                $q->whereDate('fecha_pago', $fecha)->where('status', 'completado');
+        // Obtener detalles de productos/conceptos vendidos (adeudos y ventas ligadas a pagos completados)
+        $detalles = PagoDetalle::with(['pago.cajero', 'pago.alumno.padre', 'adeudo.alumno.padre'])
+            ->whereHas('pago', function($q) use ($fechaInicio, $fechaFin) {
+                $q->whereBetween(DB::raw('DATE(fecha_pago)'), [$fechaInicio, $fechaFin])
+                  ->where('status', 'completado');
             })
-            ->select('adeudos.concepto', DB::raw('SUM(pago_detalles.monto_pagado) as total_vendido'), DB::raw('COUNT(*) as cantidad_tickets'))
-            ->groupBy('adeudos.concepto')
+            ->orderBy('id', 'desc')
             ->get();
 
-        return view('contabilidad.ventas_producto', compact('detalles', 'fecha'));
+        return view('contabilidad.ventas_producto', compact('detalles', 'fechaInicio', 'fechaFin'));
     }
 
     /**
