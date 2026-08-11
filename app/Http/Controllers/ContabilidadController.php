@@ -127,6 +127,10 @@ class ContabilidadController extends Controller
 
         $cajas = Pago::whereDate('fecha_pago', $fecha)
             ->where('status', 'completado')
+            ->where(function($q) {
+                $q->where('metodo_pago', 'efectivo')
+                  ->orWhereNull('metodo_pago');
+            })
             ->select('user_id', DB::raw('SUM(total) as total_cobrado'), DB::raw('COUNT(*) as total_tickets'))
             ->groupBy('user_id')
             ->with('cajero')
@@ -214,6 +218,10 @@ class ContabilidadController extends Controller
         $pagosPendientes = Pago::where('user_id', $userId)
             ->whereNull('corte_id')
             ->where('status', 'completado')
+            ->where(function($q) {
+                $q->where('metodo_pago', 'efectivo')
+                  ->orWhereNull('metodo_pago');
+            })
             ->get();
         $totalCobrado = $pagosPendientes->sum('total');
 
@@ -242,6 +250,10 @@ class ContabilidadController extends Controller
                 $pagosPendientes = Pago::where('user_id', $userId)
                     ->whereNull('corte_id')
                     ->where('status', 'completado')
+                    ->where(function($q) {
+                        $q->where('metodo_pago', 'efectivo')
+                          ->orWhereNull('metodo_pago');
+                    })
                     ->orderBy('created_at', 'asc')
                     ->get();
                     
@@ -305,7 +317,14 @@ class ContabilidadController extends Controller
             abort(403, 'No tiene permiso para ver este corte de caja.');
         }
 
-        $corte->load(['cajero', 'pagos.alumno', 'gastos']);
+        $corte->load(['cajero', 'pagos' => function($q) {
+            $q->where('status', 'completado')
+              ->where(function($sub) {
+                  $sub->where('metodo_pago', 'efectivo')
+                      ->orWhereNull('metodo_pago');
+              })
+              ->with('alumno');
+        }, 'gastos']);
 
         $pdf = Pdf::loadView('contabilidad.corte_caja_pdf', compact('corte'));
         
