@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Pago;
 use App\Models\PagoDetalle;
 use App\Models\Adeudo;
+use App\Models\Producto;
 use App\Models\Gasto;
 use App\Models\Discrepancia;
 use App\Models\User;
@@ -44,20 +45,47 @@ class ContabilidadController extends Controller
             $pago->status = 'cancelado';
             $pago->save();
 
-            // Revertir los adeudos a pendiente
+            // Procesar los adeudos vinculados al ticket
             foreach ($pago->detalles as $detalle) {
                 if ($detalle->adeudo_id) {
                     $adeudo = Adeudo::find($detalle->adeudo_id);
                     if ($adeudo) {
-                        $adeudo->status = 'pendiente';
-                        $adeudo->fecha_pago = null;
-                        $adeudo->save();
+                        // Determinar si fue una venta directa de producto creada al momento de generar este ticket
+                        $esVentaDirecta = ($adeudo->tipo === 'venta') && 
+                            ($pago->created_at && $adeudo->created_at && abs($adeudo->created_at->diffInSeconds($pago->created_at)) < 120);
+
+                        if ($esVentaDirecta) {
+                            // Si fue venta directa de producto en el ticket, se cancela el adeudo para que no quede pendiente
+                            $adeudo->status = 'cancelado';
+                            $adeudo->fecha_pago = null;
+                            $adeudo->save();
+
+                            // Restaurar el stock del producto si se encuentra la coincidencia por nombre en el concepto
+                            $concepto = $adeudo->concepto;
+                            $cantidad = 1;
+                            $nombreProducto = $concepto;
+
+                            if (preg_match('/^(.*)\s+\(x(\d+)\)$/', $concepto, $matches)) {
+                                $nombreProducto = trim($matches[1]);
+                                $cantidad = (int) $matches[2];
+                            }
+
+                            $producto = Producto::where('nombre', $nombreProducto)->first();
+                            if ($producto) {
+                                $producto->increment('stock', $cantidad);
+                            }
+                        } else {
+                            // Si es un adeudo preexistente (colegiatura, especial o venta previa a crédito), vuelve a pendiente
+                            $adeudo->status = 'pendiente';
+                            $adeudo->fecha_pago = null;
+                            $adeudo->save();
+                        }
                     }
                 }
             }
         });
 
-        return redirect()->back()->with('success', 'Ticket #'.str_pad($pago->id, 6, '0', STR_PAD_LEFT).' cancelado exitosamente. Los adeudos han vuelto a estado pendiente.');
+        return redirect()->back()->with('success', 'Ticket #'.str_pad($pago->id, 6, '0', STR_PAD_LEFT).' cancelado exitosamente.');
     }
 
     /**
