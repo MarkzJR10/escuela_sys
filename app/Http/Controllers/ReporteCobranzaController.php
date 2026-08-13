@@ -180,7 +180,7 @@ class ReporteCobranzaController extends Controller
                 ->where('concepto', $conceptoSeleccionado)
                 ->get();
 
-            $totalAsignado = $adeudos->sum('monto_calculado');
+            $totalAsignado = $adeudos->where('status', '!=', 'cancelado')->sum('monto_calculado');
             $totalPagado = $adeudos->where('status', 'pagado')->sum('monto_calculado');
             $totalPendiente = $adeudos->whereIn('status', ['pendiente', 'vencido'])->sum('monto_calculado');
         }

@@ -7,6 +7,22 @@
 @stop
 
 @section('content')
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle mr-1"></i> {{ session('success') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+@endif
+@if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle mr-1"></i> {{ session('error') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+@endif
 <div class="row">
     <div class="col-md-12">
         <div class="card card-outline card-primary no-print">
@@ -99,7 +115,7 @@
                                         <td>{{ $adeudo->alumno->apellido_paterno }} {{ $adeudo->alumno->apellido_materno }} {{ $adeudo->alumno->nombre }}</td>
                                         <td>{{ $adeudo->alumno->gradoGrupo->grado ?? '' }} "{{ $adeudo->alumno->gradoGrupo->grupo ?? '' }}"</td>
                                         <td class="text-right">${{ number_format($adeudo->monto_base, 2) }}</td>
-                                        <td class="text-right font-weight-bold @if($adeudo->status != 'pagado') text-danger @endif">
+                                        <td class="text-right font-weight-bold @if($adeudo->status != 'pagado' && $adeudo->status != 'cancelado') text-danger @endif">
                                             ${{ number_format($adeudo->monto_calculado, 2) }}
                                         </td>
                                         <td>
@@ -107,6 +123,8 @@
                                                 <span class="badge badge-success"><i class="fas fa-check mr-1"></i> Pagado</span>
                                             @elseif($adeudo->status == 'vencido')
                                                 <span class="badge badge-danger"><i class="fas fa-times mr-1"></i> Vencido</span>
+                                            @elseif($adeudo->status == 'cancelado')
+                                                <span class="badge badge-secondary"><i class="fas fa-ban mr-1"></i> Cancelado</span>
                                             @else
                                                 <span class="badge badge-warning"><i class="fas fa-clock mr-1"></i> Pendiente</span>
                                             @endif
@@ -115,12 +133,17 @@
                                             {{ $adeudo->fecha_pago ? \Carbon\Carbon::parse($adeudo->fecha_pago)->format('d/m/Y h:i A') : '---' }}
                                         </td>
                                         <td class="no-print">
-                                            @if($adeudo->status != 'pagado')
-                                                <a href="{{ route('pagos.create', $adeudo->alumno->id) }}" class="btn btn-xs btn-success" title="Cobrar en Caja">
-                                                    <i class="fas fa-cash-register"></i> Cobrar
-                                                </a>
-                                            @else
+                                            @if($adeudo->status != 'pagado' && $adeudo->status != 'cancelado')
+                                                <form action="{{ route('adeudos.cancelar', $adeudo->id) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('¿Está seguro de cancelar el adeudo de {{ addslashes($adeudo->concepto) }} para {{ addslashes($adeudo->alumno->nombre . ' ' . $adeudo->alumno->apellido_paterno) }}? Ya no aparecerá pendiente en el POS.');">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-xs btn-outline-danger" title="Cancelar Adeudo">
+                                                        <i class="fas fa-ban"></i> Cancelar
+                                                    </button>
+                                                </form>
+                                            @elseif($adeudo->status == 'pagado')
                                                 <span class="text-muted"><i class="fas fa-check-double text-success"></i> Liquidado</span>
+                                            @else
+                                                <span class="text-muted"><i class="fas fa-ban text-secondary"></i> Cancelado</span>
                                             @endif
                                         </td>
                                     </tr>
