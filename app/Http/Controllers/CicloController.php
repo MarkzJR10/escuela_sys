@@ -149,7 +149,7 @@ class CicloController extends Controller
     }
 
     /**
-     * Registrar adeudos masivos de reinscripción para alumnos activos con estatus regular.
+     * Registrar adeudos masivos de reinscripción, papelería, seguro escolar y cuota de limpieza para el ciclo.
      */
     public function registrarReinscripcionMasivo(Request $request)
     {
@@ -159,10 +159,9 @@ class CicloController extends Controller
 
         $ciclo = $request->input('ciclo');
         $costoReinscripcion = (float) Configuracion::get('costo_reinscripcion', 0);
-
-        if ($costoReinscripcion <= 0) {
-            return redirect()->back()->with('error', 'El costo de reinscripción no está configurado o es menor/igual a cero. Configúrelo en la sección de Configuración General.');
-        }
+        $costoPapeleria = (float) Configuracion::get('costo_papeleria', 500.00);
+        $costoSeguro = (float) Configuracion::get('costo_seguro_escolar', 500.00);
+        $costoLimpieza = (float) Configuracion::get('costo_cuota_limpieza', 650.00);
 
         // NO generar a alumnos baja o egresados
         $alumnos = Alumno::where('activo', true)
@@ -170,44 +169,83 @@ class CicloController extends Controller
             ->get();
 
         if ($alumnos->isEmpty()) {
-            return redirect()->back()->with('warning', 'No hay alumnos activos regulares para registrar reinscripción.');
+            return redirect()->back()->with('warning', 'No hay alumnos activos regulares para registrar reinscripciones.');
         }
 
         $insertados = 0;
         $omitidos = 0;
-        $concepto = "Reinscripción $ciclo";
+
+        // Lista de conceptos de inicio de ciclo a procesar
+        $conceptosAProcesar = [];
+
+        if ($costoReinscripcion > 0) {
+            $conceptosAProcesar[] = [
+                'concepto' => "Reinscripción $ciclo",
+                'monto' => $costoReinscripcion,
+            ];
+        }
+
+        if ($costoPapeleria > 0) {
+            $conceptosAProcesar[] = [
+                'concepto' => "Papelería ($ciclo)",
+                'monto' => $costoPapeleria,
+            ];
+        }
+
+        if ($costoSeguro > 0) {
+            $conceptosAProcesar[] = [
+                'concepto' => "Seguro Escolar ($ciclo)",
+                'monto' => $costoSeguro,
+            ];
+        }
+
+        if ($costoLimpieza > 0) {
+            $conceptosAProcesar[] = [
+                'concepto' => "Cuota de Limpieza General ($ciclo)",
+                'monto' => $costoLimpieza,
+            ];
+        }
+
+        if (empty($conceptosAProcesar)) {
+            return redirect()->back()->with('error', 'Ninguno de los costos de reinscripción, papelería, seguro o limpieza está configurado. Configúrelos en la sección de Configuración General.');
+        }
 
         DB::beginTransaction();
         try {
             foreach ($alumnos as $alumno) {
-                // Verificar que no exista ya para este alumno y este ciclo
-                $existe = Adeudo::where('alumno_id', $alumno->id)
-                    ->where('tipo', 'especial')
-                    ->where('concepto', $concepto)
-                    ->exists();
+                foreach ($conceptosAProcesar as $item) {
+                    $concepto = $item['concepto'];
+                    $monto = $item['monto'];
 
-                if (!$existe) {
-                    Adeudo::create([
-                        'alumno_id'   => $alumno->id,
-                        'tipo'        => 'especial',
-                        'concepto'    => $concepto,
-                        'monto_base'  => $costoReinscripcion,
-                        'monto_actual' => $costoReinscripcion,
-                        'status'      => 'pendiente',
-                    ]);
-                    $insertados++;
-                } else {
-                    $omitidos++;
+                    // Verificar que no exista ya para este alumno y este ciclo
+                    $existe = Adeudo::where('alumno_id', $alumno->id)
+                        ->where('tipo', 'especial')
+                        ->where('concepto', $concepto)
+                        ->exists();
+
+                    if (!$existe) {
+                        Adeudo::create([
+                            'alumno_id'   => $alumno->id,
+                            'tipo'        => 'especial',
+                            'concepto'    => $concepto,
+                            'monto_base'  => $monto,
+                            'monto_actual' => $monto,
+                            'status'      => 'pendiente',
+                        ]);
+                        $insertados++;
+                    } else {
+                        $omitidos++;
+                    }
                 }
             }
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Error al registrar reinscripciones: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al registrar reinscripciones y conceptos de inicio: ' . $e->getMessage());
         }
 
         return redirect()->route('ciclos.index', ['ciclo' => $ciclo])
-            ->with('success', "Adeudos de reinscripción registrados exitosamente. Se crearon {$insertados} adeudos. ({$omitidos} ya existían y se omitieron).");
+            ->with('success', "Adeudos de Reinscripción, Papelería, Seguro Escolar y Cuota de Limpieza registrados exitosamente para el ciclo {$ciclo}. Se crearon {$insertados} adeudos ({$omitidos} ya existían y se omitieron).");
     }
 
     /**

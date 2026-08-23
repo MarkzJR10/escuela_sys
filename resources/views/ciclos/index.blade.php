@@ -70,7 +70,7 @@
                             </form>
 
                             <form method="POST" action="{{ route('ciclos.registrar_reinscripcion_masivo') }}"
-                                  onsubmit="return confirm('¿Está seguro de registrar adeudos de reinscripción masivos para el ciclo {{ $cicloSeleccionado }}?\n\nSe creará un adeudo de reinscripción solo para los alumnos regulares activos que no lo tengan aún.');"
+                                  onsubmit="return confirm('¿Está seguro de registrar adeudos de reinscripción, papelería, seguro escolar y cuota de limpieza para el ciclo {{ $cicloSeleccionado }}?\n\nSe crearán los adeudos de inicio de ciclo para los alumnos regulares activos que no los tengan aún.');"
                                   class="m-2">
                                 @csrf
                                 <input type="hidden" name="ciclo" value="{{ $cicloSeleccionado }}">
