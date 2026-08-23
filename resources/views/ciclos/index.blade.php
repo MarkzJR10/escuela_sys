@@ -82,6 +82,10 @@
                             <button type="button" class="btn btn-danger px-3 m-2" data-toggle="modal" data-target="#modalEliminarMasivo">
                                 <i class="fas fa-trash-alt"></i> Quitar Adeudos del Ciclo
                             </button>
+
+                            <button type="button" class="btn btn-dark px-3 m-2" data-toggle="modal" data-target="#modalBitacoraQuitas">
+                                <i class="fas fa-user-shield"></i> Bitácora de Auditoría de Quitas
+                            </button>
                         </div>
                     </div>
                 @endif
@@ -148,6 +152,69 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Modal Bitácora de Auditoría de Quitas --}}
+        <div class="modal fade" id="modalBitacoraQuitas" tabindex="-1" role="dialog" aria-labelledby="modalBitacoraQuitasLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title" id="modalBitacoraQuitasLabel">
+                            <i class="fas fa-user-shield mr-1"></i> Bitácora de Auditoría de Eliminación de Adeudos
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        @if(isset($bitacorasEliminacion) && $bitacorasEliminacion->count() > 0)
+                            <div class="table-responsive">
+                                <table id="tblBitacoraQuitas" class="table table-bordered table-striped text-sm w-100">
+                                    <thead class="bg-dark text-white">
+                                        <tr>
+                                            <th>Fecha y Hora</th>
+                                            <th>Matrícula</th>
+                                            <th>Alumno</th>
+                                            <th>Ciclo</th>
+                                            <th>Usuario (Quién lo realizó)</th>
+                                            <th class="text-right">Monto Anterior</th>
+                                            <th class="text-right text-danger">Monto Eliminado</th>
+                                            <th class="text-right text-success">Monto Nuevo</th>
+                                            <th>Meses / Periodos Afectados</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($bitacorasEliminacion as $b)
+                                        <tr>
+                                            <td>{{ $b->created_at ? $b->created_at->format('d/m/Y h:i A') : 'N/A' }}</td>
+                                            <td><span class="badge badge-light">{{ $b->matricula ?? 'N/A' }}</span></td>
+                                            <td><strong>{{ $b->nombre_alumno }}</strong></td>
+                                            <td><span class="badge badge-info">{{ $b->ciclo }}</span></td>
+                                            <td>
+                                                <i class="fas fa-user-tag text-primary mr-1"></i>{{ optional($b->usuario)->name ?? 'Sistema' }}
+                                            </td>
+                                            <td class="text-right">${{ number_format($b->monto_anterior, 2) }}</td>
+                                            <td class="text-right font-weight-bold text-danger">-${{ number_format($b->monto_eliminado, 2) }}</td>
+                                            <td class="text-right font-weight-bold text-success">${{ number_format($b->monto_nuevo, 2) }}</td>
+                                            <td>
+                                                <span class="badge badge-secondary">{{ $b->meses_afectados }}</span>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-info-circle mr-1"></i> Aún no hay registros de eliminación o quita de adeudos en la bitácora de auditoría.
+                            </div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -246,6 +313,17 @@
                 "pageLength": 10,
                 "responsive": true,
                 "order": [[1, 'asc']]
+            });
+        }
+
+        if ($('#tblBitacoraQuitas').length) {
+            $('#tblBitacoraQuitas').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+                },
+                "pageLength": 10,
+                "responsive": true,
+                "order": [[0, 'desc']]
             });
         }
     });

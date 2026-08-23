@@ -65,8 +65,9 @@ class CicloController extends Controller
 
         // Lista de todos los alumnos para los filtros
         $alumnosLista = Alumno::orderBy('apellido_paterno')->orderBy('nombre')->get();
+        $bitacorasEliminacion = \App\Models\BitacoraEliminacionAdeudo::with(['usuario', 'alumno'])->orderBy('id', 'desc')->get();
 
-        return view('ciclos.index', compact('cicloSeleccionado', 'adeudos', 'opciones', 'cicloActual', 'alumnosLista'));
+        return view('ciclos.index', compact('cicloSeleccionado', 'adeudos', 'opciones', 'cicloActual', 'alumnosLista', 'bitacorasEliminacion'));
     }
 
     /**
@@ -274,9 +275,47 @@ class CicloController extends Controller
         // Solo eliminar adeudos que no tengan ningun abono o registro de pago asociado
         $query->doesntHave('pagosDetalles');
 
-        $eliminados = $query->delete();
+        // Audit Logging de eliminación de adeudos
+        $adeudosEliminar = $query->with('alumno')->get();
+        $eliminados = 0;
+
+        if ($adeudosEliminar->isNotEmpty()) {
+            DB::transaction(function () use ($adeudosEliminar, $ciclo, &$eliminados) {
+                $porAlumno = $adeudosEliminar->groupBy('alumno_id');
+
+                foreach ($porAlumno as $idAl => $adeudosGrupo) {
+                    $alumnoObj = $adeudosGrupo->first()->alumno ?: Alumno::find($idAl);
+                    $montoEliminado = (float) $adeudosGrupo->sum('monto_actual');
+
+                    // Extract periodos/meses affected
+                    $mesesAfectados = $adeudosGrupo->pluck('periodo')->filter()->unique()->values()->implode(', ');
+                    if (empty($mesesAfectados)) {
+                        $mesesAfectados = $adeudosGrupo->pluck('concepto')->unique()->values()->implode(', ');
+                    }
+
+                    // Monto anterior y nuevo para el alumno
+                    $montoAnteriorAlumno = (float) Adeudo::where('alumno_id', $idAl)->whereIn('status', ['pendiente', 'vencido', 'programado'])->sum('monto_actual');
+                    $montoNuevoAlumno = max(0, $montoAnteriorAlumno - $montoEliminado);
+
+                    \App\Models\BitacoraEliminacionAdeudo::create([
+                        'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                        'alumno_id' => $idAl,
+                        'matricula' => $alumnoObj ? $alumnoObj->matricula : 'N/A',
+                        'nombre_alumno' => $alumnoObj ? trim("{$alumnoObj->apellido_paterno} {$alumnoObj->apellido_materno} {$alumnoObj->nombre}") : 'N/A',
+                        'ciclo' => $ciclo,
+                        'monto_anterior' => $montoAnteriorAlumno,
+                        'monto_eliminado' => $montoEliminado,
+                        'monto_nuevo' => $montoNuevoAlumno,
+                        'meses_afectados' => $mesesAfectados ?: 'General',
+                        'total_registros_eliminados' => $adeudosGrupo->count(),
+                    ]);
+                }
+
+                $eliminados = Adeudo::whereIn('id', $adeudosEliminar->pluck('id'))->delete();
+            });
+        }
 
         return redirect()->route('ciclos.index', ['ciclo' => $ciclo])
-            ->with('success', "Se eliminaron {$eliminados} adeudos no pagados del ciclo {$ciclo} según los filtros especificados.");
+            ->with('success', "Se eliminaron {$eliminados} adeudos no pagados del ciclo {$ciclo} según los filtros especificados y se registró la bitácora de auditoría.");
     }
 }
