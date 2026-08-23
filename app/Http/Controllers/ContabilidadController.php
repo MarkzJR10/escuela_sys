@@ -232,6 +232,21 @@ class ContabilidadController extends Controller
     }
 
     /**
+     * Exportar Reporte por Producto a Excel
+     */
+    public function exportarReporteProductoExcel(Request $request)
+    {
+        $productoId = $request->input('producto_id');
+        $fechaInicio = $request->input('fecha_inicio', now()->startOfMonth()->toDateString());
+        $fechaFin = $request->input('fecha_fin', now()->toDateString());
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\ReporteProductoExport($productoId, $fechaInicio, $fechaFin),
+            'reporte_ventas_producto_' . now()->format('Y_m_d_His') . '.xlsx'
+        );
+    }
+
+    /**
      * Reporte de Efectivo (Corte de Caja) por Cajero
      */
     public function efectivoCajas(Request $request)

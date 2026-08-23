@@ -108,6 +108,9 @@
                     @endif
                 </h3>
                 <div class="card-tools ml-auto">
+                    <a href="{{ route('contabilidad.reporte_producto_excel', request()->all()) }}" class="btn btn-success btn-sm mr-2">
+                        <i class="fas fa-file-excel mr-1"></i> Exportar Excel
+                    </a>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="window.print()">
                         <i class="fas fa-print mr-1"></i> Imprimir Reporte
                     </button>

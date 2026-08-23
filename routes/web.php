@@ -100,6 +100,7 @@ Route::middleware('auth')->group(function () {
     Route::post('pos/procesar', [POSController::class, 'procesar'])->name('pos.procesar');
 
     // Catálogo de Productos
+    Route::get('productos/exportar-excel', [ProductoController::class, 'exportarExcel'])->name('productos.exportar_excel');
     Route::resource('productos', ProductoController::class);
 
     // Nuevas funcionalidades (Fase 1 y 2)
@@ -167,6 +168,7 @@ Route::middleware('auth')->group(function () {
         Route::get('ventas-por-fecha', [ContabilidadController::class, 'ventasPorFecha'])->name('ventas_por_fecha');
         Route::get('ventas-producto', [ContabilidadController::class, 'ventasProductoFecha'])->name('ventas_producto');
         Route::get('reporte-producto', [ContabilidadController::class, 'reportePorProducto'])->name('reporte_producto');
+        Route::get('reporte-producto-excel', [ContabilidadController::class, 'exportarReporteProductoExcel'])->name('reporte_producto_excel');
         Route::get('efectivo-cajas', [ContabilidadController::class, 'efectivoCajas'])->name('efectivo_cajas');
         
         Route::get('discrepancias', [ContabilidadController::class, 'discrepancias'])->name('discrepancias.index');

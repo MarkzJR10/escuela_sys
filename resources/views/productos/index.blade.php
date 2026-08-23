@@ -8,6 +8,9 @@
             <h1>Catálogo de Productos</h1>
         </div>
         <div class="col-sm-6 text-right">
+            <a href="{{ route('productos.exportar_excel') }}" class="btn btn-success mr-2">
+                <i class="fas fa-file-excel mr-1"></i> Descargar Excel
+            </a>
             <a href="{{ route('productos.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Nuevo Producto
             </a>
