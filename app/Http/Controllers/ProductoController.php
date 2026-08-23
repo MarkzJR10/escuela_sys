@@ -11,42 +11,13 @@ class ProductoController extends Controller
 {
     public function index()
     {
-        $productos = Producto::with('bitacorasStock.usuario')->get();
-        $bitacoras = \App\Models\BitacoraStock::with(['producto', 'usuario'])->orderBy('id', 'desc')->get();
-        return view('productos.index', compact('productos', 'bitacoras'));
+        $productos = Producto::all();
+        return view('productos.index', compact('productos'));
     }
 
     public function exportarExcel()
     {
         return Excel::download(new ProductosExport, 'catalogo_productos_' . now()->format('Y_m_d') . '.xlsx');
-    }
-
-    public function agregarStock(Request $request, Producto $producto)
-    {
-        $request->validate([
-            'cantidad' => 'required|integer|min:1',
-            'motivo' => 'nullable|string|max:255',
-        ]);
-
-        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $producto) {
-            $stockAnterior = $producto->stock;
-            $cantidad = (int) $request->cantidad;
-            $stockNuevo = $stockAnterior + $cantidad;
-
-            $producto->update(['stock' => $stockNuevo]);
-
-            \App\Models\BitacoraStock::create([
-                'producto_id' => $producto->id,
-                'user_id' => \Illuminate\Support\Facades\Auth::id(),
-                'cantidad_agregada' => $cantidad,
-                'stock_anterior' => $stockAnterior,
-                'stock_nuevo' => $stockNuevo,
-                'motivo' => $request->motivo ?: 'Reabastecimiento de stock',
-            ]);
-        });
-
-        return redirect()->route('productos.index')
-            ->with('success', "Se agregaron {$request->cantidad} unidades al stock de {$producto->nombre}. Stock actualizado: {$producto->fresh()->stock}.");
     }
 
     public function create()

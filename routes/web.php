@@ -46,6 +46,7 @@ use App\Http\Controllers\PortalPadreController;
 use App\Http\Controllers\ComplementosController;
 use App\Http\Controllers\CicloController;
 use App\Http\Controllers\ColegiaturaConfigController;
+use App\Http\Controllers\BitacoraController;
 
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
@@ -57,7 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('materias', MateriaController::class);
     Route::resource('profesores', ProfesorController::class);
     Route::resource('calificaciones', CalificacionController::class);
-    
+
     // Cuadro de Honor
     Route::get('/cuadro-honor', [CuadroHonorController::class, 'index'])->name('cuadro_honor.index');
     Route::get('/cuadro-honor/diploma/{alumno}', [CuadroHonorController::class, 'generarDiploma'])->name('cuadro_honor.diploma');
@@ -101,7 +102,6 @@ Route::middleware('auth')->group(function () {
 
     // Catálogo de Productos
     Route::get('productos/exportar-excel', [ProductoController::class, 'exportarExcel'])->name('productos.exportar_excel');
-    Route::post('productos/{producto}/agregar-stock', [ProductoController::class, 'agregarStock'])->name('productos.agregar_stock');
     Route::resource('productos', ProductoController::class);
 
     // Nuevas funcionalidades (Fase 1 y 2)
@@ -156,7 +156,7 @@ Route::middleware('auth')->group(function () {
     Route::post('ciclos/registrar-masivo', [CicloController::class, 'registrarMasivo'])->name('ciclos.registrar_masivo');
     Route::post('ciclos/registrar-reinscripcion-masivo', [CicloController::class, 'registrarReinscripcionMasivo'])->name('ciclos.registrar_reinscripcion_masivo');
     Route::post('ciclos/eliminar-masivo', [CicloController::class, 'eliminarMasivo'])->name('ciclos.eliminar_masivo');
-    
+
     // Fase 4: Turnos y Asistencia Maestros
     Route::get('asistencia-maestros', [AsistenciaMaestroController::class, 'index'])->name('asistencia_maestros.index');
     Route::post('asistencia-maestros', [AsistenciaMaestroController::class, 'store'])->name('asistencia_maestros.store');
@@ -171,7 +171,7 @@ Route::middleware('auth')->group(function () {
         Route::get('reporte-producto', [ContabilidadController::class, 'reportePorProducto'])->name('reporte_producto');
         Route::get('reporte-producto-excel', [ContabilidadController::class, 'exportarReporteProductoExcel'])->name('reporte_producto_excel');
         Route::get('efectivo-cajas', [ContabilidadController::class, 'efectivoCajas'])->name('efectivo_cajas');
-        
+
         Route::get('discrepancias', [ContabilidadController::class, 'discrepancias'])->name('discrepancias.index');
         Route::post('discrepancias', [ContabilidadController::class, 'storeDiscrepancia'])->name('discrepancias.store');
 
@@ -199,5 +199,8 @@ Route::middleware('auth')->group(function () {
 
         // CRUD Catálogo de Colegiaturas
         Route::resource('colegiaturas-config', ColegiaturaConfigController::class);
+
+        // Bitácora de Auditoría (Exclusivo Administradores)
+        Route::get('bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
     });
 });

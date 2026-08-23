@@ -100,6 +100,9 @@ class AppServiceProvider extends ServiceProvider
             if ($item = $buildItem('roles', 'Roles y Permisos', 'fas fa-fw fa-user-shield')) {
                 $adminItems[] = $item;
             }
+            if ($item = $buildItem('bitacora', 'Bitácora de Auditoría', 'fas fa-fw fa-history')) {
+                $adminItems[] = $item;
+            }
 
             // Submenú Configuración
             $configSubmenu = [];
