@@ -22,4 +22,9 @@ class Producto extends Model
         'activo' => 'boolean',
         'precio' => 'decimal:2'
     ];
+
+    public function bitacorasStock()
+    {
+        return $this->hasMany(BitacoraStock::class, 'producto_id')->orderBy('created_at', 'desc');
+    }
 }

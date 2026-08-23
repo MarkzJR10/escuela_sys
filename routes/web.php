@@ -101,6 +101,7 @@ Route::middleware('auth')->group(function () {
 
     // Catálogo de Productos
     Route::get('productos/exportar-excel', [ProductoController::class, 'exportarExcel'])->name('productos.exportar_excel');
+    Route::post('productos/{producto}/agregar-stock', [ProductoController::class, 'agregarStock'])->name('productos.agregar_stock');
     Route::resource('productos', ProductoController::class);
 
     // Nuevas funcionalidades (Fase 1 y 2)
