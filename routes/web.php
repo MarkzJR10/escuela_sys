@@ -47,6 +47,7 @@ use App\Http\Controllers\ComplementosController;
 use App\Http\Controllers\CicloController;
 use App\Http\Controllers\ColegiaturaConfigController;
 use App\Http\Controllers\BitacoraController;
+use App\Http\Controllers\ExtracurricularController;
 
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
@@ -156,6 +157,18 @@ Route::middleware('auth')->group(function () {
     Route::post('ciclos/registrar-masivo', [CicloController::class, 'registrarMasivo'])->name('ciclos.registrar_masivo');
     Route::post('ciclos/registrar-reinscripcion-masivo', [CicloController::class, 'registrarReinscripcionMasivo'])->name('ciclos.registrar_reinscripcion_masivo');
     Route::post('ciclos/eliminar-masivo', [CicloController::class, 'eliminarMasivo'])->name('ciclos.eliminar_masivo');
+
+    // Clases Extracurriculares
+    Route::prefix('extracurriculares')->name('extracurriculares.')->group(function () {
+        Route::get('/', [ExtracurricularController::class, 'index'])->name('index');
+        Route::post('generar', [ExtracurricularController::class, 'generarAdeudos'])->name('generar');
+        Route::post('update-monto/{alumno}', [ExtracurricularController::class, 'updateMontoAlumno'])->name('update_monto_alumno');
+        Route::post('actualizar-montos-masivo', [ExtracurricularController::class, 'actualizarMontosMasivo'])->name('actualizar_montos_masivo');
+        Route::post('cancelar-individual/{adeudo}', [ExtracurricularController::class, 'cancelarIndividual'])->name('cancelar_individual');
+        Route::post('refrescar-individual/{adeudo}', [ExtracurricularController::class, 'refrescarIndividual'])->name('refrescar_individual');
+        Route::post('eliminar-masivo', [ExtracurricularController::class, 'eliminarMasivo'])->name('eliminar_masivo');
+        Route::post('simular-prueba', [ExtracurricularController::class, 'simularPrueba'])->name('simular_prueba');
+    });
 
     // Fase 4: Turnos y Asistencia Maestros
     Route::get('asistencia-maestros', [AsistenciaMaestroController::class, 'index'])->name('asistencia_maestros.index');

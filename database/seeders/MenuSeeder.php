@@ -45,6 +45,7 @@ class MenuSeeder extends Seeder
             ['text' => 'Ciclos Masivo', 'url' => 'ciclos', 'icon' => 'fas fa-fw fa-calendar-alt', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Recargos Manuales', 'url' => 'adeudos/recargos-manual', 'icon' => 'fas fa-fw fa-exclamation-triangle', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Estados de Cuenta', 'url' => 'cartera', 'icon' => 'fas fa-fw fa-search-dollar', 'roles' => ['administrador', 'socio', 'cajero']],
+            ['text' => 'Clases Extracurriculares', 'url' => 'extracurriculares', 'icon' => 'fas fa-fw fa-running', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Reporte de Cobranza', 'url' => 'reportes/cobranza', 'icon' => 'fas fa-fw fa-hand-holding-usd', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Pendientes por Mes', 'url' => 'reportes/pendientes-mes', 'icon' => 'fas fa-fw fa-calendar-times', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Historial Colegiaturas', 'url' => 'reportes/historial-colegiaturas', 'icon' => 'fas fa-fw fa-history', 'roles' => ['administrador', 'socio', 'cajero']],

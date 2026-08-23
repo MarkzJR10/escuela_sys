@@ -275,6 +275,9 @@ class AppServiceProvider extends ServiceProvider
             if ($item = $buildItem('cartera', 'Estados de Cuenta', 'fas fa-fw fa-search-dollar')) {
                 $cobranzaSubmenu[] = $item;
             }
+            if ($item = $buildItem('extracurriculares', 'Clases Extracurriculares', 'fas fa-fw fa-running')) {
+                $cobranzaSubmenu[] = $item;
+            }
 
             if (!empty($cobranzaSubmenu)) {
                 $finItems[] = [

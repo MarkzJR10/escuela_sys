@@ -24,6 +24,7 @@ class Alumno extends Model
         'grado_grupo_id',
         'colegiatura_id',
         'colegiatura',
+        'monto_extracurricular',
         'fotografia',
         'padre_id',
         'activo',
