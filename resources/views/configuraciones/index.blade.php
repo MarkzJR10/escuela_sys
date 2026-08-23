@@ -35,6 +35,24 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="costo_papeleria">Costo de Papelería ($)</label>
+                            <input type="number" step="0.01" name="costo_papeleria" class="form-control" id="costo_papeleria" value="{{ $configs['costo_papeleria'] }}" required>
+                            <small class="text-muted">Este monto se cargará automáticamente al inscribir un nuevo alumno si es mayor a $0.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="costo_seguro_escolar">Costo de Seguro Escolar ($)</label>
+                            <input type="number" step="0.01" name="costo_seguro_escolar" class="form-control" id="costo_seguro_escolar" value="{{ $configs['costo_seguro_escolar'] }}" required>
+                            <small class="text-muted">Este monto se cargará automáticamente al inscribir un nuevo alumno si es mayor a $0.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="costo_cuota_limpieza">Costo de Cuota de Limpieza General ($)</label>
+                            <input type="number" step="0.01" name="costo_cuota_limpieza" class="form-control" id="costo_cuota_limpieza" value="{{ $configs['costo_cuota_limpieza'] }}" required>
+                            <small class="text-muted">Este monto se cargará automáticamente al inscribir un nuevo alumno si es mayor a $0.</small>
+                        </div>
+
+                        <div class="form-group">
                             <label for="ciclo_actual">Ciclo Escolar Actual</label>
                             <input type="text" name="ciclo_actual" class="form-control" id="ciclo_actual" value="{{ $configs['ciclo_actual'] }}" placeholder="Ej: 2025-2026" required>
                             <small class="text-muted">Se utilizará para el concepto del adeudo (Ej: Inscripción 2025-2026).</small>

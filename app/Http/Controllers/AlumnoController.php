@@ -72,10 +72,11 @@ class AlumnoController extends Controller
 
             $alumno = Alumno::create($data);
             
-            // 1. Generar adeudo de inscripción automático
-            $costoInscripcion = Configuracion::get('costo_inscripcion', 0);
+            // 1. Generar adeudos automáticos de inscripción y conceptos de inicio
             $cicloActual = Configuracion::get('ciclo_actual', '2025-2026');
 
+            // Inscripción
+            $costoInscripcion = (float) Configuracion::get('costo_inscripcion', 0);
             if ($costoInscripcion > 0) {
                 Adeudo::create([
                     'alumno_id' => $alumno->id,
@@ -83,6 +84,45 @@ class AlumnoController extends Controller
                     'concepto' => "Inscripción $cicloActual",
                     'monto_base' => $costoInscripcion,
                     'monto_actual' => $costoInscripcion,
+                    'status' => 'pendiente',
+                ]);
+            }
+
+            // Papelería
+            $costoPapeleria = (float) Configuracion::get('costo_papeleria', 500.00);
+            if ($costoPapeleria > 0) {
+                Adeudo::create([
+                    'alumno_id' => $alumno->id,
+                    'tipo' => 'especial',
+                    'concepto' => "Papelería ($cicloActual)",
+                    'monto_base' => $costoPapeleria,
+                    'monto_actual' => $costoPapeleria,
+                    'status' => 'pendiente',
+                ]);
+            }
+
+            // Seguro Escolar
+            $costoSeguro = (float) Configuracion::get('costo_seguro_escolar', 500.00);
+            if ($costoSeguro > 0) {
+                Adeudo::create([
+                    'alumno_id' => $alumno->id,
+                    'tipo' => 'especial',
+                    'concepto' => "Seguro Escolar ($cicloActual)",
+                    'monto_base' => $costoSeguro,
+                    'monto_actual' => $costoSeguro,
+                    'status' => 'pendiente',
+                ]);
+            }
+
+            // Cuota de Limpieza General
+            $costoLimpieza = (float) Configuracion::get('costo_cuota_limpieza', 650.00);
+            if ($costoLimpieza > 0) {
+                Adeudo::create([
+                    'alumno_id' => $alumno->id,
+                    'tipo' => 'especial',
+                    'concepto' => "Cuota de Limpieza General ($cicloActual)",
+                    'monto_base' => $costoLimpieza,
+                    'monto_actual' => $costoLimpieza,
                     'status' => 'pendiente',
                 ]);
             }
