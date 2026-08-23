@@ -59,32 +59,28 @@
                             Ciclo vigente en configuración: <strong>{{ $cicloActual }}</strong>
                         </p>
                         <div class="d-flex flex-wrap justify-content-center">
-                            <form method="POST" action="{{ route('ciclos.registrar_masivo') }}"
-                                  onsubmit="return confirm('¿Está seguro de registrar adeudos masivos para el ciclo {{ $cicloSeleccionado }}?\n\nSe crearán adeudos de colegiatura (Sep-Jun) solo para los alumnos regulares activos que no los tengan aún.');"
-                                  class="m-2">
+                            <form id="formRegistrarColegiaturas" method="POST" action="{{ route('ciclos.registrar_masivo') }}" class="m-2">
                                 @csrf
                                 <input type="hidden" name="ciclo" value="{{ $cicloSeleccionado }}">
-                                <button type="submit" class="btn btn-success px-3">
-                                    <i class="fas fa-plus-circle"></i> Registrar Colegiaturas {{ $cicloSeleccionado }}
+                                <button type="button" id="btnRegistrarColegiaturas" class="btn btn-success px-3 shadow-sm font-weight-bold">
+                                    <i class="fas fa-plus-circle mr-1"></i> Registrar Colegiaturas {{ $cicloSeleccionado }}
                                 </button>
                             </form>
 
-                            <form method="POST" action="{{ route('ciclos.registrar_reinscripcion_masivo') }}"
-                                  onsubmit="return confirm('¿Está seguro de registrar adeudos de reinscripción, papelería, seguro escolar y cuota de limpieza para el ciclo {{ $cicloSeleccionado }}?\n\nSe crearán los adeudos de inicio de ciclo para los alumnos regulares activos que no los tengan aún.');"
-                                  class="m-2">
+                            <form id="formRegistrarReinscripcion" method="POST" action="{{ route('ciclos.registrar_reinscripcion_masivo') }}" class="m-2">
                                 @csrf
                                 <input type="hidden" name="ciclo" value="{{ $cicloSeleccionado }}">
-                                <button type="submit" class="btn btn-warning px-3 text-white">
-                                    <i class="fas fa-user-plus"></i> Registrar Reinscripciones {{ $cicloSeleccionado }}
+                                <button type="button" id="btnRegistrarReinscripcion" class="btn btn-warning px-3 text-white shadow-sm font-weight-bold">
+                                    <i class="fas fa-user-plus mr-1"></i> Registrar Reinscripciones {{ $cicloSeleccionado }}
                                 </button>
                             </form>
 
-                            <button type="button" class="btn btn-danger px-3 m-2" data-toggle="modal" data-target="#modalEliminarMasivo">
-                                <i class="fas fa-trash-alt"></i> Quitar Adeudos del Ciclo
+                            <button type="button" class="btn btn-danger px-3 m-2 shadow-sm font-weight-bold" data-toggle="modal" data-target="#modalEliminarMasivo">
+                                <i class="fas fa-trash-alt mr-1"></i> Quitar Adeudos del Ciclo
                             </button>
 
-                            <button type="button" class="btn btn-dark px-3 m-2" data-toggle="modal" data-target="#modalBitacoraQuitas">
-                                <i class="fas fa-user-shield"></i> Bitácora de Auditoría de Quitas
+                            <button type="button" class="btn btn-dark px-3 m-2 shadow-sm font-weight-bold" data-toggle="modal" data-target="#modalBitacoraQuitas">
+                                <i class="fas fa-user-shield mr-1"></i> Bitácora de Auditoría de Quitas
                             </button>
                         </div>
                     </div>
@@ -301,6 +297,7 @@
 @stop
 
 @section('plugins.Datatables', true)
+@section('plugins.Sweetalert2', true)
 
 @section('js')
 <script>
@@ -326,6 +323,56 @@
                 "order": [[0, 'desc']]
             });
         }
+
+        // Confirmación elegante SweetAlert2 para Registrar Colegiaturas
+        $('#btnRegistrarColegiaturas').on('click', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Registrar Colegiaturas {{ $cicloSeleccionado }}?',
+                html: `<div class="text-left py-2">
+                        <p class="mb-2">Se generarán automáticamente las 10 mensualidades de colegiatura (Sep-Jun) únicamente para los <strong>alumnos regulares activos</strong>.</p>
+                        <small class="text-muted"><i class="fas fa-info-circle mr-1"></i> Los periodos que ya existan previamente para un alumno no serán duplicados.</small>
+                       </div>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-plus-circle mr-1"></i> Sí, Registrar Colegiaturas',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.value || result.isConfirmed) {
+                    $('#formRegistrarColegiaturas').submit();
+                }
+            });
+        });
+
+        // Confirmación elegante SweetAlert2 para Registrar Reinscripciones e Inicio de Ciclo
+        $('#btnRegistrarReinscripcion').on('click', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Registrar Reinscripciones e Inicio de Ciclo {{ $cicloSeleccionado }}?',
+                html: `<div class="text-left py-2">
+                        <p class="mb-2">Se generarán automáticamente los <strong>4 adeudos de inicio de ciclo</strong> para todos los alumnos regulares activos:</p>
+                        <ul class="list-unstyled pl-2 mb-2" style="font-size: 14px;">
+                            <li class="mb-1"><i class="fas fa-check-circle text-warning mr-2"></i> <strong>Reinscripción {{ $cicloSeleccionado }}</strong></li>
+                            <li class="mb-1"><i class="fas fa-check-circle text-warning mr-2"></i> <strong>Papelería ({{ $cicloSeleccionado }})</strong> <span class="badge badge-light border">$500.00</span></li>
+                            <li class="mb-1"><i class="fas fa-check-circle text-warning mr-2"></i> <strong>Seguro Escolar ({{ $cicloSeleccionado }})</strong> <span class="badge badge-light border">$500.00</span></li>
+                            <li class="mb-1"><i class="fas fa-check-circle text-warning mr-2"></i> <strong>Cuota de Limpieza General ({{ $cicloSeleccionado }})</strong> <span class="badge badge-light border">$650.00</span></li>
+                        </ul>
+                        <small class="text-muted"><i class="fas fa-shield-alt mr-1"></i> Los conceptos que ya existan para un alumno no serán duplicados.</small>
+                       </div>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fas fa-user-plus mr-1"></i> Sí, Registrar Adeudos',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.value || result.isConfirmed) {
+                    $('#formRegistrarReinscripcion').submit();
+                }
+            });
+        });
     });
 </script>
 @stop
