@@ -42,6 +42,7 @@
                                             <th>Fecha y Hora</th>
                                             <th>Matrícula</th>
                                             <th>Alumno</th>
+                                            <th>Acción Realizada</th>
                                             <th>Ciclo</th>
                                             <th>Usuario que Ejecutó</th>
                                             <th class="text-right">Monto Anterior</th>
@@ -56,6 +57,11 @@
                                             <td>{{ $b->created_at ? $b->created_at->format('d/m/Y h:i A') : 'N/A' }}</td>
                                             <td><span class="badge badge-light border">{{ $b->matricula ?? 'N/A' }}</span></td>
                                             <td><strong>{{ $b->nombre_alumno }}</strong></td>
+                                            <td>
+                                                <span class="badge {{ str_contains($b->accion ?? '', 'Ajuste') ? 'badge-warning' : 'badge-danger' }}">
+                                                    {{ $b->accion ?? 'Eliminación de Adeudo' }}
+                                                </span>
+                                            </td>
                                             <td><span class="badge badge-info">{{ $b->ciclo }}</span></td>
                                             <td>
                                                 <i class="fas fa-user-tag text-primary mr-1"></i>{{ optional($b->usuario)->name ?? 'Sistema' }}

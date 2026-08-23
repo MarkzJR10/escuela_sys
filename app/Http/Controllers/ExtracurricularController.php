@@ -163,19 +163,97 @@ class ExtracurricularController extends Controller
     }
 
     /**
-     * Actualizar la tarifa de clases extracurriculares por alumno (Regla 3)
+     * Actualizar la tarifa de clases extracurriculares por alumno (Regla 3),
+     * realizar barrido de adeudos pendientes y actualizar montos de hoy hacia adelante.
      */
     public function updateMontoAlumno(Request $request, Alumno $alumno)
     {
         $request->validate([
             'monto_extracurricular' => 'required|numeric|min:0',
+            'ciclo' => 'nullable|string|max:20',
         ]);
 
-        $alumno->update([
-            'monto_extracurricular' => $request->monto_extracurricular
+        $ciclo = $request->input('ciclo', Configuracion::get('ciclo_actual', '2026-2027'));
+        $montoAnterior = (float) $alumno->monto_extracurricular;
+        $montoNuevo = (float) $request->input('monto_extracurricular');
+
+        // 1. Actualizar la tarifa asignada al alumno
+        $alumno->update(['monto_extracurricular' => $montoNuevo]);
+
+        // Construir los 10 meses del ciclo escolar (Sep-Jun)
+        $partes = explode('-', $ciclo);
+        $periodosCiclo = [];
+        if (count($partes) === 2) {
+            $anio1 = (int) $partes[0];
+            $anio2 = (int) $partes[1];
+            for ($m = 9; $m <= 12; $m++) {
+                $periodosCiclo[] = $anio1 . '-' . str_pad($m, 2, '0', STR_PAD_LEFT);
+            }
+            for ($m = 1; $m <= 6; $m++) {
+                $periodosCiclo[] = $anio2 . '-' . str_pad($m, 2, '0', STR_PAD_LEFT);
+            }
+        }
+
+        $mesActual = now()->format('Y-m');
+        $mesesRecreados = [];
+        $mesesActualizados = [];
+
+        DB::transaction(function () use ($alumno, $montoNuevo, $periodosCiclo, $mesActual, &$mesesRecreados, &$mesesActualizados) {
+            foreach ($periodosCiclo as $periodo) {
+                $concepto = "CLASES EXTRACURRICULARES ($periodo)";
+
+                $adeudoExistente = Adeudo::where('alumno_id', $alumno->id)
+                    ->where('concepto', 'LIKE', "CLASES EXTRACURRICULARES ($periodo)%")
+                    ->first();
+
+                if (!$adeudoExistente) {
+                    // Barrido: Si fue borrado previamente y el monto nuevo es > 0, se vuelve a generar
+                    if ($montoNuevo > 0) {
+                        Adeudo::create([
+                            'alumno_id' => $alumno->id,
+                            'tipo' => 'especial',
+                            'concepto' => $concepto,
+                            'monto_base' => $montoNuevo,
+                            'monto_actual' => $montoNuevo,
+                            'periodo' => $periodo,
+                            'status' => 'pendiente',
+                        ]);
+                        $mesesRecreados[] = $periodo;
+                    }
+                } else {
+                    // Modificar de hoy hacia adelante (periodo >= mesActual) en adeudos no pagados
+                    if ($adeudoExistente->status !== 'pagado' && $periodo >= $mesActual) {
+                        $adeudoExistente->update([
+                            'monto_base' => $montoNuevo,
+                            'monto_actual' => $montoNuevo,
+                        ]);
+                        $mesesActualizados[] = $periodo;
+                    }
+                }
+            }
+        });
+
+        // 2. Auditoría en Bitácora (Quién lo hizo y qué hizo)
+        $mesesAfectadosTotales = array_unique(array_merge($mesesRecreados, $mesesActualizados));
+        sort($mesesAfectadosTotales);
+        $mesesAfectadosTexto = !empty($mesesAfectadosTotales) ? implode(', ', $mesesAfectadosTotales) : 'General';
+
+        BitacoraEliminacionAdeudo::create([
+            'user_id' => Auth::id(),
+            'alumno_id' => $alumno->id,
+            'matricula' => $alumno->matricula,
+            'nombre_alumno' => trim("{$alumno->apellido_paterno} {$alumno->apellido_materno} {$alumno->nombre}"),
+            'ciclo' => $ciclo,
+            'accion' => 'Ajuste de Tarifa y Recálculo Extracurricular',
+            'monto_anterior' => $montoAnterior,
+            'monto_eliminado' => 0,
+            'monto_nuevo' => $montoNuevo,
+            'meses_afectados' => $mesesAfectadosTexto,
+            'total_registros_eliminados' => count($mesesAfectadosTotales),
         ]);
 
-        return redirect()->back()->with('success', "Costo de Clases Extracurriculares actualizado a $" . number_format($request->monto_extracurricular, 2) . " para el alumno {$alumno->nombre} {$alumno->apellido_paterno}.");
+        return redirect()->route('extracurriculares.index', ['ciclo' => $ciclo])
+            ->with('success', "Costo actualizado a $" . number_format($montoNuevo, 2) . " para {$alumno->nombre} {$alumno->apellido_paterno}. Se realizó el barrido de pendientes y actualización de adeudos de hoy en adelante (Meses: {$mesesAfectadosTexto}).");
     }
 
     /**
@@ -185,17 +263,26 @@ class ExtracurricularController extends Controller
     {
         $request->validate([
             'monto_general' => 'required|numeric|min:0',
-            'grado_grupo_id' => 'nullable|exists:grado_grupos,id',
+            'ciclo' => 'nullable|string|max:20',
         ]);
 
-        $query = Alumno::query();
-        if ($request->filled('grado_grupo_id')) {
-            $query->where('grado_grupo_id', $request->grado_grupo_id);
+        $ciclo = $request->input('ciclo', Configuracion::get('ciclo_actual', '2026-2027'));
+        $montoGeneral = (float) $request->input('monto_general');
+
+        $alumnos = Alumno::where('activo', true)->get();
+        $afectados = 0;
+
+        foreach ($alumnos as $alumno) {
+            $req = new Request([
+                'monto_extracurricular' => $montoGeneral,
+                'ciclo' => $ciclo
+            ]);
+            $this->updateMontoAlumno($req, $alumno);
+            $afectados++;
         }
 
-        $afectados = $query->update(['monto_extracurricular' => $request->monto_general]);
-
-        return redirect()->back()->with('success', "Se asignó la tarifa de $" . number_format($request->monto_general, 2) . " a {$afectados} alumnos.");
+        return redirect()->route('extracurriculares.index', ['ciclo' => $ciclo])
+            ->with('success', "Se asignó la tarifa de $" . number_format($montoGeneral, 2) . " a {$afectados} alumnos realizando el barrido de adeudos.");
     }
 
     /**

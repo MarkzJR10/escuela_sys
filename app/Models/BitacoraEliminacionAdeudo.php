@@ -17,6 +17,7 @@ class BitacoraEliminacionAdeudo extends Model
         'matricula',
         'nombre_alumno',
         'ciclo',
+        'accion',
         'monto_anterior',
         'monto_eliminado',
         'monto_nuevo',

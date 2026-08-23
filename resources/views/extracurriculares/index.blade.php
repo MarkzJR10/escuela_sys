@@ -268,6 +268,7 @@
                     <div class="card-body">
                         <form action="{{ route('extracurriculares.actualizar_montos_masivo') }}" method="POST" class="form-inline">
                             @csrf
+                            <input type="hidden" name="ciclo" value="{{ $cicloSeleccionado }}">
                             <label class="mr-2"><strong>Asignar Tarifa General a Todos:</strong></label>
                             <input type="number" step="0.01" min="0" name="monto_general" class="form-control mr-2" placeholder="Ej. 600.00" required>
                             <button type="submit" class="btn btn-info"><i class="fas fa-save mr-1"></i> Aplicar a Todos</button>
@@ -295,6 +296,7 @@
                                 <td>
                                     <form id="formMonto-{{ $al->id }}" action="{{ route('extracurriculares.update_monto_alumno', $al->id) }}" method="POST" class="d-flex">
                                         @csrf
+                                        <input type="hidden" name="ciclo" value="{{ $cicloSeleccionado }}">
                                         <input type="number" step="0.01" min="0" name="monto_extracurricular" class="form-control form-control-sm font-weight-bold" value="{{ $al->monto_extracurricular }}" required>
                                     </form>
                                 </td>
