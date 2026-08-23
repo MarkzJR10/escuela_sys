@@ -166,6 +166,7 @@ Route::middleware('auth')->group(function () {
         Route::get('ventas-canceladas', [ContabilidadController::class, 'ventasCanceladas'])->name('ventas_canceladas');
         Route::get('ventas-por-fecha', [ContabilidadController::class, 'ventasPorFecha'])->name('ventas_por_fecha');
         Route::get('ventas-producto', [ContabilidadController::class, 'ventasProductoFecha'])->name('ventas_producto');
+        Route::get('reporte-producto', [ContabilidadController::class, 'reportePorProducto'])->name('reporte_producto');
         Route::get('efectivo-cajas', [ContabilidadController::class, 'efectivoCajas'])->name('efectivo_cajas');
         
         Route::get('discrepancias', [ContabilidadController::class, 'discrepancias'])->name('discrepancias.index');

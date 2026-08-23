@@ -321,6 +321,9 @@ class AppServiceProvider extends ServiceProvider
             if ($item = $buildItem('contabilidad/ventas-producto', 'Ventas por Producto', 'fas fa-fw fa-boxes')) {
                 $contSubmenu[] = $item;
             }
+            if ($item = $buildItem('contabilidad/reporte-producto', 'Reporte por Producto', 'fas fa-fw fa-boxes')) {
+                $contSubmenu[] = $item;
+            }
             if ($item = $buildItem('contabilidad/efectivo-cajas', 'Efectivo en Cajas', 'fas fa-fw fa-cash-register')) {
                 $contSubmenu[] = $item;
             }

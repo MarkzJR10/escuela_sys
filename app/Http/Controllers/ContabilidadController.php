@@ -147,6 +147,91 @@ class ContabilidadController extends Controller
     }
 
     /**
+     * Nuevo Reporte por Producto (Búsqueda por producto Select, Rango de Fechas, Cantidad Vendida y Ticket Asociado)
+     */
+    public function reportePorProducto(Request $request)
+    {
+        $productos = Producto::orderBy('nombre', 'asc')->get();
+
+        $productoId = $request->input('producto_id');
+        $fechaInicio = $request->input('fecha_inicio', now()->startOfMonth()->toDateString());
+        $fechaFin = $request->input('fecha_fin', now()->toDateString());
+
+        $selectedProducto = $productoId ? Producto::find($productoId) : null;
+
+        // Obtener detalles de pagos completados en el rango de fechas
+        $detalles = PagoDetalle::with(['pago.cajero', 'adeudo'])
+            ->whereHas('pago', function($q) use ($fechaInicio, $fechaFin) {
+                $q->whereBetween(DB::raw('DATE(fecha_pago)'), [$fechaInicio, $fechaFin])
+                  ->where('status', 'completado');
+            })
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $ventas = collect();
+        $totalCantidadVendida = 0;
+        $totalMontoVendido = 0;
+
+        foreach ($detalles as $detalle) {
+            $concepto = optional($detalle->adeudo)->concepto;
+            if (!$concepto) {
+                continue;
+            }
+
+            $nombreProducto = $concepto;
+            $cantidad = 1;
+
+            if (preg_match('/^(.*)\s+\(x(\d+)\)$/', $concepto, $matches)) {
+                $nombreProducto = trim($matches[1]);
+                $cantidad = (int) $matches[2];
+            }
+
+            // Si se seleccionó un producto específico, filtrar por nombre coincidente
+            if ($selectedProducto) {
+                if (mb_strtolower(trim($nombreProducto)) !== mb_strtolower(trim($selectedProducto->nombre))) {
+                    continue;
+                }
+            } else {
+                // Si no hay producto seleccionado, verificar si el adeudo es una venta o coincide con algún producto del catálogo
+                $esTipoVenta = optional($detalle->adeudo)->tipo === 'venta';
+                $coincideConCatalogo = $productos->contains(function($p) use ($nombreProducto) {
+                    return mb_strtolower(trim($p->nombre)) === mb_strtolower(trim($nombreProducto));
+                });
+
+                if (!$esTipoVenta && !$coincideConCatalogo) {
+                    continue;
+                }
+            }
+
+            $totalCantidadVendida += $cantidad;
+            $totalMontoVendido += $detalle->monto_pagado;
+
+            $ventas->push((object)[
+                'id' => $detalle->id,
+                'pago_id' => optional($detalle->pago)->id,
+                'ticket' => optional($detalle->pago)->referencia_ticket ?? (optional($detalle->pago)->id ? str_pad($detalle->pago->id, 6, '0', STR_PAD_LEFT) : 'N/A'),
+                'descripcion' => $concepto,
+                'nombre_producto' => $nombreProducto,
+                'cantidad' => $cantidad,
+                'fecha' => optional($detalle->pago)->fecha_pago ? optional($detalle->pago)->fecha_pago->format('d/m/Y h:i A') : $detalle->created_at->format('d/m/Y h:i A'),
+                'cajero' => optional(optional($detalle->pago)->cajero)->name ?? 'Sistema',
+                'monto_pagado' => $detalle->monto_pagado,
+            ]);
+        }
+
+        return view('contabilidad.reporte_producto', compact(
+            'productos',
+            'selectedProducto',
+            'productoId',
+            'fechaInicio',
+            'fechaFin',
+            'ventas',
+            'totalCantidadVendida',
+            'totalMontoVendido'
+        ));
+    }
+
+    /**
      * Reporte de Efectivo (Corte de Caja) por Cajero
      */
     public function efectivoCajas(Request $request)

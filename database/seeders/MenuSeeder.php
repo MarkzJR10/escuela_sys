@@ -53,6 +53,7 @@ class MenuSeeder extends Seeder
             ['text' => 'Ventas Canceladas', 'url' => 'contabilidad/ventas-canceladas', 'icon' => 'fas fa-fw fa-ban', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Ventas por Fecha', 'url' => 'contabilidad/ventas-por-fecha', 'icon' => 'fas fa-fw fa-calendar-day', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Ventas por Producto', 'url' => 'contabilidad/ventas-producto', 'icon' => 'fas fa-fw fa-boxes', 'roles' => ['administrador', 'socio', 'cajero']],
+            ['text' => 'Reporte por Producto', 'url' => 'contabilidad/reporte-producto', 'icon' => 'fas fa-fw fa-boxes', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Efectivo en Cajas', 'url' => 'contabilidad/efectivo-cajas', 'icon' => 'fas fa-fw fa-cash-register', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Discrepancias', 'url' => 'contabilidad/discrepancias', 'icon' => 'fas fa-fw fa-exclamation-circle', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Gastos', 'url' => 'contabilidad/gastos', 'icon' => 'fas fa-fw fa-file-invoice', 'roles' => ['administrador', 'socio', 'cajero']],
