@@ -13,6 +13,8 @@ class ColegiaturaController extends Controller
         $alumnos = Alumno::with(['gradoGrupo', 'colegiaturaBase'])
                          ->orderByRaw('colegiatura IS NULL DESC')
                          ->orderBy('nombre')
+                         ->orderBy('apellido_paterno')
+                         ->orderBy('apellido_materno')
                          ->get();
         $colegiaturas = \App\Models\Colegiatura::all();
 

@@ -65,4 +65,14 @@ class Alumno extends Model
     {
         return $this->hasMany(Boleta::class, 'matricula', 'matricula');
     }
+
+    public function getNombreCompletoAttribute()
+    {
+        return trim("{$this->nombre} {$this->apellido_paterno} {$this->apellido_materno}");
+    }
+
+    public function getApellidosAttribute()
+    {
+        return trim("{$this->apellido_paterno} {$this->apellido_materno}");
+    }
 }

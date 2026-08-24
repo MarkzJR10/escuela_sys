@@ -25,7 +25,7 @@
                 <tbody>
                     @forelse($alumnos as $alumno)
                         <tr class="{{ is_null($alumno->colegiatura) ? 'table-warning' : '' }}">
-                            <td>{{ $alumno->nombre }} {{ $alumno->apellidos }}</td>
+                            <td>{{ $alumno->nombre_completo }}</td>
                             <td>{{ $alumno->gradoGrupo->grado }} {{ $alumno->gradoGrupo->grupo }}</td>
                             <td>
                                 <form action="{{ route('colegiaturas.update', $alumno) }}" method="POST" class="form-inline student-colegiatura-form">
