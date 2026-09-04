@@ -8,8 +8,8 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('login/google', [App\Http\Controllers\Auth\LoginController::class, 'redirectToGoogle'])->name('login.google');
-Route::get('login/google/callback', [App\Http\Controllers\Auth\LoginController::class, 'handleGoogleCallback']);
+Route::get('conectar-google', [App\Http\Controllers\Auth\LoginController::class, 'redirectToGoogle'])->name('login.google');
+Route::get('retorno-google', [App\Http\Controllers\Auth\LoginController::class, 'handleGoogleCallback']);
 
 
 use App\Http\Controllers\HomeController;
