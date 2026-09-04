@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
             $hasAccess = function ($url) use ($dbMenus, $userRoles) {
                 $menu = $dbMenus->get($url);
                 if (!$menu) {
-                    return false;
+                    return in_array('administrador', $userRoles);
                 }
 
                 $menuRoles = $menu->roles->pluck('name')->toArray();
@@ -107,6 +107,9 @@ class AppServiceProvider extends ServiceProvider
             // Submenú Configuración
             $configSubmenu = [];
             if ($item = $buildItem('configuraciones', 'General', 'fas fa-fw fa-sliders-h')) {
+                $configSubmenu[] = $item;
+            }
+            if ($item = $buildItem('configuraciones/visibilidad-portal-padres', 'Visibilidad Portal Padres', 'fas fa-fw fa-user-shield')) {
                 $configSubmenu[] = $item;
             }
             if ($item = $buildItem('menus', 'Gestión de Menús', 'fas fa-fw fa-list')) {

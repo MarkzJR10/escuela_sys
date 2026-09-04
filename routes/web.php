@@ -212,6 +212,10 @@ Route::middleware('auth')->group(function () {
         Route::get('configuraciones', [ConfiguracionController::class, 'index'])->name('configuraciones.index');
         Route::post('configuraciones', [ConfiguracionController::class, 'update'])->name('configuraciones.update');
 
+        // Visibilidad Portal Padres
+        Route::get('configuraciones/visibilidad-portal-padres', [ConfiguracionController::class, 'visibilidadPortalPadres'])->name('configuraciones.portal_padres');
+        Route::post('configuraciones/visibilidad-portal-padres', [ConfiguracionController::class, 'updateVisibilidadPortalPadres'])->name('configuraciones.update_portal_padres');
+
         // CRUD Catálogo de Colegiaturas
         Route::resource('colegiaturas-config', ColegiaturaConfigController::class);
 

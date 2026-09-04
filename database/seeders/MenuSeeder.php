@@ -17,6 +17,7 @@ class MenuSeeder extends Seeder
             ['text' => 'Roles y Permisos', 'url' => 'roles', 'icon' => 'fas fa-fw fa-user-shield', 'roles' => ['administrador']],
             ['text' => 'Bitácora de Auditoría', 'url' => 'bitacora', 'icon' => 'fas fa-fw fa-history', 'roles' => ['administrador']],
             ['text' => 'General', 'url' => 'configuraciones', 'icon' => 'fas fa-fw fa-sliders-h', 'roles' => ['administrador']],
+            ['text' => 'Visibilidad Portal Padres', 'url' => 'configuraciones/visibilidad-portal-padres', 'icon' => 'fas fa-fw fa-user-shield', 'roles' => ['administrador']],
             ['text' => 'Gestión de Menús', 'url' => 'menus', 'icon' => 'fas fa-fw fa-list', 'roles' => ['administrador']],
             ['text' => 'Control de Periodos', 'url' => 'periodos', 'icon' => 'fas fa-fw fa-calendar-check', 'roles' => ['administrador']],
             ['text' => 'Conceptos SAT', 'url' => 'sat_conceptos', 'icon' => 'fas fa-fw fa-file-invoice-dollar', 'roles' => ['administrador']],

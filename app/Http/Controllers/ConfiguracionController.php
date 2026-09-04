@@ -16,10 +16,6 @@ class ConfiguracionController extends Controller
             'costo_seguro_escolar' => Configuracion::get('costo_seguro_escolar', '500.00'),
             'costo_cuota_limpieza' => Configuracion::get('costo_cuota_limpieza', '650.00'),
             'ciclo_actual' => Configuracion::get('ciclo_actual', date('Y') . '-' . (date('Y') + 1)),
-            'portal_padre_ver_boleta' => Configuracion::get('portal_padre_ver_boleta', '1'),
-            'portal_padre_ver_conducta' => Configuracion::get('portal_padre_ver_conducta', '1'),
-            'portal_padre_ver_estado_cuenta' => Configuracion::get('portal_padre_ver_estado_cuenta', '1'),
-            'portal_padre_ver_recibos' => Configuracion::get('portal_padre_ver_recibos', '1'),
         ];
 
         return view('configuraciones.index', compact('configs'));
@@ -43,12 +39,28 @@ class ConfiguracionController extends Controller
         Configuracion::set('costo_cuota_limpieza', $request->costo_cuota_limpieza, 'Costo de cuota de limpieza general al inscribir');
         Configuracion::set('ciclo_actual', $request->ciclo_actual, 'Ciclo escolar vigente para nuevos alumnos');
 
-        // Visibilidad Portal Padre
+        return redirect()->route('configuraciones.index')->with('success', 'Configuración actualizada correctamente.');
+    }
+
+    public function visibilidadPortalPadres()
+    {
+        $configs = [
+            'portal_padre_ver_boleta' => Configuracion::get('portal_padre_ver_boleta', '1'),
+            'portal_padre_ver_conducta' => Configuracion::get('portal_padre_ver_conducta', '1'),
+            'portal_padre_ver_estado_cuenta' => Configuracion::get('portal_padre_ver_estado_cuenta', '1'),
+            'portal_padre_ver_recibos' => Configuracion::get('portal_padre_ver_recibos', '1'),
+        ];
+
+        return view('configuraciones.portal_padres', compact('configs'));
+    }
+
+    public function updateVisibilidadPortalPadres(Request $request)
+    {
         Configuracion::set('portal_padre_ver_boleta', $request->has('portal_padre_ver_boleta') ? '1' : '0', 'Visibilidad de Boleta en Portal Padre');
         Configuracion::set('portal_padre_ver_conducta', $request->has('portal_padre_ver_conducta') ? '1' : '0', 'Visibilidad de Reportes de Conducta en Portal Padre');
         Configuracion::set('portal_padre_ver_estado_cuenta', $request->has('portal_padre_ver_estado_cuenta') ? '1' : '0', 'Visibilidad de Estado de Cuenta en Portal Padre');
         Configuracion::set('portal_padre_ver_recibos', $request->has('portal_padre_ver_recibos') ? '1' : '0', 'Visibilidad de Recibos en Portal Padre');
 
-        return redirect()->route('configuraciones.index')->with('success', 'Configuración actualizada correctamente.');
+        return redirect()->route('configuraciones.portal_padres')->with('success', 'Visibilidad del Portal Padre actualizada correctamente.');
     }
 }
