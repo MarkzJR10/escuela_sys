@@ -27,19 +27,7 @@
             <!-- Top Box: Banco / Cuenta -->
             <div class="receipt-header-row d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <div class="bank-logo-container pr-3">
-                    <div class="d-flex align-items-center">
-                        <div class="inbursa-icon mr-2">
-                            <svg width="45" height="45" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M50 0L93.3013 25V75L50 100L6.69873 75V25L50 0Z" fill="#002E6D"/>
-                                <path d="M50 15L77.9423 31.1518V63.8482L50 80L22.0577 63.8482V31.1518L50 15Z" fill="#FFFFFF"/>
-                                <path d="M50 28L67.3205 38V62L50 72L32.6795 62V38L50 28Z" fill="#002E6D"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="m-0 font-weight-bold" style="color: #002e6d; font-family: sans-serif; letter-spacing: 1px;">INBURSA</h2>
-                            <small class="text-uppercase font-weight-bold text-muted" style="font-size: 11px; display: block; margin-top: -3px;">Grupo Financiero</small>
-                        </div>
-                    </div>
+                    <img src="{{ asset('img/inbursa.png') }}" alt="INBURSA Grupo Financiero" style="max-height: 55px; width: auto;">
                 </div>
                 
                 <div class="account-info-box border p-2 text-left" style="min-width: 220px; font-size: 13px; line-height: 1.4;">
