@@ -39,6 +39,11 @@
                             <i class="fas fa-file-invoice-dollar text-success"></i> Estado de Cuenta
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('portal_padre.recibo', $hijo->id) }}" class="nav-link">
+                            <i class="fas fa-receipt text-info"></i> Recibos
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>

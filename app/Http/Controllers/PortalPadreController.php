@@ -74,4 +74,23 @@ class PortalPadreController extends Controller
 
         return view('portal_padre.estado_cuenta', compact('alumno', 'colegiaturas', 'especiales', 'ventas', 'totalAdeudo'));
     }
+
+    public function recibo(Alumno $alumno)
+    {
+        // Verificar que el hijo pertenece al padre
+        $user = Auth::user();
+        $padre = Padre::where('user_id', $user->id)->first();
+        if (!$padre || $alumno->padre_id !== $padre->id) {
+            abort(403, 'Acceso denegado');
+        }
+
+        // Generar o tomar la referencia del alumno
+        $referencia = $alumno->matricula ? $alumno->matricula : ('2677' . str_pad($alumno->id, 8, '0', STR_PAD_LEFT));
+
+        // Montos de pago (pronto pago vs pago regular)
+        $montoPronto = $alumno->colegiatura ? floatval($alumno->colegiatura) : 2750;
+        $montoRegular = round($montoPronto * 1.10);
+
+        return view('portal_padre.recibo', compact('alumno', 'referencia', 'montoPronto', 'montoRegular'));
+    }
 }

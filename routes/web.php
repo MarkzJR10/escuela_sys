@@ -143,6 +143,7 @@ Route::middleware('auth')->group(function () {
         Route::get('hijo/{alumno}/boleta', [PortalPadreController::class, 'boleta'])->name('boleta');
         Route::get('hijo/{alumno}/conducta', [PortalPadreController::class, 'conducta'])->name('conducta');
         Route::get('hijo/{alumno}/estado-cuenta', [PortalPadreController::class, 'estadoCuenta'])->name('estado_cuenta');
+        Route::get('hijo/{alumno}/recibo', [PortalPadreController::class, 'recibo'])->name('recibo');
     });
 
     // Fase 4: PDF y Excel
