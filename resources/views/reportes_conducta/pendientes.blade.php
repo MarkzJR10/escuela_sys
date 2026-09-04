@@ -16,7 +16,7 @@
             
             <div class="card-body">
                 @if($reportes->count() > 0)
-                    <table class="table table-striped table-bordered table-hover">
+                    <table id="reportes-pendientes-table" class="table table-striped table-bordered table-hover">
                         <thead class="thead-dark">
                             <tr>
                                 <th>Fecha</th>
@@ -53,4 +53,45 @@
         </div>
     </div>
 </div>
+@stop
+
+@section('plugins.Datatables', true)
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        if ($('#reportes-pendientes-table').length) {
+            $('#reportes-pendientes-table').DataTable({
+                "paging": true,
+                "lengthChange": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "autoWidth": false,
+                "responsive": true,
+                "pageLength": 10,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
+                "language": {
+                    "sProcessing":     "Procesando...",
+                    "sLengthMenu":     "Mostrar _MENU_ registros",
+                    "sZeroRecords":    "No se encontraron resultados",
+                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                    "sSearch":         "Buscar:",
+                    "oPaginate": {
+                        "sFirst":    "Primero",
+                        "sLast":     "Último",
+                        "sNext":     "Siguiente",
+                        "sPrevious": "Anterior"
+                    }
+                },
+                "columnDefs": [
+                    { "orderable": false, "targets": 5 }
+                ]
+            });
+        }
+    });
+</script>
 @stop
