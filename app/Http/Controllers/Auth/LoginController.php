@@ -48,7 +48,10 @@ class LoginController extends Controller
      */
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->stateless()->redirect();
+        return Socialite::driver('google')
+            ->scopes(['openid', 'email', 'profile'])
+            ->stateless()
+            ->redirect();
     }
 
     /**
