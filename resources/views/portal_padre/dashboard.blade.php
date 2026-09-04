@@ -24,26 +24,37 @@
             </div>
             <div class="card-footer p-0">
                 <ul class="nav flex-column">
+                    @if(\App\Models\Configuracion::get('portal_padre_ver_boleta', '1') == '1')
                     <li class="nav-item">
                         <a href="{{ route('portal_padre.boleta', $hijo->id) }}" class="nav-link">
                             <i class="fas fa-file-pdf text-danger"></i> Boleta de Calificaciones
                         </a>
                     </li>
+                    @endif
+
+                    @if(\App\Models\Configuracion::get('portal_padre_ver_conducta', '1') == '1')
                     <li class="nav-item">
                         <a href="{{ route('portal_padre.conducta', $hijo->id) }}" class="nav-link">
                             <i class="fas fa-exclamation-triangle text-warning"></i> Reportes de Conducta
                         </a>
                     </li>
+                    @endif
+
+                    @if(\App\Models\Configuracion::get('portal_padre_ver_estado_cuenta', '1') == '1')
                     <li class="nav-item">
                         <a href="{{ route('portal_padre.estado_cuenta', $hijo->id) }}" class="nav-link">
                             <i class="fas fa-file-invoice-dollar text-success"></i> Estado de Cuenta
                         </a>
                     </li>
+                    @endif
+
+                    @if(\App\Models\Configuracion::get('portal_padre_ver_recibos', '1') == '1')
                     <li class="nav-item">
                         <a href="{{ route('portal_padre.recibo', $hijo->id) }}" class="nav-link">
                             <i class="fas fa-receipt text-info"></i> Recibos
                         </a>
                     </li>
+                    @endif
                 </ul>
             </div>
         </div>

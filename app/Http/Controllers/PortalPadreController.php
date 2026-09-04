@@ -7,6 +7,7 @@ use App\Models\Alumno;
 use App\Models\Boleta;
 use App\Models\ReporteConducta;
 use App\Models\Adeudo;
+use App\Models\Configuracion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -28,6 +29,10 @@ class PortalPadreController extends Controller
 
     public function boleta(Alumno $alumno)
     {
+        if (Configuracion::get('portal_padre_ver_boleta', '1') !== '1') {
+            return redirect()->route('portal_padre.dashboard')->with('error', 'La opción de Boleta de Calificaciones no está disponible actualmente.');
+        }
+
         // Verificar que el hijo pertenece al padre
         $user = Auth::user();
         $padre = Padre::where('user_id', $user->id)->first();
@@ -41,6 +46,10 @@ class PortalPadreController extends Controller
 
     public function conducta(Alumno $alumno)
     {
+        if (Configuracion::get('portal_padre_ver_conducta', '1') !== '1') {
+            return redirect()->route('portal_padre.dashboard')->with('error', 'La opción de Reportes de Conducta no está disponible actualmente.');
+        }
+
         // Verificar
         $user = Auth::user();
         $padre = Padre::where('user_id', $user->id)->first();
@@ -54,6 +63,10 @@ class PortalPadreController extends Controller
 
     public function estadoCuenta(Alumno $alumno)
     {
+        if (Configuracion::get('portal_padre_ver_estado_cuenta', '1') !== '1') {
+            return redirect()->route('portal_padre.dashboard')->with('error', 'La opción de Estado de Cuenta no está disponible actualmente.');
+        }
+
         // Verificar
         $user = Auth::user();
         $padre = Padre::where('user_id', $user->id)->first();
@@ -77,6 +90,10 @@ class PortalPadreController extends Controller
 
     public function recibo(Alumno $alumno)
     {
+        if (Configuracion::get('portal_padre_ver_recibos', '1') !== '1') {
+            return redirect()->route('portal_padre.dashboard')->with('error', 'La opción de Recibos de Pago no está disponible actualmente.');
+        }
+
         // Verificar que el hijo pertenece al padre
         $user = Auth::user();
         $padre = Padre::where('user_id', $user->id)->first();
