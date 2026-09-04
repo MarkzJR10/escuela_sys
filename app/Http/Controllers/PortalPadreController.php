@@ -84,8 +84,15 @@ class PortalPadreController extends Controller
             abort(403, 'Acceso denegado');
         }
 
-        // Generar o tomar la referencia del alumno
-        $referencia = $alumno->matricula ? $alumno->matricula : ('2677' . str_pad($alumno->id, 8, '0', STR_PAD_LEFT));
+        $alumno->load('gradoGrupo');
+
+        // Nomenclatura: matricula + grado + mes + año
+        $matricula = $alumno->matricula ? $alumno->matricula : $alumno->id;
+        $gradoNum = preg_replace('/[^0-9]/', '', $alumno->gradoGrupo->grado ?? '') ?: '1';
+        $mes = date('m');
+        $anio = date('Y');
+
+        $referencia = $matricula . $gradoNum . $mes . $anio;
 
         // Montos de pago (pronto pago vs pago regular)
         $montoPronto = $alumno->colegiatura ? floatval($alumno->colegiatura) : 2750;
