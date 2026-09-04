@@ -10,6 +10,7 @@ Auth::routes();
 
 Route::get('conectar-google', [App\Http\Controllers\Auth\LoginController::class, 'redirectToGoogle'])->name('login.google');
 Route::get('retorno-google', [App\Http\Controllers\Auth\LoginController::class, 'handleGoogleCallback']);
+Route::post('autenticar-google', [App\Http\Controllers\Auth\LoginController::class, 'handleGooglePost'])->name('login.google.post');
 
 
 use App\Http\Controllers\HomeController;

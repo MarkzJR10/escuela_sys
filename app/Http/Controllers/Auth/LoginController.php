@@ -7,6 +7,8 @@ use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class LoginController extends Controller
 {
@@ -83,5 +85,50 @@ class LoginController extends Controller
 
         // Si el usuario no está registrado, redirigir con error
         return redirect()->route('login')->withErrors(['email' => 'Esta cuenta institucional no está registrada en el sistema.']);
+    }
+
+    /**
+     * Procesar la autenticación de Google Identity Services enviada mediante POST.
+     */
+    public function handleGooglePost(Request $request)
+    {
+        $idToken = $request->input('credential');
+
+        if (!$idToken) {
+            return redirect()->route('login')->with('error', 'Token de autenticación no recibido.');
+        }
+
+        try {
+            $response = Http::get('https://oauth2.googleapis.com/tokeninfo', [
+                'id_token' => $idToken,
+            ]);
+
+            if ($response->failed()) {
+                return redirect()->route('login')->with('error', 'Token de Google no válido.');
+            }
+
+            $payload = $response->json();
+            $email = $payload['email'] ?? null;
+
+            if (!$email) {
+                return redirect()->route('login')->with('error', 'No se obtuvo el correo institucional.');
+            }
+
+            $user = User::where('email', $email)->first();
+
+            if ($user) {
+                if (isset($payload['sub'])) {
+                    $user->update(['google_id' => $payload['sub']]);
+                }
+
+                Auth::login($user, true);
+
+                return redirect()->intended($this->redirectTo);
+            }
+
+            return redirect()->route('login')->withErrors(['email' => 'Esta cuenta institucional no está registrada en el sistema.']);
+        } catch (\Exception $e) {
+            return redirect()->route('login')->with('error', 'Error al procesar la autenticación: ' . $e->getMessage());
+        }
     }
 }
