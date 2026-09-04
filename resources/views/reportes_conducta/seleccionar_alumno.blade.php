@@ -34,13 +34,13 @@
                 </form>
 
                 @if($alumnos->count() > 0)
-                    <table class="table table-bordered table-striped">
-                        <thead>
+                    <table id="alumnos-conducta-table" class="table table-bordered table-striped table-hover">
+                        <thead class="thead-dark">
                             <tr>
                                 <th>Matrícula</th>
                                 <th>Alumno</th>
                                 <th>Grado y Grupo</th>
-                                <th width="150px">Acciones</th>
+                                <th width="180px">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -67,4 +67,45 @@
         </div>
     </div>
 </div>
+@stop
+
+@section('plugins.Datatables', true)
+
+@section('js')
+<script>
+    $(document).ready(function() {
+        if ($('#alumnos-conducta-table').length) {
+            $('#alumnos-conducta-table').DataTable({
+                "paging": true,
+                "lengthChange": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "autoWidth": false,
+                "responsive": true,
+                "pageLength": 10,
+                "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
+                "language": {
+                    "sProcessing":     "Procesando...",
+                    "sLengthMenu":     "Mostrar _MENU_ registros",
+                    "sZeroRecords":    "No se encontraron resultados",
+                    "sEmptyTable":     "Ningún dato disponible en esta tabla",
+                    "sInfo":           "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                    "sInfoEmpty":      "Mostrando registros del 0 al 0 de un total de 0 registros",
+                    "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                    "sSearch":         "Buscar:",
+                    "oPaginate": {
+                        "sFirst":    "Primero",
+                        "sLast":     "Último",
+                        "sNext":     "Siguiente",
+                        "sPrevious": "Anterior"
+                    }
+                },
+                "columnDefs": [
+                    { "orderable": false, "targets": 3 }
+                ]
+            });
+        }
+    });
+</script>
 @stop
