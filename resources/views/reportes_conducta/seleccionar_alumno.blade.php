@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Seleccionar Alumno - Reporte de Conducta')
+@section('title', 'Seleccionar Alumno - Capturar Reportes')
 
 @section('content_header')
-    <h1>Capturar Reporte de Conducta</h1>
+    <h1>Capturar Reporte (Conducta / Tareas)</h1>
 @stop
 
 @section('content')
@@ -40,7 +40,8 @@
                                 <th>Matrícula</th>
                                 <th>Alumno</th>
                                 <th>Grado y Grupo</th>
-                                <th width="180px">Acciones</th>
+                                <th>Reportes Acumulados</th>
+                                <th width="320px">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -50,8 +51,19 @@
                                     <td>{{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} {{ $alumno->nombre }}</td>
                                     <td>{{ $alumno->gradoGrupo->grado }} "{{ $alumno->gradoGrupo->grupo }}"</td>
                                     <td>
-                                        <a href="{{ route('reportes_conducta.create', ['alumno_id' => $alumno->id]) }}" class="btn btn-sm btn-success">
-                                            <i class="fas fa-plus-circle"></i> Capturar Reporte
+                                        <span class="badge badge-warning p-2 mr-1">
+                                            <i class="fas fa-exclamation-triangle"></i> Conducta: <strong>{{ $alumno->reportes_conducta_count ?? 0 }}</strong>
+                                        </span>
+                                        <span class="badge badge-info p-2">
+                                            <i class="fas fa-tasks"></i> Tareas: <strong>{{ $alumno->reportes_tareas_count ?? 0 }}</strong>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('reportes_conducta.create', ['alumno_id' => $alumno->id]) }}" class="btn btn-sm btn-warning mb-1">
+                                            <i class="fas fa-plus-circle"></i> Capturar Conducta
+                                        </a>
+                                        <a href="{{ route('reportes_tareas.create', ['alumno_id' => $alumno->id]) }}" class="btn btn-sm btn-info mb-1">
+                                            <i class="fas fa-plus-circle"></i> Capturar Tareas
                                         </a>
                                     </td>
                                 </tr>
@@ -102,7 +114,7 @@
                     }
                 },
                 "columnDefs": [
-                    { "orderable": false, "targets": 3 }
+                    { "orderable": false, "targets": 4 }
                 ]
             });
         }

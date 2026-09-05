@@ -123,7 +123,8 @@ class ReporteConductaController extends Controller
         $alumnos = collect();
 
         if ($request->filled('grado_grupo_id')) {
-            $alumnos = Alumno::where('grado_grupo_id', $request->grado_grupo_id)
+            $alumnos = Alumno::withCount(['reportesConducta', 'reportesTareas'])
+                ->where('grado_grupo_id', $request->grado_grupo_id)
                 ->where('activo', true)
                 ->orderBy('apellido_paterno')
                 ->get();

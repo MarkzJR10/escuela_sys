@@ -59,7 +59,7 @@
                 </div>
 
                 <div class="card-footer">
-                    <a href="{{ route('reportes_conducta.seleccionar') }}" class="btn btn-default">Cancelar</a>
+                    <a href="{{ url()->previous() }}" class="btn btn-default">Cancelar</a>
                     <button type="submit" class="btn btn-danger float-right"><i class="fas fa-save"></i> Guardar Reporte</button>
                 </div>
             </form>

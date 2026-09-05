@@ -66,6 +66,16 @@ class Alumno extends Model
         return $this->hasMany(Boleta::class, 'matricula', 'matricula');
     }
 
+    public function reportesConducta()
+    {
+        return $this->hasMany(ReporteConducta::class);
+    }
+
+    public function reportesTareas()
+    {
+        return $this->hasMany(ReporteTarea::class);
+    }
+
     public function getNombreCompletoAttribute()
     {
         return trim("{$this->nombre} {$this->apellido_paterno} {$this->apellido_materno}");

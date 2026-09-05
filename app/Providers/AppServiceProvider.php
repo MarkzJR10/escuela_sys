@@ -230,7 +230,7 @@ class AppServiceProvider extends ServiceProvider
 
             if (!empty($conductaSubmenu)) {
                 $acadItems[] = [
-                    'text'    => 'Conducta',
+                    'text'    => 'Conducta / Tareas',
                     'icon'    => 'fas fa-fw fa-exclamation-circle',
                     'submenu' => $conductaSubmenu,
                 ];

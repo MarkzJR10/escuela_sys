@@ -22,7 +22,14 @@ class PortalPadreController extends Controller
             return redirect('/home')->with('error', 'Su usuario no está vinculado a una cuenta de tutor.');
         }
 
-        $hijos = $padre->alumnos()->with('gradoGrupo')->get();
+        $hijos = $padre->alumnos()
+            ->where('activo', true)
+            ->where(function ($query) {
+                $query->whereNull('estatus')
+                      ->orWhereNotIn('estatus', ['baja', 'egresado']);
+            })
+            ->with('gradoGrupo')
+            ->get();
 
         return view('portal_padre.dashboard', compact('padre', 'hijos'));
     }
