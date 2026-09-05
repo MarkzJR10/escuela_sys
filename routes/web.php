@@ -53,7 +53,7 @@ use App\Http\Controllers\ExtracurricularController;
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'check.menu'])->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('alumnos', AlumnoController::class);
     Route::resource('grado_grupos', GradoGrupoController::class);

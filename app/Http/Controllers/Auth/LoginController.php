@@ -78,9 +78,9 @@ class LoginController extends Controller
                 'google_id' => $googleUser->getId(),
             ]);
 
-            Auth::login($user, true);
+            Auth::login($user);
 
-            return redirect()->intended($this->redirectTo);
+            return $this->redirectUser($user);
         }
 
         // Si el usuario no está registrado, redirigir con error
@@ -121,14 +121,48 @@ class LoginController extends Controller
                     $user->update(['google_id' => $payload['sub']]);
                 }
 
-                Auth::login($user, true);
+                Auth::login($user);
 
-                return redirect()->intended($this->redirectTo);
+                return $this->redirectUser($user);
             }
 
             return redirect()->route('login')->withErrors(['email' => 'Esta cuenta institucional no está registrada en el sistema.']);
         } catch (\Exception $e) {
             return redirect()->route('login')->with('error', 'Error al procesar la autenticación: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Manejar la redirección tras la autenticación tradicional (formulario).
+     */
+    protected function authenticated(Request $request, $user)
+    {
+        return $this->redirectUser($user);
+    }
+
+    /**
+     * Helper para definir a dónde redirigir al usuario según sus roles.
+     */
+    protected function redirectUser($user)
+    {
+        if ($user->hasRole('padre')) {
+            session()->forget('url.intended');
+            return redirect()->route('portal_padre.dashboard');
+        }
+
+        return redirect()->intended($this->redirectTo);
+    }
+
+    /**
+     * Log the user out of the application.
+     */
+    public function logout(Request $request)
+    {
+        $this->guard()->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/login');
     }
 }
