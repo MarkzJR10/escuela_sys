@@ -21,7 +21,8 @@ deployment:
     - /bin/find $DEPLOYPATH -type d -exec chmod 755 {} \;
     - /bin/find $DEPLOYPATH -type f -exec chmod 644 {} \;
     
-    # 5. Limpiar la caché de Laravel de forma automática en cada deploy
+    # 5. Limpiar la caché de Laravel de forma automática en cada deploy (incluyendo vistas)
     - /usr/local/bin/php $DEPLOYPATH/artisan config:clear
     - /usr/local/bin/php $DEPLOYPATH/artisan route:clear
     - /usr/local/bin/php $DEPLOYPATH/artisan cache:clear
+    - /usr/local/bin/php $DEPLOYPATH/artisan view:clear
