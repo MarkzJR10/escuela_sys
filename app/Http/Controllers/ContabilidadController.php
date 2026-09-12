@@ -359,8 +359,12 @@ class ContabilidadController extends Controller
             ->get();
         $totalGastado = $gastosPendientes->sum('monto');
 
-        // 3. Historial de cortes (cada cajero ve solo sus propios cortes)
-        $cortes = Corte::where('user_id', $userId)->with('cajero')->orderBy('id', 'desc')->get();
+        // 3. Historial de cortes (el administrador ve todos los cortes, los cajeros solo los suyos)
+        $queryCortes = Corte::with('cajero')->orderBy('id', 'desc');
+        if (!Auth::user()->hasRole('administrador')) {
+            $queryCortes->where('user_id', $userId);
+        }
+        $cortes = $queryCortes->get();
 
         return view('contabilidad.corte_caja', compact('totalCobrado', 'totalGastado', 'cortes', 'pagosPendientes', 'gastosPendientes'));
     }
