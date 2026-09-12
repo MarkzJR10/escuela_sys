@@ -14,7 +14,7 @@
                 <form action="{{ route('contabilidad.efectivo_cajas') }}" method="GET" class="form-inline">
                     <label for="fecha" class="mr-2">Fecha del Corte:</label>
                     <input type="date" name="fecha" id="fecha" class="form-control mr-2" value="{{ $fecha }}">
-                    <button type="submit" class="btn btn-dark"><i class="fas fa-calculator"></i> Generar Corte</button>
+                    <button type="submit" class="btn btn-dark"><i class="fas fa-search mr-1"></i> Buscar</button>
                     <button type="button" class="btn btn-secondary ml-auto" onclick="window.print()"><i class="fas fa-print"></i> Imprimir</button>
                 </form>
             </div>
