@@ -22,7 +22,7 @@
         @yield('content_top_nav_right')
 
         {{-- Fecha, Hora y Zona Horaria --}}
-        <li class="nav-item d-none d-sm-flex align-items-center mr-3">
+        <li class="nav-item d-flex align-items-center mr-2 mr-md-3">
             <span class="badge badge-light border px-2 py-1 shadow-sm text-secondary" style="font-size: 0.85rem;" title="Zona Horaria: {{ config('app.timezone', 'America/Mexico_City') }}">
                 <i class="far fa-clock text-primary mr-1"></i>
                 <span id="server-datetime-display" class="font-weight-bold">
