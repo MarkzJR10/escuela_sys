@@ -139,6 +139,40 @@
     {{-- Custom Scripts --}}
     @yield('adminlte_js')
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let clockItem = document.getElementById('server-clock-nav-item');
+            if (clockItem) {
+                let linkEl = clockItem.querySelector('a');
+                if (linkEl) {
+                    linkEl.style.cursor = 'default';
+                    linkEl.addEventListener('click', function(e) { e.preventDefault(); });
+
+                    let serverTime = new Date("{{ now()->timezone(config('app.timezone', 'America/Mexico_City'))->toIso8601String() }}");
+                    setInterval(function() {
+                        serverTime.setSeconds(serverTime.getSeconds() + 1);
+                        let day = String(serverTime.getDate()).padStart(2, '0');
+                        let month = String(serverTime.getMonth() + 1).padStart(2, '0');
+                        let year = serverTime.getFullYear();
+                        let hours = serverTime.getHours();
+                        let minutes = String(serverTime.getMinutes()).padStart(2, '0');
+                        let seconds = String(serverTime.getSeconds()).padStart(2, '0');
+                        let ampm = hours >= 12 ? 'PM' : 'AM';
+                        hours = hours % 12;
+                        hours = hours ? hours : 12;
+                        let hoursStr = String(hours).padStart(2, '0');
+
+                        let iconEl = linkEl.querySelector('i');
+                        let badgeEl = linkEl.querySelector('.badge');
+                        let timeText = ` ${day}/${month}/${year} ${hoursStr}:${minutes}:${seconds} ${ampm} `;
+
+                        linkEl.innerHTML = (iconEl ? iconEl.outerHTML : '') + timeText + (badgeEl ? badgeEl.outerHTML : '');
+                    }, 1000);
+                }
+            }
+        });
+    </script>
+
 </body>
 
 </html>

@@ -301,6 +301,15 @@ return [
     'menu' => [
         // Navbar items:
         [
+            'text' => now()->timezone(config('app.timezone', 'America/Mexico_City'))->format('d/m/Y h:i:s A'),
+            'url' => '#',
+            'topnav_right' => true,
+            'icon' => 'far fa-clock text-primary',
+            'label' => 'America/Mexico_City',
+            'label_color' => 'primary',
+            'id' => 'server-clock-nav-item',
+        ],
+        [
             'type' => 'navbar-search',
             'text' => 'search',
             'topnav_right' => true,
