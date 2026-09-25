@@ -193,6 +193,7 @@ class ComplementosController extends Controller
                     'fecha_pago' => $fechaPago,
                     'referencia' => $valRef,
                     'referencia_leyenda' => $valLey,
+                    'nomenclatura_display' => $nomenclatura['display'],
                     'monto_abonado' => $abono,
                     'monto_debido' => $montoDebido,
                     'diferencia' => $diferencia > 0 ? $diferencia : 0,
@@ -317,11 +318,9 @@ class ComplementosController extends Controller
      * Estructura: 5 chars matricula, 1 char grado, 2 chars mes, 4 chars año
      */
     /**
-     * Evalúa una fila de pago siguiendo las 5 reglas estrictas:
-     * 1. Revisar primeros 12 caracteres de Referencia (si no es vacía)
-     * 2. Si la nomenclatura es correcta, validar existencia de alumno y adeudo colegiatura (periodo)
-     * 3. Si Referencia no coincide o no tiene adeudo, revisar Referencia Leyenda (primeros 12 caracteres / nomenclatura)
-     * 4. Si Referencia está vacía, pasa a Referencia Leyenda
+     * Evalúa una fila de pago siguiendo estrictamente:
+     * 1. Extraer los primeros 12 caracteres de Referencia y analizar (Matrícula + Adeudo).
+     * 2. Si no coincide o está vacía, extraer los primeros 12 caracteres de Referencia Leyenda y analizar.
      */
     private function evaluarFilaSegunReglas($valRef, $valLey)
     {
@@ -330,89 +329,93 @@ class ComplementosController extends Controller
         $refNomenclatura = null;
         $leyNomenclatura = null;
 
-        // --- PASO 1: Evaluar columna Referencia primero ---
+        // --- REGLA 1 y 2: Extraer los primeros 12 caracteres de Referencia y analizar ---
         $strRef = $this->formatRawCellValue($valRef);
         if (!empty($strRef)) {
-            $nomsRef = $this->obtenerTodasNomenclaturasEnTexto($strRef);
-            foreach ($nomsRef as $nom) {
-                if (!$refNomenclatura) {
-                    $refNomenclatura = $nom;
-                }
-                $mat = $nom['matricula'];
-                $periodo = $nom['periodo'];
+            $cleanRef = preg_replace('/[^A-Za-z0-9]/', '', $strRef);
+            if (strlen($cleanRef) >= 12) {
+                $codeRef = substr($cleanRef, 0, 12);
+                $nomRef = $this->validarYConstruirNomenclatura($codeRef, 'Referencia');
+                if ($nomRef) {
+                    $refNomenclatura = $nomRef;
+                    $mat = $nomRef['matricula'];
+                    $periodo = $nomRef['periodo'];
 
-                $alumno = Alumno::with('gradoGrupo')->where('matricula', $mat)->first();
-                if (!$alumno) {
-                    $alumno = Alumno::with('gradoGrupo')->where('matricula', 'LIKE', "%{$mat}%")->first();
-                }
+                    $alumno = Alumno::with('gradoGrupo')->where('matricula', $mat)->first();
+                    if (!$alumno) {
+                        $alumno = Alumno::with('gradoGrupo')->where('matricula', 'LIKE', "%{$mat}%")->first();
+                    }
 
-                if ($alumno) {
-                    $adeudo = Adeudo::where('alumno_id', $alumno->id)
-                        ->where('periodo', $periodo)
-                        ->where('tipo', 'colegiatura')
-                        ->whereIn('status', ['pendiente', 'vencido', 'programado'])
-                        ->first();
+                    if ($alumno) {
+                        $adeudo = Adeudo::where('alumno_id', $alumno->id)
+                            ->where('periodo', $periodo)
+                            ->where('tipo', 'colegiatura')
+                            ->whereIn('status', ['pendiente', 'vencido', 'programado'])
+                            ->first();
 
-                    if ($adeudo) {
-                        // Éxito en Referencia: Matrícula + Adeudo coinciden
-                        return [
-                            'status' => 'ok',
-                            'nomenclatura' => $nom,
-                            'alumno' => $alumno,
-                            'adeudo' => $adeudo,
-                        ];
-                    } elseif (!$refAlumnoSinAdeudo) {
-                        $refAlumnoSinAdeudo = [
-                            'nomenclatura' => $nom,
-                            'alumno' => $alumno,
-                        ];
+                        if ($adeudo) {
+                            // Éxito en Referencia (primeros 12 chars)
+                            return [
+                                'status' => 'ok',
+                                'nomenclatura' => $nomRef,
+                                'alumno' => $alumno,
+                                'adeudo' => $adeudo,
+                            ];
+                        } else {
+                            $refAlumnoSinAdeudo = [
+                                'nomenclatura' => $nomRef,
+                                'alumno' => $alumno,
+                            ];
+                        }
                     }
                 }
             }
         }
 
-        // --- PASO 2: Evaluar columna Referencia Leyenda ---
+        // --- REGLA 3 y 5: Extraer los primeros 12 caracteres de Referencia Leyenda y analizar ---
         $strLey = $this->formatRawCellValue($valLey);
         if (!empty($strLey)) {
-            $nomsLey = $this->obtenerTodasNomenclaturasEnTexto($strLey);
-            foreach ($nomsLey as $nom) {
-                if (!$leyNomenclatura) {
-                    $leyNomenclatura = $nom;
-                }
-                $mat = $nom['matricula'];
-                $periodo = $nom['periodo'];
+            $cleanLey = preg_replace('/[^A-Za-z0-9]/', '', $strLey);
+            if (strlen($cleanLey) >= 12) {
+                $codeLey = substr($cleanLey, 0, 12);
+                $nomLey = $this->validarYConstruirNomenclatura($codeLey, 'ReferenciaLeyenda');
+                if ($nomLey) {
+                    $leyNomenclatura = $nomLey;
+                    $mat = $nomLey['matricula'];
+                    $periodo = $nomLey['periodo'];
 
-                $alumno = Alumno::with('gradoGrupo')->where('matricula', $mat)->first();
-                if (!$alumno) {
-                    $alumno = Alumno::with('gradoGrupo')->where('matricula', 'LIKE', "%{$mat}%")->first();
-                }
+                    $alumno = Alumno::with('gradoGrupo')->where('matricula', $mat)->first();
+                    if (!$alumno) {
+                        $alumno = Alumno::with('gradoGrupo')->where('matricula', 'LIKE', "%{$mat}%")->first();
+                    }
 
-                if ($alumno) {
-                    $adeudo = Adeudo::where('alumno_id', $alumno->id)
-                        ->where('periodo', $periodo)
-                        ->where('tipo', 'colegiatura')
-                        ->whereIn('status', ['pendiente', 'vencido', 'programado'])
-                        ->first();
+                    if ($alumno) {
+                        $adeudo = Adeudo::where('alumno_id', $alumno->id)
+                            ->where('periodo', $periodo)
+                            ->where('tipo', 'colegiatura')
+                            ->whereIn('status', ['pendiente', 'vencido', 'programado'])
+                            ->first();
 
-                    if ($adeudo) {
-                        // Éxito en Referencia Leyenda: Matrícula + Adeudo coinciden
-                        return [
-                            'status' => 'ok',
-                            'nomenclatura' => $nom,
-                            'alumno' => $alumno,
-                            'adeudo' => $adeudo,
-                        ];
-                    } elseif (!$leyAlumnoSinAdeudo) {
-                        $leyAlumnoSinAdeudo = [
-                            'nomenclatura' => $nom,
-                            'alumno' => $alumno,
-                        ];
+                        if ($adeudo) {
+                            // Éxito en Referencia Leyenda (primeros 12 chars)
+                            return [
+                                'status' => 'ok',
+                                'nomenclatura' => $nomLey,
+                                'alumno' => $alumno,
+                                'adeudo' => $adeudo,
+                            ];
+                        } else {
+                            $leyAlumnoSinAdeudo = [
+                                'nomenclatura' => $nomLey,
+                                'alumno' => $alumno,
+                            ];
+                        }
                     }
                 }
             }
         }
 
-        // --- PASO 3: Manejar errores según jerarquía ---
+        // --- MANEJO DE ERRORES SEGÚN JERARQUÍA ---
         $alumnoSinAdeudo = $refAlumnoSinAdeudo ?? $leyAlumnoSinAdeudo;
         if ($alumnoSinAdeudo) {
             $alumno = $alumnoSinAdeudo['alumno'];
@@ -420,7 +423,7 @@ class ComplementosController extends Controller
             return [
                 'status' => 'error',
                 'motivo' => "No se pudo asignar a alguna colegiatura para el periodo {$nom['periodo']}",
-                'nomenclatura' => $nom['code'],
+                'nomenclatura' => $nom['display'],
                 'matricula' => $alumno->matricula,
                 'alumno_nombre' => $alumno->nombre_completo,
             ];
@@ -431,65 +434,18 @@ class ComplementosController extends Controller
             return [
                 'status' => 'error',
                 'motivo' => "Alumno no encontrado con matrícula {$nomSinAlumno['matricula']}",
-                'nomenclatura' => $nomSinAlumno['code'],
+                'nomenclatura' => $nomSinAlumno['display'],
                 'matricula' => $nomSinAlumno['matricula'],
             ];
         }
 
         return [
             'status' => 'error',
-            'motivo' => 'No se encontró nomenclatura válida de 12 caracteres',
+            'motivo' => 'No se encontró nomenclatura válida de 12 caracteres en los primeros 12 dígitos',
         ];
     }
 
-    private function obtenerTodasNomenclaturasEnTexto($text)
-    {
-        $results = [];
-        if (empty($text)) return $results;
-
-        // 1. Probar PRIMERO los primeros 12 caracteres limpios de la cadena (Regla 1)
-        $cleanText = preg_replace('/[^A-Za-z0-9]/', '', $text);
-        if (strlen($cleanText) >= 12) {
-            $first12 = substr($cleanText, 0, 12);
-            $parsedFirst = $this->validarYConstruirNomenclatura($first12);
-            if ($parsedFirst) {
-                $results[$parsedFirst['code']] = $parsedFirst;
-            }
-        }
-
-        // 2. Extraer palabras alfanuméricas por si hay separadores o espacios
-        preg_match_all('/[A-Za-z0-9]+/', $text, $tokens);
-        if (!empty($tokens[0])) {
-            foreach ($tokens[0] as $token) {
-                $len = strlen($token);
-                if ($len >= 12) {
-                    for ($i = 0; $i <= $len - 12; $i++) {
-                        $code = substr($token, $i, 12);
-                        $parsed = $this->validarYConstruirNomenclatura($code);
-                        if ($parsed && !isset($results[$parsed['code']])) {
-                            $results[$parsed['code']] = $parsed;
-                        }
-                    }
-                }
-            }
-        }
-
-        // 3. Probar ventanas en texto limpio completo
-        $lenClean = strlen($cleanText);
-        if ($lenClean >= 12) {
-            for ($i = 0; $i <= $lenClean - 12; $i++) {
-                $code = substr($cleanText, $i, 12);
-                $parsed = $this->validarYConstruirNomenclatura($code);
-                if ($parsed && !isset($results[$parsed['code']])) {
-                    $results[$parsed['code']] = $parsed;
-                }
-            }
-        }
-
-        return array_values($results);
-    }
-
-    private function validarYConstruirNomenclatura($code)
+    private function validarYConstruirNomenclatura($code, $origen = 'Referencia')
     {
         if (strlen($code) !== 12) return null;
 
@@ -502,6 +458,8 @@ class ComplementosController extends Controller
             $mesPad = str_pad($mes, 2, '0', STR_PAD_LEFT);
             return [
                 'code' => $code,
+                'origen' => $origen,
+                'display' => "{$code} - {$origen}",
                 'matricula' => $mat,
                 'grado' => $gra,
                 'mes' => $mesPad,

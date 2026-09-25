@@ -154,6 +154,7 @@
                                         <tr>
                                             <th>Matrícula</th>
                                             <th>Alumno</th>
+                                            <th>Referencia (Tomada / Origen)</th>
                                             <th>Periodo</th>
                                             <th>Abono</th>
                                             <th>Debía (Monto Requerido)</th>
@@ -164,13 +165,14 @@
                                             <tr>
                                                 <td><code>{{ $item['matricula'] }}</code></td>
                                                 <td>{{ $item['alumno_nombre'] }}</td>
+                                                <td><small class="badge badge-light border">{{ $item['nomenclatura_display'] ?? 'N/A' }}</small></td>
                                                 <td><span class="badge badge-info">{{ $item['periodo'] }}</span></td>
                                                 <td class="text-success font-weight-bold">${{ number_format($item['monto_abonado'], 2) }}</td>
                                                 <td>${{ number_format($item['monto_debido'], 2) }}</td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="5" class="text-center text-muted">No hay pagos completos para aplicar.</td>
+                                                <td colspan="6" class="text-center text-muted">No hay pagos completos para aplicar.</td>
                                             </tr>
                                         @endforelse
                                     </tbody>
@@ -186,6 +188,7 @@
                                         <tr>
                                             <th>Matrícula</th>
                                             <th>Alumno</th>
+                                            <th>Referencia (Tomada / Origen)</th>
                                             <th>Periodo</th>
                                             <th>Abonado</th>
                                             <th>Monto Requerido</th>
@@ -197,6 +200,7 @@
                                             <tr>
                                                 <td><code>{{ $item['matricula'] }}</code></td>
                                                 <td>{{ $item['alumno_nombre'] }}</td>
+                                                <td><small class="badge badge-light border">{{ $item['nomenclatura_display'] ?? 'N/A' }}</small></td>
                                                 <td><span class="badge badge-warning">{{ $item['periodo'] }}</span></td>
                                                 <td class="text-warning font-weight-bold">${{ number_format($item['monto_abonado'], 2) }}</td>
                                                 <td>${{ number_format($item['monto_debido'], 2) }}</td>
@@ -204,7 +208,7 @@
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="6" class="text-center text-muted">No hay pagos con saldo insuficiente.</td>
+                                                <td colspan="7" class="text-center text-muted">No hay pagos con saldo insuficiente.</td>
                                             </tr>
                                         @endforelse
                                     </tbody>
@@ -220,7 +224,8 @@
                                     <thead>
                                         <tr>
                                             <th>Fila</th>
-                                            <th>Ref / Leyenda</th>
+                                            <th>Referencia Evaluada</th>
+                                            <th>Ref / Leyenda Excel</th>
                                             <th>Abono</th>
                                             <th>Motivo Error</th>
                                         </tr>
@@ -229,6 +234,7 @@
                                         @foreach($preview['errores'] as $item)
                                             <tr>
                                                 <td><span class="badge badge-secondary">Fila {{ $item['fila'] }}</span></td>
+                                                <td><small class="badge badge-light border text-danger">{{ $item['nomenclatura'] ?? 'N/A' }}</small></td>
                                                 <td><small>{{ $item['referencia'] }} {{ $item['referencia_leyenda'] }}</small></td>
                                                 <td>${{ number_format($item['abono'], 2) }}</td>
                                                 <td class="text-danger"><small>{{ $item['motivo'] }}</small></td>
