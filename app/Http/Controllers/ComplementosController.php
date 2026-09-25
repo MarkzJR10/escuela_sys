@@ -213,8 +213,9 @@ class ComplementosController extends Controller
                     continue;
                 }
 
-                $montoDebido = $this->calcularMontoAdeudoAFecha($adeudo, $fechaPago);
-                $diferencia = $montoDebido - $abono;
+                $montoDebido = (float) round($this->calcularMontoAdeudoAFecha($adeudo, $fechaPago), 2);
+                $abono = (float) round($abono, 2);
+                $diferencia = (float) round($montoDebido - $abono, 2);
 
                 $registro = [
                     'alumno_id' => $alumno->id,
@@ -232,7 +233,7 @@ class ComplementosController extends Controller
                     'concepto' => $adeudo->concepto,
                 ];
 
-                if ($abono >= $montoDebido) {
+                if ($abono >= $montoDebido || $diferencia <= 0) {
                     $completos[] = $registro;
                 } else {
                     $insuficientes[] = $registro;
@@ -446,10 +447,10 @@ class ComplementosController extends Controller
         // Si el adeudo corresponde al mismo mes/año que la fecha de pago
         if ($periodoAdeudo === $periodoPago) {
             if ($fecha->day <= 10) {
-                return (float) $adeudo->monto_base;
+                return (float) round($adeudo->monto_base, 2);
             } else {
                 // Día 11 en adelante: recargo del 10%
-                return (float) ($adeudo->monto_base * 1.10);
+                return (float) round($adeudo->monto_base * 1.10, 2);
             }
         }
 
@@ -460,10 +461,10 @@ class ComplementosController extends Controller
             $mesesTranscurridos = (int) $fechaAdeudo->diffInMonths($fechaCorte);
 
             $recargos = 1 + $mesesTranscurridos;
-            return (float) ($adeudo->monto_base + ($adeudo->monto_base * 0.10 * $recargos));
+            return (float) round($adeudo->monto_base + ($adeudo->monto_base * 0.10 * $recargos), 2);
         }
 
-        return (float) $adeudo->monto_base;
+        return (float) round($adeudo->monto_base, 2);
     }
 
     private function findHeaderIndex(array $headers, array $candidates)
