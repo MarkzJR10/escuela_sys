@@ -29,31 +29,44 @@ class RestablecerAdeudosPruebaSeeder extends Seeder
             }
 
             DB::transaction(function () use ($alumno, $mat) {
-                // 1. Obtener los IDs de pagos del alumno
-                $pagoIds = Pago::where('alumno_id', $alumno->id)->pluck('id');
+                // Obtener únicamente los IDs de adeudos de tipo colegiatura
+                $adeudoIdsColegiatura = Adeudo::where('alumno_id', $alumno->id)
+                    ->where('tipo', 'colegiatura')
+                    ->pluck('id');
 
-                if ($pagoIds->isNotEmpty()) {
-                    // Eliminar detalles de pago
-                    PagoDetalle::whereIn('pago_id', $pagoIds)->delete();
+                if ($adeudoIdsColegiatura->isNotEmpty()) {
+                    // 1. Obtener detalles de pago asociados EXCLUSIVAMENTE a adeudos de tipo colegiatura
+                    $detallesColegiatura = PagoDetalle::whereIn('adeudo_id', $adeudoIdsColegiatura)->get();
+                    $pagoIds = $detallesColegiatura->pluck('pago_id')->unique();
 
-                    // Eliminar registros de pago
-                    Pago::whereIn('id', $pagoIds)->delete();
+                    if ($detallesColegiatura->isNotEmpty()) {
+                        // Eliminar solo los detalles de pago de colegiaturas
+                        PagoDetalle::whereIn('id', $detallesColegiatura->pluck('id'))->delete();
+
+                        // Eliminar pagos que ya no tienen más detalles asociados
+                        foreach ($pagoIds as $pagoId) {
+                            $detallesRestantes = PagoDetalle::where('pago_id', $pagoId)->count();
+                            if ($detallesRestantes === 0) {
+                                Pago::where('id', $pagoId)->delete();
+                            }
+                        }
+                    }
+
+                    // 2. Restablecer ÚNICAMENTE los adeudos de tipo 'colegiatura' a status = 'pendiente' y fecha_pago = null
+                    Adeudo::whereIn('id', $adeudoIdsColegiatura)
+                        ->update([
+                            'status' => 'pendiente',
+                            'fecha_pago' => null,
+                        ]);
                 }
 
-                // 2. Restablecer los adeudos a status = 'pendiente' y fecha_pago = null
-                Adeudo::where('alumno_id', $alumno->id)
-                    ->update([
-                        'status' => 'pendiente',
-                        'fecha_pago' => null,
-                    ]);
-
-                // 3. Limpiar cualquier registro en el reporte de saldo insuficiente
+                // 3. Limpiar registros en el reporte de saldo insuficiente para este alumno
                 PagoInsuficiente::where('alumno_id', $alumno->id)
                     ->orWhere('matricula', $mat)
                     ->delete();
             });
 
-            $this->command->info("Adeudos restablecidos a 'pendiente' y pagos de prueba eliminados para la matrícula {$mat} ({$alumno->nombre_completo}).");
+            $this->command->info("Adeudos de COLEGIATURA restablecidos a 'pendiente' para la matrícula {$mat} ({$alumno->nombre_completo}). Ningún otro tipo de adeudo fue modificado.");
         }
     }
 }
