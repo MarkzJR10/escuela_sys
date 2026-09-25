@@ -274,12 +274,18 @@ class ComplementosController extends Controller
             DB::transaction(function () use ($completos, $insuficientes) {
                 // 1. Aplicar pagos completos
                 foreach ($completos as $item) {
+                    $refTicket = 'EXCEL-' . strtoupper(uniqid());
+                    if (!empty($item['referencia'])) {
+                        $exists = Pago::where('referencia_ticket', $item['referencia'])->exists();
+                        $refTicket = $exists ? ($item['referencia'] . '-' . strtoupper(substr(uniqid(), -4))) : $item['referencia'];
+                    }
+
                     $pago = Pago::create([
                         'alumno_id' => $item['alumno_id'],
                         'user_id' => Auth::id() ?? 1,
                         'total' => $item['monto_abonado'],
                         'metodo_pago' => 'transferencia',
-                        'referencia_ticket' => !empty($item['referencia']) ? $item['referencia'] : ('EXCEL-' . strtoupper(uniqid())),
+                        'referencia_ticket' => $refTicket,
                         'fecha_pago' => $item['fecha_pago'],
                         'status' => 'completado'
                     ]);
@@ -287,8 +293,10 @@ class ComplementosController extends Controller
                     PagoDetalle::create([
                         'pago_id' => $pago->id,
                         'adeudo_id' => $item['adeudo_id'],
-                        'concepto' => $item['concepto'] ?? 'Colegiatura Masiva Excel',
+                        'monto_adeudo' => $item['monto_debido'],
+                        'descuento' => 0,
                         'monto_pagado' => $item['monto_abonado'],
+                        'notas' => 'Carga Masiva Excel' . (!empty($item['referencia']) ? ' - Ref: ' . $item['referencia'] : ''),
                     ]);
 
                     $adeudo = Adeudo::find($item['adeudo_id']);
