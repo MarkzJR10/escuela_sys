@@ -152,10 +152,10 @@ class ComplementosController extends Controller
                 $rawAbono = preg_replace('/[^\d.]/', '', str_replace(',', '', (string)$valAbono));
                 $abono = (float) $rawAbono;
 
-                // Buscar nomenclatura de 12 caracteres en la fila (Referencia, Leyenda o cualquier celda)
-                $nomenclatura = $this->extraerNomenclaturaDeFila($row, $valRef, $valLey);
+                // Buscar todas las nomenclaturas de 12 caracteres posibles en la fila (Referencia y Referencia Leyenda)
+                $nomenclaturas = $this->extraerTodasNomenclaturasDeFila($row, $valRef, $valLey);
 
-                if (!$nomenclatura) {
+                if (empty($nomenclaturas)) {
                     $errores[] = [
                         'fila' => $i + 1,
                         'referencia' => $valRef,
@@ -167,51 +167,84 @@ class ComplementosController extends Controller
                     continue;
                 }
 
-                $mat = $nomenclatura['matricula'];
-                $gra = $nomenclatura['grado'];
-                $periodo = $nomenclatura['periodo'];
+                // Evaluar cuál de las nomenclaturas corresponde a un Alumno existente y a un Adeudo de colegiatura
+                $nomenclaturaSeleccionada = null;
+                $alumnoSeleccionado = null;
+                $adeudoSeleccionado = null;
+                $primerAlumnoValido = null;
 
-                // Buscar Alumno por matrícula
-                $alumno = Alumno::with('gradoGrupo')->where('matricula', $mat)->first();
-                if (!$alumno) {
-                    $alumno = Alumno::with('gradoGrupo')->where('matricula', 'LIKE', "%{$mat}%")->first();
+                foreach ($nomenclaturas as $nomCandidate) {
+                    $mat = $nomCandidate['matricula'];
+                    $periodoCandidate = $nomCandidate['periodo'];
+
+                    $alumnoCandidate = Alumno::with('gradoGrupo')->where('matricula', $mat)->first();
+                    if (!$alumnoCandidate) {
+                        $alumnoCandidate = Alumno::with('gradoGrupo')->where('matricula', 'LIKE', "%{$mat}%")->first();
+                    }
+
+                    if ($alumnoCandidate) {
+                        if (!$primerAlumnoValido) {
+                            $primerAlumnoValido = [
+                                'alumno' => $alumnoCandidate,
+                                'nomenclatura' => $nomCandidate
+                            ];
+                        }
+
+                        $adeudoCandidate = Adeudo::where('alumno_id', $alumnoCandidate->id)
+                            ->where('periodo', $periodoCandidate)
+                            ->where('tipo', 'colegiatura')
+                            ->whereIn('status', ['pendiente', 'vencido', 'programado'])
+                            ->first();
+
+                        if ($adeudoCandidate) {
+                            $nomenclaturaSeleccionada = $nomCandidate;
+                            $alumnoSeleccionado = $alumnoCandidate;
+                            $adeudoSeleccionado = $adeudoCandidate;
+                            break; // Se encontró coincidencia exacta de Alumno y Adeudo
+                        }
+                    }
                 }
 
-                if (!$alumno) {
+                // Si no se encontró un adeudo exacto pero sí existía un alumno para alguna de las nomenclaturas
+                if (!$adeudoSeleccionado && $primerAlumnoValido) {
+                    $alumno = $primerAlumnoValido['alumno'];
+                    $nom = $primerAlumnoValido['nomenclatura'];
                     $errores[] = [
                         'fila' => $i + 1,
-                        'nomenclatura' => $nomenclatura['code'],
-                        'matricula' => $mat,
-                        'referencia' => $valRef,
-                        'referencia_leyenda' => $valLey,
-                        'abono' => $abono,
-                        'fecha_pago' => $fechaPago,
-                        'motivo' => "Alumno no encontrado con matrícula {$mat}"
-                    ];
-                    continue;
-                }
-
-                // Buscar Adeudo ÚNICAMENTE de tipo 'colegiatura' para el alumno y periodo exacto
-                $adeudo = Adeudo::where('alumno_id', $alumno->id)
-                    ->where('periodo', $periodo)
-                    ->where('tipo', 'colegiatura')
-                    ->whereIn('status', ['pendiente', 'vencido', 'programado'])
-                    ->first();
-
-                if (!$adeudo) {
-                    $errores[] = [
-                        'fila' => $i + 1,
-                        'nomenclatura' => $nomenclatura['code'],
+                        'nomenclatura' => $nom['code'],
                         'matricula' => $alumno->matricula,
                         'alumno_nombre' => $alumno->nombre_completo,
                         'referencia' => $valRef,
                         'referencia_leyenda' => $valLey,
                         'abono' => $abono,
                         'fecha_pago' => $fechaPago,
-                        'motivo' => "No se pudo asignar a alguna colegiatura para el periodo {$periodo}"
+                        'motivo' => "No se pudo asignar a alguna colegiatura para el periodo {$nom['periodo']}"
                     ];
                     continue;
                 }
+
+                // Si ninguna matrícula coincidió con un Alumno registrado
+                if (!$alumnoSeleccionado) {
+                    $primerNom = $nomenclaturas[0];
+                    $errores[] = [
+                        'fila' => $i + 1,
+                        'nomenclatura' => $primerNom['code'],
+                        'matricula' => $primerNom['matricula'],
+                        'referencia' => $valRef,
+                        'referencia_leyenda' => $valLey,
+                        'abono' => $abono,
+                        'fecha_pago' => $fechaPago,
+                        'motivo' => "Alumno no encontrado con matrícula {$primerNom['matricula']}"
+                    ];
+                    continue;
+                }
+
+                $nomenclatura = $nomenclaturaSeleccionada;
+                $alumno = $alumnoSeleccionado;
+                $adeudo = $adeudoSeleccionado;
+                $mat = $nomenclatura['matricula'];
+                $gra = $nomenclatura['grado'];
+                $periodo = $nomenclatura['periodo'];
 
                 $montoDebido = (float) round($this->calcularMontoAdeudoAFecha($adeudo, $fechaPago), 2);
                 $abono = (float) round($abono, 2);
@@ -346,7 +379,11 @@ class ComplementosController extends Controller
      * Auxiliar para extraer nomenclatura de 12 caracteres (de izquierda a derecha)
      * Estructura: 5 chars matricula, 1 char grado, 2 chars mes, 4 chars año
      */
-    private function extraerNomenclaturaDeFila($row, $valRef, $valLey)
+    /**
+     * Auxiliar para extraer TODAS las nomenclaturas de 12 caracteres posibles de la fila
+     * Estructura: 5 chars matricula, 1 char grado, 2 chars mes, 4 chars año
+     */
+    private function extraerTodasNomenclaturasDeFila($row, $valRef, $valLey)
     {
         $strRef = $this->formatRawCellValue($valRef);
         $strLey = $this->formatRawCellValue($valLey);
@@ -378,19 +415,23 @@ class ComplementosController extends Controller
             }
         }
 
+        $allNomenclaturas = [];
         foreach ($candidates as $text) {
-            $found = $this->buscarNomenclaturaEnTexto($text);
-            if ($found) {
-                return $found;
+            $found = $this->obtenerTodasNomenclaturasEnTexto($text);
+            foreach ($found as $nom) {
+                if (!isset($allNomenclaturas[$nom['code']])) {
+                    $allNomenclaturas[$nom['code']] = $nom;
+                }
             }
         }
 
-        return null;
+        return array_values($allNomenclaturas);
     }
 
-    private function buscarNomenclaturaEnTexto($text)
+    private function obtenerTodasNomenclaturasEnTexto($text)
     {
-        if (empty($text)) return null;
+        $results = [];
+        if (empty($text)) return $results;
 
         // 1. Extraer palabras alfanuméricas
         preg_match_all('/[A-Za-z0-9]+/', $text, $tokens);
@@ -401,24 +442,28 @@ class ComplementosController extends Controller
                     for ($i = 0; $i <= $len - 12; $i++) {
                         $code = substr($token, $i, 12);
                         $parsed = $this->validarYConstruirNomenclatura($code);
-                        if ($parsed) return $parsed;
+                        if ($parsed && !isset($results[$parsed['code']])) {
+                            $results[$parsed['code']] = $parsed;
+                        }
                     }
                 }
             }
         }
 
-        // 2. Si no hubo coincidencia en palabras individuales, probar en texto limpio completo
+        // 2. Probar en texto limpio completo si no hubo coincidencia previa
         $cleanText = preg_replace('/[^A-Za-z0-9]/', '', $text);
         $lenClean = strlen($cleanText);
         if ($lenClean >= 12) {
             for ($i = 0; $i <= $lenClean - 12; $i++) {
                 $code = substr($cleanText, $i, 12);
                 $parsed = $this->validarYConstruirNomenclatura($code);
-                if ($parsed) return $parsed;
+                if ($parsed && !isset($results[$parsed['code']])) {
+                    $results[$parsed['code']] = $parsed;
+                }
             }
         }
 
-        return null;
+        return array_values($results);
     }
 
     private function validarYConstruirNomenclatura($code)
