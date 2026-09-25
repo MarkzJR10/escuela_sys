@@ -348,21 +348,39 @@ class ComplementosController extends Controller
     {
         $strRef = $this->formatRawCellValue($ref);
         $strLey = $this->formatRawCellValue($ley);
-        $text = trim($strRef . ' ' . $strLey);
         
-        // 1. Buscar coincidencia de 12 caracteres directamente en el texto
-        preg_match('/[A-Za-z0-9]{12}/', $text, $match);
-        if (!empty($match[0])) {
-            $parsed = $this->validarYConstruirNomenclatura($match[0]);
-            if ($parsed) return $parsed;
+        $candidates = [];
+
+        // Probar Leyenda primero (por si Referencia fue formateada como notacion cientifica truncada)
+        if (!empty($strLey)) {
+            $candidates[] = $strLey;
         }
 
-        // 2. Si el texto contiene separadores, tomar los primeros 12 caracteres de la cadena alfanumérica limpia
-        $cleanText = preg_replace('/[^A-Za-z0-9]/', '', $text);
-        if (strlen($cleanText) >= 12) {
-            $code = substr($cleanText, 0, 12);
-            $parsed = $this->validarYConstruirNomenclatura($code);
-            if ($parsed) return $parsed;
+        // Probar Referencia si no contiene notacion cientifica truncada E+
+        if (!empty($strRef) && stripos($strRef, 'E+') === false) {
+            $candidates[] = $strRef;
+        }
+
+        // Probar combinación
+        $candidates[] = trim($strRef . ' ' . $strLey);
+
+        foreach ($candidates as $text) {
+            // 1. Buscar coincidencia de 12 caracteres directamente en el texto
+            preg_match_all('/[A-Za-z0-9]{12}/', $text, $matches);
+            if (!empty($matches[0])) {
+                foreach ($matches[0] as $code) {
+                    $parsed = $this->validarYConstruirNomenclatura($code);
+                    if ($parsed) return $parsed;
+                }
+            }
+
+            // 2. Si el texto contiene separadores, tomar los primeros 12 caracteres de la cadena alfanumérica limpia
+            $cleanText = preg_replace('/[^A-Za-z0-9]/', '', $text);
+            if (strlen($cleanText) >= 12) {
+                $code = substr($cleanText, 0, 12);
+                $parsed = $this->validarYConstruirNomenclatura($code);
+                if ($parsed) return $parsed;
+            }
         }
 
         return null;
@@ -395,10 +413,22 @@ class ComplementosController extends Controller
     private function formatRawCellValue($val)
     {
         if (is_null($val)) return '';
+        
         if (is_numeric($val)) {
-            return sprintf('%.0f', (float)$val);
+            // Usar number_format para evitar notación científica y preservar números grandes
+            return number_format((float)$val, 0, '', '');
         }
-        return trim((string)$val);
+
+        $str = trim((string)$val);
+
+        // Si es una cadena en notación científica tipo 9.99158E+11
+        if (preg_match('/^(\d+(\.\d+)?)E\+(\d+)$/i', $str, $m)) {
+            $num = (float)$m[1];
+            $exp = (int)$m[3];
+            return number_format($num * pow(10, $exp), 0, '', '');
+        }
+
+        return $str;
     }
 
     /**
