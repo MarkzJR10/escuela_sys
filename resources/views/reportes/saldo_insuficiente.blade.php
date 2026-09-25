@@ -92,7 +92,7 @@
                     <th>Periodo</th>
                     <th>Referencia / Leyenda</th>
                     <th class="text-right">Abonado</th>
-                    <th class="text-right">Debía Pagar</th>
+                    <th class="text-right">Monto Requerido</th>
                     <th class="text-right text-danger">Faltante</th>
                 </tr>
             </thead>

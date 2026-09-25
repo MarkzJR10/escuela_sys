@@ -156,7 +156,7 @@
                                             <th>Alumno</th>
                                             <th>Periodo</th>
                                             <th>Abono</th>
-                                            <th>Debía</th>
+                                            <th>Debía (Monto Requerido)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -188,7 +188,7 @@
                                             <th>Alumno</th>
                                             <th>Periodo</th>
                                             <th>Abonado</th>
-                                            <th>Debía</th>
+                                            <th>Monto Requerido</th>
                                             <th>Faltante</th>
                                         </tr>
                                     </thead>

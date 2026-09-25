@@ -215,7 +215,7 @@ class ComplementosController extends Controller
                     continue;
                 }
 
-                $montoDebido = (float) ($adeudo->monto_calculado ?? $adeudo->monto_actual);
+                $montoDebido = $this->calcularMontoAdeudoAFecha($adeudo, $fechaPago);
                 $diferencia = $montoDebido - $abono;
 
                 $registro = [
@@ -341,39 +341,105 @@ class ComplementosController extends Controller
      */
     private function extraerNomenclatura12($ref, $ley)
     {
-        $text = trim($ref . ' ' . $ley);
+        $text = $this->formatCellString($ref) . ' ' . $this->formatCellString($ley);
+        
+        // 1. Buscar coincidencia de 12 caracteres directamente en el texto
         preg_match_all('/[A-Za-z0-9]{12}/', $text, $matches);
-
-        if (empty($matches[0])) return null;
-
-        foreach ($matches[0] as $code) {
-            $mat = substr($code, 0, 5);
-            $gra = substr($code, 5, 1);
-            $mes = substr($code, 6, 2);
-            $anio = substr($code, 8, 4);
-
-            if (is_numeric($mes) && (int)$mes >= 1 && (int)$mes <= 12 && is_numeric($anio) && (int)$anio >= 2000 && (int)$anio <= 2100) {
-                return [
-                    'code' => $code,
-                    'matricula' => $mat,
-                    'grado' => $gra,
-                    'mes' => str_pad($mes, 2, '0', STR_PAD_LEFT),
-                    'anio' => $anio,
-                    'periodo' => $anio . '-' . str_pad($mes, 2, '0', STR_PAD_LEFT)
-                ];
+        if (!empty($matches[0])) {
+            foreach ($matches[0] as $code) {
+                $parsed = $this->validarYConstruirNomenclatura($code);
+                if ($parsed) return $parsed;
             }
         }
 
-        // Fallback: usar el primer código de 12 caracteres encontrado
-        $code = $matches[0][0];
-        return [
-            'code' => $code,
-            'matricula' => substr($code, 0, 5),
-            'grado' => substr($code, 5, 1),
-            'mes' => str_pad(substr($code, 6, 2), 2, '0', STR_PAD_LEFT),
-            'anio' => substr($code, 8, 4),
-            'periodo' => substr($code, 8, 4) . '-' . str_pad(substr($code, 6, 2), 2, '0', STR_PAD_LEFT)
-        ];
+        // 2. Buscar en el texto sin caracteres especiales
+        $cleanText = preg_replace('/[^A-Za-z0-9]/', '', $text);
+        if (strlen($cleanText) >= 12) {
+            preg_match_all('/[A-Za-z0-9]{12}/', $cleanText, $cleanMatches);
+            if (!empty($cleanMatches[0])) {
+                foreach ($cleanMatches[0] as $code) {
+                    $parsed = $this->validarYConstruirNomenclatura($code);
+                    if ($parsed) return $parsed;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function validarYConstruirNomenclatura($code)
+    {
+        if (strlen($code) !== 12) return null;
+
+        $mat = substr($code, 0, 5);
+        $gra = substr($code, 5, 1);
+        $mes = substr($code, 6, 2);
+        $anio = substr($code, 8, 4);
+
+        if (is_numeric($mes) && (int)$mes >= 1 && (int)$mes <= 12 && is_numeric($anio) && (int)$anio >= 2000 && (int)$anio <= 2100) {
+            $mesPad = str_pad($mes, 2, '0', STR_PAD_LEFT);
+            return [
+                'code' => $code,
+                'matricula' => $mat,
+                'grado' => $gra,
+                'mes' => $mesPad,
+                'anio' => $anio,
+                'periodo' => "{$anio}-{$mesPad}"
+            ];
+        }
+
+        return null;
+    }
+
+    private function formatCellString($val)
+    {
+        if (is_null($val)) return '';
+        if (is_numeric($val)) {
+            return sprintf('%.0f', $val);
+        }
+        return trim((string)$val);
+    }
+
+    /**
+     * Calcula el monto del adeudo aplicando reglas de recargo a la fecha de pago especificada
+     */
+    private function calcularMontoAdeudoAFecha($adeudo, $fechaPago)
+    {
+        if (!$adeudo) return 0;
+        if ($adeudo->tipo !== 'colegiatura') {
+            return (float) $adeudo->monto_actual;
+        }
+
+        try {
+            $fecha = Carbon::parse($fechaPago);
+        } catch (\Exception $e) {
+            $fecha = Carbon::now();
+        }
+
+        $periodoPago = $fecha->format('Y-m');
+        $periodoAdeudo = $adeudo->periodo;
+
+        // Si el adeudo corresponde al mismo mes/año que la fecha de pago
+        if ($periodoAdeudo === $periodoPago) {
+            if ($fecha->day <= 10) {
+                return (float) $adeudo->monto_base;
+            } else {
+                // Día 11 en adelante: recargo del 10%
+                return (float) ($adeudo->monto_base * 1.10);
+            }
+        }
+
+        // Si el periodo del adeudo ya venció con respecto a la fecha de pago
+        if ($periodoAdeudo < $periodoPago) {
+            $fechaAdeudo = Carbon::parse($periodoAdeudo . '-01');
+            $fechaCorte = Carbon::parse($periodoPago . '-01');
+            $mesesTranscurridos = (int) $fechaAdeudo->diffInMonths($fechaCorte);
+
+            $recargos = 1 + $mesesTranscurridos;
+            return (float) ($adeudo->monto_base + ($adeudo->monto_base * 0.10 * $recargos));
+        }
+
+        return (float) $adeudo->monto_base;
     }
 
     private function findHeaderIndex(array $headers, array $candidates)
