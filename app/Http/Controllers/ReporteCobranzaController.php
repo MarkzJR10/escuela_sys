@@ -190,4 +190,37 @@ class ReporteCobranzaController extends Controller
             'totalAsignado', 'totalPagado', 'totalPendiente'
         ));
     }
+
+    /**
+     * Reporte de pagos con saldo insuficiente generados en la carga masiva.
+     */
+    public function saldoInsuficiente(Request $request)
+    {
+        $query = \App\Models\PagoInsuficiente::with('alumno.gradoGrupo')->orderBy('created_at', 'desc');
+
+        if ($request->filled('buscar')) {
+            $b = $request->buscar;
+            $query->where(function ($q) use ($b) {
+                $q->where('matricula', 'like', "%{$b}%")
+                  ->orWhere('alumno_nombre', 'like', "%{$b}%")
+                  ->orWhere('referencia', 'like', "%{$b}%")
+                  ->orWhere('referencia_leyenda', 'like', "%{$b}%");
+            });
+        }
+
+        if ($request->filled('periodo')) {
+            $query->where('periodo', $request->periodo);
+        }
+
+        $registros = $query->paginate(25);
+
+        $totales = [
+            'total_registros' => \App\Models\PagoInsuficiente::count(),
+            'total_abonado'   => \App\Models\PagoInsuficiente::sum('monto_abonado'),
+            'total_debido'    => \App\Models\PagoInsuficiente::sum('monto_debido'),
+            'total_diferencia'=> \App\Models\PagoInsuficiente::sum('diferencia'),
+        ];
+
+        return view('reportes.saldo_insuficiente', compact('registros', 'totales'));
+    }
 }

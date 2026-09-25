@@ -136,6 +136,7 @@ Route::middleware(['auth', 'check.menu'])->group(function () {
     Route::get('reportes/detalle-alumno/{alumno}', [ReporteCobranzaController::class, 'detalleAlumno'])->name('reportes.detalle_alumno');
     Route::get('reportes/historial-colegiaturas', [ReporteCobranzaController::class, 'historialColegiaturas'])->name('reportes.historial_colegiaturas');
     Route::get('reportes/adeudos-especiales', [ReporteCobranzaController::class, 'adeudosEspeciales'])->name('reportes.adeudos_especiales');
+    Route::get('reportes/saldo-insuficiente', [ReporteCobranzaController::class, 'saldoInsuficiente'])->name('reportes.saldo_insuficiente');
     Route::get('reportes/exportar-saldos', [ComplementosController::class, 'exportarSaldosExcel'])->name('reportes.exportar_saldos');
 
     // Fase 4: Portal Padre
@@ -154,6 +155,7 @@ Route::middleware(['auth', 'check.menu'])->group(function () {
     Route::get('importar-pagos', [ComplementosController::class, 'showImportarPagos'])->name('complementos.importar_pagos');
     Route::get('importar-pagos/ejemplo', [ComplementosController::class, 'descargarEjemploPagos'])->name('complementos.importar_pagos.ejemplo');
     Route::post('importar-pagos', [ComplementosController::class, 'procesarImportarPagos'])->name('complementos.importar_pagos.post');
+    Route::post('importar-pagos/confirmar', [ComplementosController::class, 'confirmarImportarPagos'])->name('complementos.importar_pagos.confirmar');
 
     // Ciclos Masivo
     Route::get('ciclos', [CicloController::class, 'index'])->name('ciclos.index');

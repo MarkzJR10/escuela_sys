@@ -304,6 +304,9 @@ class AppServiceProvider extends ServiceProvider
             if ($item = $buildItem('reportes/adeudos-especiales', 'Adeudos Especiales', 'fas fa-fw fa-star')) {
                 $repFinSubmenu[] = $item;
             }
+            if ($item = $buildItem('reportes/saldo-insuficiente', 'Saldo Insuficiente', 'fas fa-fw fa-exclamation-triangle')) {
+                $repFinSubmenu[] = $item;
+            }
             if ($item = $buildItem('reportes/exportar-saldos', 'Exportar Saldos (Excel)', 'fas fa-fw fa-file-excel')) {
                 $repFinSubmenu[] = $item;
             }

@@ -51,6 +51,7 @@ class MenuSeeder extends Seeder
             ['text' => 'Pendientes por Mes', 'url' => 'reportes/pendientes-mes', 'icon' => 'fas fa-fw fa-calendar-times', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Historial Colegiaturas', 'url' => 'reportes/historial-colegiaturas', 'icon' => 'fas fa-fw fa-history', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Adeudos Especiales', 'url' => 'reportes/adeudos-especiales', 'icon' => 'fas fa-fw fa-star', 'roles' => ['administrador', 'socio', 'cajero']],
+            ['text' => 'Saldo Insuficiente', 'url' => 'reportes/saldo-insuficiente', 'icon' => 'fas fa-fw fa-exclamation-triangle', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Exportar Saldos (Excel)', 'url' => 'reportes/exportar-saldos', 'icon' => 'fas fa-fw fa-file-excel', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Lista de Ventas', 'url' => 'contabilidad/ventas', 'icon' => 'fas fa-fw fa-list', 'roles' => ['administrador', 'socio', 'cajero']],
             ['text' => 'Ventas Canceladas', 'url' => 'contabilidad/ventas-canceladas', 'icon' => 'fas fa-fw fa-ban', 'roles' => ['administrador', 'socio', 'cajero']],
