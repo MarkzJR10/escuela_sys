@@ -144,7 +144,8 @@ class ComplementosController extends Controller
                 $valAbono = $colAbono !== null && isset($row[$colAbono]) ? $row[$colAbono] : 0;
 
                 $fechaPago = $this->parseFecha($valFecha);
-                $abono = (float) str_replace(['$', ','], '', (string)$valAbono);
+                $rawAbono = preg_replace('/[^\d.]/', '', str_replace(',', '', (string)$valAbono));
+                $abono = (float) $rawAbono;
 
                 // Buscar nomenclatura de 12 caracteres
                 $nomenclatura = $this->extraerNomenclatura12($valRef, $valLey);
@@ -388,7 +389,6 @@ class ComplementosController extends Controller
     {
         if (empty($val)) return now()->toDateString();
 
-        // Si viene como número serial de Excel (ej: 45422)
         if (is_numeric($val)) {
             try {
                 return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($val)->format('Y-m-d');
@@ -399,27 +399,24 @@ class ComplementosController extends Controller
 
         $str = trim((string)$val);
 
-        // Probar formatos comunes latinoamericanos (DD/MM/YYYY o DD-MM-YYYY)
-        $formatos = [
-            'd/m/Y', 'd-m-Y',
-            'd/m/Y H:i:s', 'd-m-Y H:i:s',
-            'd/m/Y H:i', 'd-m-Y H:i',
-            'Y-m-d', 'Y/m/d',
-            'Y-m-d H:i:s', 'Y/m/d H:i:s'
-        ];
-
-        foreach ($formatos as $fmt) {
-            try {
-                return Carbon::createFromFormat($fmt, $str)->format('Y-m-d');
-            } catch (\Exception $e) {
-                // Probar el siguiente formato
-            }
+        // Soporte para DD/MM/YYYY o DD-MM-YYYY (ej: 10/10/2026 o 25-09-2026)
+        if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $str, $m)) {
+            $dia = str_pad($m[1], 2, '0', STR_PAD_LEFT);
+            $mes = str_pad($m[2], 2, '0', STR_PAD_LEFT);
+            $anio = $m[3];
+            return "{$anio}-{$mes}-{$dia}";
         }
 
-        // Fallback: reemplazar / por - para forzar interpretación europea/latina (DD-MM-YYYY) en Carbon::parse
+        // Soporte para YYYY-MM-DD o YYYY/MM/DD (ej: 2026-10-10)
+        if (preg_match('/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/', $str, $m)) {
+            $anio = $m[1];
+            $mes = str_pad($m[2], 2, '0', STR_PAD_LEFT);
+            $dia = str_pad($m[3], 2, '0', STR_PAD_LEFT);
+            return "{$anio}-{$mes}-{$dia}";
+        }
+
         try {
-            $strNormalized = str_replace('/', '-', $str);
-            return Carbon::parse($strNormalized)->format('Y-m-d');
+            return Carbon::parse($str)->format('Y-m-d');
         } catch (\Exception $e) {
             return now()->toDateString();
         }
