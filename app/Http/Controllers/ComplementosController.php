@@ -191,14 +191,32 @@ class ComplementosController extends Controller
                     continue;
                 }
 
-                // Buscar Adeudo por alumno y periodo
+                // Priorizar la búsqueda de adeudos de tipo 'colegiatura' para el alumno y periodo
                 $adeudo = Adeudo::where('alumno_id', $alumno->id)
                     ->where('periodo', $periodo)
+                    ->where('tipo', 'colegiatura')
                     ->whereIn('status', ['pendiente', 'vencido', 'programado'])
                     ->first();
 
                 if (!$adeudo) {
-                    // Si no coincide exacto el periodo, buscar el adeudo pendiente más antiguo del alumno
+                    // Si no tiene colegiatura específica de ese periodo, buscar cualquier adeudo del mismo periodo
+                    $adeudo = Adeudo::where('alumno_id', $alumno->id)
+                        ->where('periodo', $periodo)
+                        ->whereIn('status', ['pendiente', 'vencido', 'programado'])
+                        ->first();
+                }
+
+                if (!$adeudo) {
+                    // Si no coincide exacto el periodo, buscar la colegiatura pendiente más antigua del alumno
+                    $adeudo = Adeudo::where('alumno_id', $alumno->id)
+                        ->where('tipo', 'colegiatura')
+                        ->whereIn('status', ['pendiente', 'vencido'])
+                        ->orderBy('periodo', 'asc')
+                        ->first();
+                }
+
+                if (!$adeudo) {
+                    // Como último recurso, buscar cualquier adeudo pendiente del alumno
                     $adeudo = Adeudo::where('alumno_id', $alumno->id)
                         ->whereIn('status', ['pendiente', 'vencido'])
                         ->orderBy('periodo', 'asc')
