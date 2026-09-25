@@ -191,37 +191,12 @@ class ComplementosController extends Controller
                     continue;
                 }
 
-                // Priorizar la búsqueda de adeudos de tipo 'colegiatura' para el alumno y periodo
+                // Buscar Adeudo ÚNICAMENTE de tipo 'colegiatura' para el alumno y periodo exacto
                 $adeudo = Adeudo::where('alumno_id', $alumno->id)
                     ->where('periodo', $periodo)
                     ->where('tipo', 'colegiatura')
                     ->whereIn('status', ['pendiente', 'vencido', 'programado'])
                     ->first();
-
-                if (!$adeudo) {
-                    // Si no tiene colegiatura específica de ese periodo, buscar cualquier adeudo del mismo periodo
-                    $adeudo = Adeudo::where('alumno_id', $alumno->id)
-                        ->where('periodo', $periodo)
-                        ->whereIn('status', ['pendiente', 'vencido', 'programado'])
-                        ->first();
-                }
-
-                if (!$adeudo) {
-                    // Si no coincide exacto el periodo, buscar la colegiatura pendiente más antigua del alumno
-                    $adeudo = Adeudo::where('alumno_id', $alumno->id)
-                        ->where('tipo', 'colegiatura')
-                        ->whereIn('status', ['pendiente', 'vencido'])
-                        ->orderBy('periodo', 'asc')
-                        ->first();
-                }
-
-                if (!$adeudo) {
-                    // Como último recurso, buscar cualquier adeudo pendiente del alumno
-                    $adeudo = Adeudo::where('alumno_id', $alumno->id)
-                        ->whereIn('status', ['pendiente', 'vencido'])
-                        ->orderBy('periodo', 'asc')
-                        ->first();
-                }
 
                 if (!$adeudo) {
                     $errores[] = [
@@ -233,7 +208,7 @@ class ComplementosController extends Controller
                         'referencia_leyenda' => $valLey,
                         'abono' => $abono,
                         'fecha_pago' => $fechaPago,
-                        'motivo' => "El alumno no tiene adeudos pendientes para el periodo {$periodo}"
+                        'motivo' => "No se pudo asignar a alguna colegiatura para el periodo {$periodo}"
                     ];
                     continue;
                 }
