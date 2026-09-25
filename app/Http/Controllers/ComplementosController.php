@@ -388,6 +388,7 @@ class ComplementosController extends Controller
     {
         if (empty($val)) return now()->toDateString();
 
+        // Si viene como número serial de Excel (ej: 45422)
         if (is_numeric($val)) {
             try {
                 return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($val)->format('Y-m-d');
@@ -396,8 +397,29 @@ class ComplementosController extends Controller
             }
         }
 
+        $str = trim((string)$val);
+
+        // Probar formatos comunes latinoamericanos (DD/MM/YYYY o DD-MM-YYYY)
+        $formatos = [
+            'd/m/Y', 'd-m-Y',
+            'd/m/Y H:i:s', 'd-m-Y H:i:s',
+            'd/m/Y H:i', 'd-m-Y H:i',
+            'Y-m-d', 'Y/m/d',
+            'Y-m-d H:i:s', 'Y/m/d H:i:s'
+        ];
+
+        foreach ($formatos as $fmt) {
+            try {
+                return Carbon::createFromFormat($fmt, $str)->format('Y-m-d');
+            } catch (\Exception $e) {
+                // Probar el siguiente formato
+            }
+        }
+
+        // Fallback: reemplazar / por - para forzar interpretación europea/latina (DD-MM-YYYY) en Carbon::parse
         try {
-            return Carbon::parse($val)->format('Y-m-d');
+            $strNormalized = str_replace('/', '-', $str);
+            return Carbon::parse($strNormalized)->format('Y-m-d');
         } catch (\Exception $e) {
             return now()->toDateString();
         }
