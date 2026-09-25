@@ -113,15 +113,17 @@ class ComplementosController extends Controller
         ]);
 
         try {
-            $rows = Excel::toArray([], $request->file('archivo_excel'));
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($request->file('archivo_excel')->getRealPath());
+            $sheetObj = $spreadsheet->getActiveSheet();
+            // toArray(nullValue, calculateFormulas = true, formatData = false, returnCellRef = false)
+            $sheet = $sheetObj->toArray(null, true, false, false);
             
-            if (empty($rows) || empty($rows[0])) {
+            if (empty($sheet)) {
                 return redirect()->back()->with('error', 'El archivo no contiene filas procesables.');
             }
 
-            $sheet = $rows[0];
             $header = array_map(function($h) {
-                return strtolower(trim(str_replace([' ', '_', '-'], '', $h)));
+                return strtolower(trim(str_replace([' ', '_', '-'], '', (string)$h)));
             }, $sheet[0]);
 
             // Mapear posiciones de encabezados
@@ -139,9 +141,12 @@ class ComplementosController extends Controller
                 if (empty(array_filter($row))) continue; // Omitir filas vacías
 
                 $valFecha = $colFecha !== null && isset($row[$colFecha]) ? $row[$colFecha] : null;
-                $valRef = $colRef !== null && isset($row[$colRef]) ? trim((string)$row[$colRef]) : '';
-                $valLey = $colLey !== null && isset($row[$colLey]) ? trim((string)$row[$colLey]) : '';
+                $valRefRaw = $colRef !== null && isset($row[$colRef]) ? $row[$colRef] : '';
+                $valLeyRaw = $colLey !== null && isset($row[$colLey]) ? $row[$colLey] : '';
                 $valAbono = $colAbono !== null && isset($row[$colAbono]) ? $row[$colAbono] : 0;
+
+                $valRef = $this->formatRawCellValue($valRefRaw);
+                $valLey = $this->formatRawCellValue($valLeyRaw);
 
                 $fechaPago = $this->parseFecha($valFecha);
                 $rawAbono = preg_replace('/[^\d.]/', '', str_replace(',', '', (string)$valAbono));
@@ -336,32 +341,28 @@ class ComplementosController extends Controller
     }
 
     /**
-     * Auxiliar para extraer nomenclatura de 12 caracteres
+     * Auxiliar para extraer nomenclatura de 12 caracteres (de izquierda a derecha)
      * Estructura: 5 chars matricula, 1 char grado, 2 chars mes, 4 chars año
      */
     private function extraerNomenclatura12($ref, $ley)
     {
-        $text = $this->formatCellString($ref) . ' ' . $this->formatCellString($ley);
+        $strRef = $this->formatRawCellValue($ref);
+        $strLey = $this->formatRawCellValue($ley);
+        $text = trim($strRef . ' ' . $strLey);
         
         // 1. Buscar coincidencia de 12 caracteres directamente en el texto
-        preg_match_all('/[A-Za-z0-9]{12}/', $text, $matches);
-        if (!empty($matches[0])) {
-            foreach ($matches[0] as $code) {
-                $parsed = $this->validarYConstruirNomenclatura($code);
-                if ($parsed) return $parsed;
-            }
+        preg_match('/[A-Za-z0-9]{12}/', $text, $match);
+        if (!empty($match[0])) {
+            $parsed = $this->validarYConstruirNomenclatura($match[0]);
+            if ($parsed) return $parsed;
         }
 
-        // 2. Buscar en el texto sin caracteres especiales
+        // 2. Si el texto contiene separadores, tomar los primeros 12 caracteres de la cadena alfanumérica limpia
         $cleanText = preg_replace('/[^A-Za-z0-9]/', '', $text);
         if (strlen($cleanText) >= 12) {
-            preg_match_all('/[A-Za-z0-9]{12}/', $cleanText, $cleanMatches);
-            if (!empty($cleanMatches[0])) {
-                foreach ($cleanMatches[0] as $code) {
-                    $parsed = $this->validarYConstruirNomenclatura($code);
-                    if ($parsed) return $parsed;
-                }
-            }
+            $code = substr($cleanText, 0, 12);
+            $parsed = $this->validarYConstruirNomenclatura($code);
+            if ($parsed) return $parsed;
         }
 
         return null;
@@ -391,11 +392,11 @@ class ComplementosController extends Controller
         return null;
     }
 
-    private function formatCellString($val)
+    private function formatRawCellValue($val)
     {
         if (is_null($val)) return '';
         if (is_numeric($val)) {
-            return sprintf('%.0f', $val);
+            return sprintf('%.0f', (float)$val);
         }
         return trim((string)$val);
     }
