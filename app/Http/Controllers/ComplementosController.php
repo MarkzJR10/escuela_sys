@@ -128,8 +128,8 @@ class ComplementosController extends Controller
 
             // Mapear posiciones de encabezados
             $colFecha = $this->findHeaderIndex($header, ['fechadepago', 'fechapago', 'fecha']);
-            $colRef = $this->findHeaderIndex($header, ['referencia', 'ref']);
-            $colLey = $this->findHeaderIndex($header, ['referencialeyenda', 'referenciadeleyenda', 'leyenda']);
+            $colRef = $this->findHeaderIndex($header, ['referencia', 'ref', 'referenciadepago', 'referenciapago', 'folio', 'transaccion', 'operacion']);
+            $colLey = $this->findHeaderIndex($header, ['referencialeyenda', 'referenciadeleyenda', 'leyenda', 'concepto', 'descripcion', 'descripción', 'observaciones', 'comentario', 'comentarios', 'detalle', 'texto', 'motivo', 'referencia2', 'ref2']);
             $colAbono = $this->findHeaderIndex($header, ['abono', 'monto', 'cantidad']);
 
             $completos = [];
@@ -152,8 +152,8 @@ class ComplementosController extends Controller
                 $rawAbono = preg_replace('/[^\d.]/', '', str_replace(',', '', (string)$valAbono));
                 $abono = (float) $rawAbono;
 
-                // Buscar nomenclatura de 12 caracteres
-                $nomenclatura = $this->extraerNomenclatura12($valRef, $valLey);
+                // Buscar nomenclatura de 12 caracteres en la fila (Referencia, Leyenda o cualquier celda)
+                $nomenclatura = $this->extraerNomenclaturaDeFila($row, $valRef, $valLey);
 
                 if (!$nomenclatura) {
                     $errores[] = [
@@ -346,40 +346,73 @@ class ComplementosController extends Controller
      * Auxiliar para extraer nomenclatura de 12 caracteres (de izquierda a derecha)
      * Estructura: 5 chars matricula, 1 char grado, 2 chars mes, 4 chars año
      */
-    private function extraerNomenclatura12($ref, $ley)
+    private function extraerNomenclaturaDeFila($row, $valRef, $valLey)
     {
-        $strRef = $this->formatRawCellValue($ref);
-        $strLey = $this->formatRawCellValue($ley);
+        $strRef = $this->formatRawCellValue($valRef);
+        $strLey = $this->formatRawCellValue($valLey);
         
         $candidates = [];
 
-        // Probar Leyenda primero (por si Referencia fue formateada como notacion cientifica truncada)
+        // 1. Probar Leyenda primero
         if (!empty($strLey)) {
             $candidates[] = $strLey;
         }
 
-        // Probar Referencia si no contiene notacion cientifica truncada E+
-        if (!empty($strRef) && stripos($strRef, 'E+') === false) {
+        // 2. Probar Referencia
+        if (!empty($strRef)) {
             $candidates[] = $strRef;
         }
 
-        // Probar combinación
-        $candidates[] = trim($strRef . ' ' . $strLey);
+        // 3. Probar combinación Referencia + Leyenda
+        if (!empty($strRef) && !empty($strLey)) {
+            $candidates[] = trim($strRef . ' ' . $strLey);
+        }
 
-        foreach ($candidates as $text) {
-            // 1. Buscar coincidencia de 12 caracteres directamente en el texto
-            preg_match_all('/[A-Za-z0-9]{12}/', $text, $matches);
-            if (!empty($matches[0])) {
-                foreach ($matches[0] as $code) {
-                    $parsed = $this->validarYConstruirNomenclatura($code);
-                    if ($parsed) return $parsed;
+        // 4. Probar todas las demás celdas de la fila
+        if (is_array($row)) {
+            foreach ($row as $cellVal) {
+                $formattedCell = $this->formatRawCellValue($cellVal);
+                if (!empty($formattedCell) && !in_array($formattedCell, $candidates)) {
+                    $candidates[] = $formattedCell;
                 }
             }
+        }
 
-            // 2. Si el texto contiene separadores, tomar los primeros 12 caracteres de la cadena alfanumérica limpia
-            $cleanText = preg_replace('/[^A-Za-z0-9]/', '', $text);
-            if (strlen($cleanText) >= 12) {
-                $code = substr($cleanText, 0, 12);
+        foreach ($candidates as $text) {
+            $found = $this->buscarNomenclaturaEnTexto($text);
+            if ($found) {
+                return $found;
+            }
+        }
+
+        return null;
+    }
+
+    private function buscarNomenclaturaEnTexto($text)
+    {
+        if (empty($text)) return null;
+
+        // 1. Extraer palabras alfanuméricas
+        preg_match_all('/[A-Za-z0-9]+/', $text, $tokens);
+        if (!empty($tokens[0])) {
+            foreach ($tokens[0] as $token) {
+                $len = strlen($token);
+                if ($len >= 12) {
+                    for ($i = 0; $i <= $len - 12; $i++) {
+                        $code = substr($token, $i, 12);
+                        $parsed = $this->validarYConstruirNomenclatura($code);
+                        if ($parsed) return $parsed;
+                    }
+                }
+            }
+        }
+
+        // 2. Si no hubo coincidencia en palabras individuales, probar en texto limpio completo
+        $cleanText = preg_replace('/[^A-Za-z0-9]/', '', $text);
+        $lenClean = strlen($cleanText);
+        if ($lenClean >= 12) {
+            for ($i = 0; $i <= $lenClean - 12; $i++) {
+                $code = substr($cleanText, $i, 12);
                 $parsed = $this->validarYConstruirNomenclatura($code);
                 if ($parsed) return $parsed;
             }
