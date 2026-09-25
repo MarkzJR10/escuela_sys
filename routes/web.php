@@ -152,6 +152,7 @@ Route::middleware(['auth', 'check.menu'])->group(function () {
     Route::post('asistencias/imprimir-lista', [ComplementosController::class, 'imprimirListaAsistencia'])->name('asistencias.imprimir_lista');
     Route::get('conducta-destacada', [ComplementosController::class, 'conductaDestacada'])->name('conducta_destacada');
     Route::get('importar-pagos', [ComplementosController::class, 'showImportarPagos'])->name('complementos.importar_pagos');
+    Route::get('importar-pagos/ejemplo', [ComplementosController::class, 'descargarEjemploPagos'])->name('complementos.importar_pagos.ejemplo');
     Route::post('importar-pagos', [ComplementosController::class, 'procesarImportarPagos'])->name('complementos.importar_pagos.post');
 
     // Ciclos Masivo

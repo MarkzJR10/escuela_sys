@@ -80,6 +80,19 @@ class ComplementosController extends Controller
     }
 
     /**
+     * Descargar archivo de ejemplo/plantilla para la importación de pagos (CSV)
+     */
+    public function descargarEjemploPagos()
+    {
+        $csvHeader = "\xEF\xBB\xBF" . "matricula,monto\n20240001,500.00\n20240002,1250.00\n20240003,750.50\n";
+        
+        return response($csvHeader, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="plantilla_ejemplo_importar_pagos.csv"',
+        ]);
+    }
+
+    /**
      * Procesar la importación
      */
     public function procesarImportarPagos(Request $request)
