@@ -20,7 +20,7 @@
     }
 @endphp
 
-@section('auth_header', __('adminlte::adminlte.login_message'))
+@section('auth_header', 'Inicia sesión para comenzar')
 
 @section('auth_body')
     <form action="{{ $loginUrl }}" method="post">
@@ -29,7 +29,7 @@
         {{-- Email field --}}
         <div class="input-group mb-3">
             <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                value="{{ old('email') }}" placeholder="{{ __('adminlte::adminlte.email') }}" autofocus>
+                value="{{ old('email') }}" placeholder="Correo electrónico" autofocus>
 
             <div class="input-group-append">
                 <div class="input-group-text">
@@ -47,7 +47,7 @@
         {{-- Password field --}}
         <div class="input-group mb-3">
             <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
-                placeholder="{{ __('adminlte::adminlte.password') }}">
+                placeholder="Contraseña">
 
             <div class="input-group-append">
                 <div class="input-group-text">
@@ -63,21 +63,21 @@
         </div>
 
         {{-- Login field --}}
-        <div class="row">
-            <div class="col-7">
-                <div class="icheck-primary" title="{{ __('adminlte::adminlte.remember_me_hint') }}">
+        <div class="row align-items-center">
+            <div class="col-5">
+                <div class="icheck-primary" title="Mantenerme autenticado">
                     <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
 
-                    <label for="remember">
-                        {{ __('adminlte::adminlte.remember_me') }}
+                    <label for="remember" style="font-weight: 500; cursor: pointer;">
+                        Recordarme
                     </label>
                 </div>
             </div>
 
-            <div class="col-5">
-                <button type=submit class="btn btn-block {{ config('adminlte.classes_auth_btn', 'btn-flat btn-primary') }}">
-                    <span class="fas fa-sign-in-alt"></span>
-                    {{ __('adminlte::adminlte.sign_in') }}
+            <div class="col-7">
+                <button type="submit" class="btn btn-primary btn-block shadow-sm font-weight-bold text-nowrap">
+                    <span class="fas fa-sign-in-alt mr-1"></span>
+                    Iniciar Sesión
                 </button>
             </div>
         </div>
@@ -85,21 +85,6 @@
 @stop
 
 @section('auth_footer')
-    {{-- Password reset link --}}
-    @if($passResetUrl)
-        <p class="my-0">
-            <a href="{{ $passResetUrl }}">
-                {{ __('adminlte::adminlte.i_forgot_my_password') }}
-            </a>
-        </p>
-    @endif
-
-    {{-- Register link --}}
-    @if($registerUrl)
-        <p class="my-0">
-            <a href="{{ $registerUrl }}">
-                {{ __('adminlte::adminlte.register_a_new_membership') }}
-            </a>
-        </p>
-    @endif
+    {{-- Hidden reset and register links as requested --}}
 @stop
+
