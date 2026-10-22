@@ -30,6 +30,14 @@ class CheckMenuPermission
         // Obtener path actual sin barra inicial
         $path = ltrim($request->getPathInfo(), '/');
 
+        // Permitir a padres de familia acceder al portal padre o a la boleta/kardex en PDF de sus hijos
+        if ($user->hasRole('padre') && (
+            str_starts_with($path, 'portal-padre') || 
+            preg_match('#^boletas/\d+/(pdf|kardex)#', $path)
+        )) {
+            return $next($request);
+        }
+
         // Buscar coincidencia exacta o por inicio de ruta en la tabla menus
         $menu = Menu::with('roles')->get()->first(function ($m) use ($path) {
             $menuUrl = trim($m->url, '/');

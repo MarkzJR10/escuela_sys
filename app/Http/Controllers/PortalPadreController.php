@@ -10,6 +10,7 @@ use App\Models\Adeudo;
 use App\Models\Configuracion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PortalPadreController extends Controller
 {
@@ -43,12 +44,65 @@ class PortalPadreController extends Controller
         // Verificar que el hijo pertenece al padre
         $user = Auth::user();
         $padre = Padre::where('user_id', $user->id)->first();
-        if ($alumno->padre_id !== $padre->id) {
+        if (!$padre || $alumno->padre_id !== $padre->id) {
+            abort(403, 'Acceso denegado: este alumno no está vinculado a su cuenta.');
+        }
+
+        $boletaData = $alumno->getBoletaActualData();
+        return view('portal_padre.boleta', compact('alumno', 'boletaData'));
+    }
+
+    public function boletaPdf(Alumno $alumno)
+    {
+        if (Configuracion::get('portal_padre_ver_boleta', '1') !== '1') {
+            return redirect()->route('portal_padre.dashboard')->with('error', 'La opción de Boleta de Calificaciones no está disponible actualmente.');
+        }
+
+        // Verificar que el hijo pertenece al padre
+        $user = Auth::user();
+        $padre = Padre::where('user_id', $user->id)->first();
+        if (!$padre || $alumno->padre_id !== $padre->id) {
             abort(403, 'Acceso denegado');
         }
 
-        $boletas = Boleta::where('alumno_id', $alumno->id)->get();
-        return view('portal_padre.boleta', compact('alumno', 'boletas'));
+        $boletaData = $alumno->getBoletaActualData();
+        $pdf = Pdf::loadView('boletas.pdf', compact('alumno', 'boletaData'));
+        return $pdf->download('Boleta_'.$alumno->matricula.'.pdf');
+    }
+
+    public function kardex(Alumno $alumno)
+    {
+        if (Configuracion::get('portal_padre_ver_kardex', '1') !== '1') {
+            return redirect()->route('portal_padre.dashboard')->with('error', 'La opción de Historial Académico (Kardex) no está disponible actualmente.');
+        }
+
+        // Verificar que el hijo pertenece al padre
+        $user = Auth::user();
+        $padre = Padre::where('user_id', $user->id)->first();
+        if (!$padre || $alumno->padre_id !== $padre->id) {
+            abort(403, 'Acceso denegado: este alumno no está vinculado a su cuenta.');
+        }
+
+        $kardexData = $alumno->getKardexData();
+        return view('portal_padre.kardex', compact('alumno', 'kardexData'));
+    }
+
+    public function kardexPdf(Alumno $alumno)
+    {
+        if (Configuracion::get('portal_padre_ver_kardex', '1') !== '1') {
+            return redirect()->route('portal_padre.dashboard')->with('error', 'La opción de Historial Académico (Kardex) no está disponible actualmente.');
+        }
+
+        // Verificar que el hijo pertenece al padre
+        $user = Auth::user();
+        $padre = Padre::where('user_id', $user->id)->first();
+        if (!$padre || $alumno->padre_id !== $padre->id) {
+            abort(403, 'Acceso denegado');
+        }
+
+        $kardexData = $alumno->getKardexData();
+        $pdf = Pdf::loadView('boletas.kardex_pdf', compact('alumno', 'kardexData'));
+        return $pdf->download('Kardex_'.$alumno->matricula.'.pdf');
     }
 
     public function conducta(Alumno $alumno)

@@ -3,54 +3,165 @@
 @section('title', 'Boleta de Calificaciones')
 
 @section('content_header')
-    <h1>Boleta de Calificaciones</h1>
+    <div class="d-flex justify-content-between align-items-center">
+        <h1><i class="fas fa-file-invoice text-success mr-2"></i> Boleta de Calificaciones</h1>
+        <div>
+            @if(\App\Models\Configuracion::get('portal_padre_ver_kardex', '1') == '1')
+                <a href="{{ route('portal_padre.kardex', $alumno->id) }}" class="btn btn-outline-primary mr-2">
+                    <i class="fas fa-graduation-cap mr-1"></i> Ver Histórico (Kardex)
+                </a>
+            @endif
+            <a href="{{ route('portal_padre.boleta_pdf', $alumno->id) }}" class="btn btn-danger" target="_blank">
+                <i class="fas fa-file-pdf mr-1"></i> Descargar Boleta PDF
+            </a>
+        </div>
+    </div>
 @stop
 
 @section('content')
 <div class="row">
-    <div class="col-md-10 mx-auto">
-        <div class="card card-success card-outline">
+    <div class="col-md-11 mx-auto">
+        <!-- Tarjeta de Información del Alumno -->
+        <div class="card card-outline card-success shadow-sm mb-4">
             <div class="card-header">
-                <h3 class="card-title">{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} - {{ $alumno->gradoGrupo->grado ?? '' }} "{{ $alumno->gradoGrupo->grupo ?? '' }}"</h3>
+                <h3 class="card-title font-weight-bold">
+                    <i class="fas fa-user-graduate text-success mr-2"></i> {{ $alumno->nombre_completo }}
+                </h3>
                 <div class="card-tools">
-                    <a href="{{ route('boletas.pdf', $alumno->id) }}" class="btn btn-sm btn-danger" target="_blank">
-                        <i class="fas fa-file-pdf"></i> Descargar PDF
-                    </a>
+                    <span class="badge badge-success px-3 py-2 font-weight-normal" style="font-size: 0.95rem;">
+                        Ciclo Escolar: {{ $boletaData['ciclo'] }}
+                    </span>
                 </div>
             </div>
-            <div class="card-body">
-                @if($boletas->count() > 0)
+            <div class="card-body py-3">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <small class="text-muted d-block">Matrícula Escolar</small>
+                        <strong class="text-dark">{{ $alumno->matricula }}</strong>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <small class="text-muted d-block">Grado y Grupo</small>
+                        <strong class="text-dark">{{ $boletaData['grado'] }} "{{ $boletaData['grupo'] }}"</strong>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <small class="text-muted d-block">Profesor(a) Titular</small>
+                        <strong class="text-dark">{{ $boletaData['maestro'] ?: 'Por asignar' }}</strong>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <small class="text-muted d-block">Promedio General</small>
+                        @if(!is_null($boletaData['promedio_general']))
+                            <span class="badge badge-pill {{ $boletaData['promedio_general'] >= 8.0 ? 'badge-success' : ($boletaData['promedio_general'] >= 6.0 ? 'badge-info' : 'badge-danger') }} px-3 py-1 font-weight-bold" style="font-size: 1rem;">
+                                {{ number_format($boletaData['promedio_general'], 1) }}
+                            </span>
+                        @else
+                            <span class="text-muted">Pendiente</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Calificaciones por Trimestre -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h3 class="card-title font-weight-bold text-dark mb-0">
+                    <i class="fas fa-award text-warning mr-2"></i> Desglose de Materias y Calificaciones
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                @if(count($boletaData['materias']) > 0)
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped text-center">
-                            <thead class="bg-success text-white">
+                        <table class="table table-hover table-striped mb-0 text-center">
+                            <thead class="bg-light">
                                 <tr>
-                                    <th class="text-left">Asignatura</th>
-                                    <th>Trimestre 1</th>
-                                    <th>Trimestre 2</th>
-                                    <th>Trimestre 3</th>
-                                    <th>Promedio Final</th>
+                                    <th class="text-left pl-4 py-3" style="width: 35%;">Asignatura</th>
+                                    <th class="py-3" style="width: 15%;">1° Trimestre</th>
+                                    <th class="py-3" style="width: 15%;">2° Trimestre</th>
+                                    <th class="py-3" style="width: 15%;">3° Trimestre</th>
+                                    <th class="py-3 bg-secondary text-white font-weight-bold" style="width: 20%;">Promedio Final</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($boletas as $boleta)
+                                @foreach($boletaData['materias'] as $item)
                                 <tr>
-                                    <td class="text-left font-weight-bold">{{ $boleta->materia }}</td>
-                                    <td>{{ $boleta->p1 ?? '-' }}</td>
-                                    <td>{{ $boleta->p2 ?? '-' }}</td>
-                                    <td>{{ $boleta->p3 ?? '-' }}</td>
-                                    <td class="font-weight-bold bg-light">{{ $boleta->p_final ?? '-' }}</td>
+                                    <td class="text-left pl-4 font-weight-bold text-dark align-middle">
+                                        <i class="fas fa-book-open text-muted mr-2"></i> {{ $item['materia'] }}
+                                    </td>
+                                    <td class="align-middle">
+                                        @if(!is_null($item['p1']))
+                                            <span class="font-weight-bold {{ $item['p1'] < 6.0 ? 'text-danger' : 'text-dark' }}">
+                                                {{ number_format($item['p1'], 1) }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="align-middle">
+                                        @if(!is_null($item['p2']))
+                                            <span class="font-weight-bold {{ $item['p2'] < 6.0 ? 'text-danger' : 'text-dark' }}">
+                                                {{ number_format($item['p2'], 1) }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="align-middle">
+                                        @if(!is_null($item['p3']))
+                                            <span class="font-weight-bold {{ $item['p3'] < 6.0 ? 'text-danger' : 'text-dark' }}">
+                                                {{ number_format($item['p3'], 1) }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="align-middle bg-light">
+                                        @if(!is_null($item['p_final']))
+                                            <span class="badge {{ $item['p_final'] >= 8.0 ? 'badge-success' : ($item['p_final'] >= 6.0 ? 'badge-primary' : 'badge-danger') }} px-2 py-1" style="font-size: 0.95rem;">
+                                                {{ number_format($item['p_final'], 1) }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted font-italic">En curso</span>
+                                        @endif
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>
+                            <tfoot class="bg-light font-weight-bold">
+                                <tr>
+                                    <td class="text-left pl-4 text-uppercase">Promedio General del Grado Actual</td>
+                                    <td colspan="3" class="text-muted text-right pr-3 font-weight-normal">
+                                        Materias Aprobadas: <span class="badge badge-success">{{ $boletaData['materias_aprobadas'] }}</span>
+                                        @if($boletaData['materias_reprobadas'] > 0)
+                                            | Reprobadas: <span class="badge badge-danger">{{ $boletaData['materias_reprobadas'] }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center py-2" style="font-size: 1.1rem;">
+                                        @if(!is_null($boletaData['promedio_general']))
+                                            <span class="badge badge-pill {{ $boletaData['promedio_general'] >= 8.0 ? 'badge-success' : ($boletaData['promedio_general'] >= 6.0 ? 'badge-info' : 'badge-danger') }} px-3 py-1">
+                                                {{ number_format($boletaData['promedio_general'], 1) }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 @else
-                    <div class="alert alert-info">Aún no hay calificaciones registradas para este alumno.</div>
+                    <div class="p-4 text-center text-muted">
+                        <i class="fas fa-info-circle fa-2x mb-3 text-info"></i>
+                        <p class="mb-0">Aún no hay calificaciones registradas para el ciclo actual de este alumno.</p>
+                    </div>
                 @endif
-                
-                <div class="text-center mt-4">
-                    <a href="{{ route('portal_padre.dashboard') }}" class="btn btn-default">Volver al Panel</a>
-                </div>
+            </div>
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                <a href="{{ route('portal_padre.dashboard') }}" class="btn btn-default">
+                    <i class="fas fa-arrow-left mr-1"></i> Volver a Mis Hijos
+                </a>
+                <a href="{{ route('portal_padre.boleta_pdf', $alumno->id) }}" class="btn btn-danger" target="_blank">
+                    <i class="fas fa-file-pdf mr-1"></i> Descargar Boleta PDF
+                </a>
             </div>
         </div>
     </div>

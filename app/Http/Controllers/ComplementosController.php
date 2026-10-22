@@ -53,9 +53,22 @@ class ComplementosController extends Controller
      */
     public function generarBoletaPdf($alumnoId)
     {
-        $alumno = Alumno::with(['gradoGrupo.maestro', 'boletas'])->findOrFail($alumnoId);
+        $alumno = Alumno::with(['gradoGrupo.maestro'])->findOrFail($alumnoId);
+
+        // Si el usuario autenticado es padre de familia, validar que sea su hijo
+        if (Auth::user() && Auth::user()->hasRole('padre')) {
+            $padre = \App\Models\Padre::where('user_id', Auth::id())->first();
+            if (!$padre || $alumno->padre_id !== $padre->id) {
+                abort(403, 'Acceso denegado: este alumno no está registrado bajo su tutela.');
+            }
+            if (\App\Models\Configuracion::get('portal_padre_ver_boleta', '1') !== '1') {
+                abort(403, 'La opción de Boleta de Calificaciones no está disponible actualmente.');
+            }
+        }
+
+        $boletaData = $alumno->getBoletaActualData();
         
-        $pdf = Pdf::loadView('boletas.pdf', compact('alumno'));
+        $pdf = Pdf::loadView('boletas.pdf', compact('alumno', 'boletaData'));
         return $pdf->download('Boleta_'.$alumno->matricula.'.pdf');
     }
 

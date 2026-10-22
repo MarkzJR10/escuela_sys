@@ -59,6 +59,8 @@ Route::middleware(['auth', 'check.menu'])->group(function () {
     Route::resource('grado_grupos', GradoGrupoController::class);
     Route::resource('materias', MateriaController::class);
     Route::resource('profesores', ProfesorController::class);
+    Route::get('calificaciones/captura', [CalificacionController::class, 'captura'])->name('calificaciones.captura');
+    Route::post('calificaciones/bulk', [CalificacionController::class, 'bulkStore'])->name('calificaciones.bulk_store');
     Route::resource('calificaciones', CalificacionController::class);
 
     // Cuadro de Honor
@@ -116,6 +118,10 @@ Route::middleware(['auth', 'check.menu'])->group(function () {
 
     Route::get('boletas/gestionar/{alumno}', [BoletaController::class, 'gestionar'])->name('boletas.gestionar');
     Route::post('boletas/gestionar/{alumno}', [BoletaController::class, 'storeMateria'])->name('boletas.store_materia');
+    Route::get('boletas/{alumno}/kardex', [BoletaController::class, 'kardex'])->name('boletas.kardex');
+    Route::get('boletas/{alumno}/kardex/pdf', [BoletaController::class, 'kardexPdf'])->name('boletas.kardex_pdf');
+    Route::post('boletas/{alumno}/kardex/historico', [BoletaController::class, 'storeHistorico'])->name('boletas.kardex.store_historico');
+    Route::delete('boletas/kardex/{boleta}', [BoletaController::class, 'destroyHistorico'])->name('boletas.kardex.destroy_historico');
     Route::resource('boletas', BoletaController::class);
 
     Route::get('migrar_grados/inactivos', [MigrarGradoController::class, 'inactivos'])->name('migrar_grados.inactivos');
@@ -143,6 +149,9 @@ Route::middleware(['auth', 'check.menu'])->group(function () {
     Route::prefix('portal-padre')->name('portal_padre.')->group(function () {
         Route::get('dashboard', [PortalPadreController::class, 'dashboard'])->name('dashboard');
         Route::get('hijo/{alumno}/boleta', [PortalPadreController::class, 'boleta'])->name('boleta');
+        Route::get('hijo/{alumno}/boleta/pdf', [PortalPadreController::class, 'boletaPdf'])->name('boleta_pdf');
+        Route::get('hijo/{alumno}/kardex', [PortalPadreController::class, 'kardex'])->name('kardex');
+        Route::get('hijo/{alumno}/kardex/pdf', [PortalPadreController::class, 'kardexPdf'])->name('kardex_pdf');
         Route::get('hijo/{alumno}/conducta', [PortalPadreController::class, 'conducta'])->name('conducta');
         Route::get('hijo/{alumno}/estado-cuenta', [PortalPadreController::class, 'estadoCuenta'])->name('estado_cuenta');
         Route::get('hijo/{alumno}/recibo', [PortalPadreController::class, 'recibo'])->name('recibo');
@@ -204,8 +213,6 @@ Route::middleware(['auth', 'check.menu'])->group(function () {
     Route::middleware(['role:administrador'])->group(function () {
 
         Route::resource('menus', MenuController::class);
-        Route::get('calificaciones/captura', [CalificacionController::class, 'captura'])->name('calificaciones.captura')->withoutMiddleware(['role:administrador']);
-        Route::post('calificaciones/bulk', [CalificacionController::class, 'bulkStore'])->name('calificaciones.bulk_store')->withoutMiddleware(['role:administrador']);
         Route::get('periodos', [PeriodoControlController::class, 'index'])->name('periodos.index');
         Route::post('periodos/{periodoControl}/toggle', [PeriodoControlController::class, 'toggle'])->name('periodos.toggle');
         Route::resource('roles', RoleController::class);

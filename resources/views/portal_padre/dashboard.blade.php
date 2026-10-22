@@ -32,6 +32,14 @@
                     </li>
                     @endif
 
+                    @if(\App\Models\Configuracion::get('portal_padre_ver_kardex', '1') == '1')
+                    <li class="nav-item">
+                        <a href="{{ route('portal_padre.kardex', $hijo->id) }}" class="nav-link">
+                            <i class="fas fa-graduation-cap text-purple"></i> Historial Académico (Kardex)
+                        </a>
+                    </li>
+                    @endif
+
                     @if(\App\Models\Configuracion::get('portal_padre_ver_conducta', '1') == '1')
                     <li class="nav-item">
                         <a href="{{ route('portal_padre.conducta', $hijo->id) }}" class="nav-link">

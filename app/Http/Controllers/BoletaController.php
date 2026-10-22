@@ -7,6 +7,9 @@ use App\Models\Alumno;
 use App\Models\GradoGrupo;
 use Illuminate\Http\Request;
 
+use App\Models\Materia;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 class BoletaController extends Controller
 {
     /**
@@ -28,16 +31,98 @@ class BoletaController extends Controller
     }
 
     /**
-     * Ver boleta de un alumno específico.
+     * Ver boleta de un alumno específico (boleta actual).
      */
     public function show($alumnoId)
     {
-        $alumno = Alumno::with('gradoGrupo')->findOrFail($alumnoId);
-        $boletas = Boleta::where('matricula', $alumno->matricula)
-            ->orderBy('materia')
-            ->get();
+        $alumno = Alumno::with(['gradoGrupo.maestro'])->findOrFail($alumnoId);
+        $boletaData = $alumno->getBoletaActualData();
 
-        return view('boletas.show', compact('alumno', 'boletas'));
+        return view('boletas.show', compact('alumno', 'boletaData'));
+    }
+
+    /**
+     * Ver histórico académico del alumno (Kardex escolar).
+     */
+    public function kardex($alumnoId)
+    {
+        $alumno = Alumno::with(['gradoGrupo.maestro'])->findOrFail($alumnoId);
+        $kardexData = $alumno->getKardexData();
+        $materiasCatalog = Materia::orderBy('nombre')->get();
+
+        return view('boletas.kardex', compact('alumno', 'kardexData', 'materiasCatalog'));
+    }
+
+    /**
+     * Descargar Kardex escolar en formato PDF.
+     */
+    public function kardexPdf($alumnoId)
+    {
+        $alumno = Alumno::with(['gradoGrupo.maestro'])->findOrFail($alumnoId);
+        $kardexData = $alumno->getKardexData();
+
+        $pdf = Pdf::loadView('boletas.kardex_pdf', compact('alumno', 'kardexData'));
+        return $pdf->download('Kardex_' . $alumno->matricula . '.pdf');
+    }
+
+    /**
+     * Registrar calificación histórica para un grado anterior en el Kardex.
+     */
+    public function storeHistorico(Request $request, $alumnoId)
+    {
+        $request->validate([
+            'grado'    => 'required|string|max:50',
+            'materia'  => 'required|string|max:255',
+            'ciclo'    => 'nullable|string|max:50',
+            'p1'       => 'nullable|numeric|min:0|max:10',
+            'p2'       => 'nullable|numeric|min:0|max:10',
+            'p3'       => 'nullable|numeric|min:0|max:10',
+            'p_final'  => 'nullable|numeric|min:0|max:10',
+        ]);
+
+        $alumno = Alumno::findOrFail($alumnoId);
+
+        $p1 = $request->filled('p1') ? floatval($request->p1) : null;
+        $p2 = $request->filled('p2') ? floatval($request->p2) : null;
+        $p3 = $request->filled('p3') ? floatval($request->p3) : null;
+
+        $validScores = array_values(array_filter([$p1, $p2, $p3], fn($v) => !is_null($v)));
+        $pFinal = $request->filled('p_final') 
+            ? floatval($request->p_final) 
+            : (count($validScores) > 0 ? round(array_sum($validScores) / count($validScores), 1) : null);
+
+        Boleta::updateOrCreate(
+            [
+                'matricula' => $alumno->matricula,
+                'grado'     => $request->grado,
+                'materia'   => $request->materia,
+            ],
+            [
+                'nombre'    => $alumno->nombre_completo,
+                'grupo'     => $alumno->gradoGrupo ? $alumno->gradoGrupo->grupo : '',
+                'ciclo'     => $request->ciclo ?: '',
+                'p1'        => $p1,
+                'p2'        => $p2,
+                'p3'        => $p3,
+                'p_final'   => $pFinal,
+            ]
+        );
+
+        return redirect()->route('boletas.kardex', $alumno->id)
+            ->with('success', 'Materia registrada exitosamente en el historial del grado.');
+    }
+
+    /**
+     * Eliminar registro de materia histórica de boletas.
+     */
+    public function destroyHistorico($boletaId)
+    {
+        $boleta = Boleta::findOrFail($boletaId);
+        $alumno = Alumno::where('matricula', $boleta->matricula)->first();
+        $boleta->delete();
+
+        $target = $alumno ? route('boletas.kardex', $alumno->id) : route('boletas.index');
+        return redirect($target)->with('success', 'Registro histórico eliminado.');
     }
 
     /**

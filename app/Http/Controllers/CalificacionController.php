@@ -75,8 +75,8 @@ class CalificacionController extends Controller
 
     public function captura(Request $request)
     {
-        // Solo Admin y Profesor pueden capturar
-        if (!Auth::user()->hasAnyRole(['administrador', 'profesor'])) {
+        // Solo Admin, Profesor y Maestro pueden capturar
+        if (!Auth::user()->hasAnyRole(['administrador', 'profesor', 'maestro'])) {
             return redirect()->route('calificaciones.index')->with('error', 'No tienes permiso para capturar calificaciones.');
         }
 
@@ -99,7 +99,7 @@ class CalificacionController extends Controller
 
     public function bulkStore(Request $request)
     {
-        if (!Auth::user()->hasAnyRole(['administrador', 'profesor'])) {
+        if (!Auth::user()->hasAnyRole(['administrador', 'profesor', 'maestro'])) {
             return redirect()->route('calificaciones.index')->with('error', 'No tienes permiso para capturar calificaciones.');
         }
 
@@ -142,7 +142,7 @@ class CalificacionController extends Controller
 
     public function store(Request $request)
     {
-        if (!Auth::user()->hasAnyRole(['administrador', 'profesor'])) {
+        if (!Auth::user()->hasAnyRole(['administrador', 'profesor', 'maestro'])) {
             return abort(403, 'No tienes permiso para realizar esta acción.');
         }
 
@@ -166,8 +166,8 @@ class CalificacionController extends Controller
 
     public function edit(Calificacion $calificacione)
     {
-        // Solo Admin, Coordinador y Profesor pueden editar
-        if (!Auth::user()->hasAnyRole(['administrador', 'coordinador', 'profesor'])) {
+        // Solo Admin, Coordinador, Profesor y Maestro pueden editar
+        if (!Auth::user()->hasAnyRole(['administrador', 'coordinador', 'profesor', 'maestro'])) {
             return redirect()->route('calificaciones.index')->with('error', 'No tienes permiso para editar calificaciones.');
         }
 
@@ -183,7 +183,7 @@ class CalificacionController extends Controller
 
     public function update(Request $request, Calificacion $calificacione)
     {
-        if (!Auth::user()->hasAnyRole(['administrador', 'coordinador', 'profesor'])) {
+        if (!Auth::user()->hasAnyRole(['administrador', 'coordinador', 'profesor', 'maestro'])) {
             return abort(403, 'No tienes permiso para realizar esta acción.');
         }
 

@@ -50,7 +50,7 @@
 
             @php
                 $isFiltering = request()->filled(['grado_grupo_id', 'materia_id']) || request()->filled('alumno_id');
-                $canCapture = Auth::user()->hasAnyRole(['administrador', 'profesor']);
+                $canCapture = Auth::user()->hasAnyRole(['administrador', 'profesor', 'maestro']);
             @endphp
 
             @if($isFiltering && $canCapture)

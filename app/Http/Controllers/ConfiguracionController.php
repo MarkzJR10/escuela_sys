@@ -46,6 +46,7 @@ class ConfiguracionController extends Controller
     {
         $configs = [
             'portal_padre_ver_boleta' => Configuracion::get('portal_padre_ver_boleta', '1'),
+            'portal_padre_ver_kardex' => Configuracion::get('portal_padre_ver_kardex', '1'),
             'portal_padre_ver_conducta' => Configuracion::get('portal_padre_ver_conducta', '1'),
             'portal_padre_ver_estado_cuenta' => Configuracion::get('portal_padre_ver_estado_cuenta', '1'),
             'portal_padre_ver_recibos' => Configuracion::get('portal_padre_ver_recibos', '1'),
@@ -57,6 +58,7 @@ class ConfiguracionController extends Controller
     public function updateVisibilidadPortalPadres(Request $request)
     {
         Configuracion::set('portal_padre_ver_boleta', $request->has('portal_padre_ver_boleta') ? '1' : '0', 'Visibilidad de Boleta en Portal Padre');
+        Configuracion::set('portal_padre_ver_kardex', $request->has('portal_padre_ver_kardex') ? '1' : '0', 'Visibilidad de Kardex en Portal Padre');
         Configuracion::set('portal_padre_ver_conducta', $request->has('portal_padre_ver_conducta') ? '1' : '0', 'Visibilidad de Reportes de Conducta en Portal Padre');
         Configuracion::set('portal_padre_ver_estado_cuenta', $request->has('portal_padre_ver_estado_cuenta') ? '1' : '0', 'Visibilidad de Estado de Cuenta en Portal Padre');
         Configuracion::set('portal_padre_ver_recibos', $request->has('portal_padre_ver_recibos') ? '1' : '0', 'Visibilidad de Recibos en Portal Padre');

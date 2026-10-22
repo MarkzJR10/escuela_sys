@@ -39,6 +39,16 @@
 
                         <div class="form-group border-bottom pb-3">
                             <div class="custom-control custom-switch custom-switch-off-danger custom-switch-on-success">
+                                <input type="checkbox" class="custom-control-input" id="portal_padre_ver_kardex" name="portal_padre_ver_kardex" value="1" {{ ($configs['portal_padre_ver_kardex'] ?? '1') == '1' ? 'checked' : '' }}>
+                                <label class="custom-control-label font-weight-bold" for="portal_padre_ver_kardex">
+                                    <i class="fas fa-graduation-cap text-purple mr-1"></i> Historial Académico (Kardex)
+                                </label>
+                            </div>
+                            <small class="text-muted pl-4 d-block mt-1">Permite a los tutores consultar el histórico de calificaciones por grado escolar de sus hijos.</small>
+                        </div>
+
+                        <div class="form-group border-bottom pb-3">
+                            <div class="custom-control custom-switch custom-switch-off-danger custom-switch-on-success">
                                 <input type="checkbox" class="custom-control-input" id="portal_padre_ver_conducta" name="portal_padre_ver_conducta" value="1" {{ $configs['portal_padre_ver_conducta'] == '1' ? 'checked' : '' }}>
                                 <label class="custom-control-label font-weight-bold" for="portal_padre_ver_conducta">
                                     <i class="fas fa-exclamation-triangle text-warning mr-1"></i> Reportes de Conducta

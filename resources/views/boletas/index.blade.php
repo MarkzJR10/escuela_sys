@@ -49,16 +49,21 @@
                                     <td>{{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} {{ $alumno->nombre }}</td>
                                     <td>
                                         <div class="btn-group">
-                                            <a href="{{ route('boletas.gestionar', $alumno->id) }}" class="btn btn-sm btn-info" title="Materias">
-                                                <i class="fas fa-book"></i> Materias
+                                            <a href="{{ route('boletas.show', $alumno->id) }}" class="btn btn-sm btn-success" title="Ver Boleta Actual">
+                                                <i class="fas fa-file-invoice"></i> Boleta
+                                            </a>
+                                            <a href="{{ route('boletas.pdf', $alumno->id) }}" class="btn btn-sm btn-danger" target="_blank" title="Descargar Boleta en PDF">
+                                                <i class="fas fa-file-pdf"></i> PDF
+                                            </a>
+                                            <a href="{{ route('boletas.kardex', $alumno->id) }}" class="btn btn-sm btn-primary" title="Historial Académico (Kardex)">
+                                                <i class="fas fa-graduation-cap"></i> Kardex
+                                            </a>
+                                            <a href="{{ route('boletas.gestionar', $alumno->id) }}" class="btn btn-sm btn-info" title="Gestionar Materias">
+                                                <i class="fas fa-book"></i>
                                             </a>
                                             <a href="{{ route('boletas.edit', $alumno->id) }}" class="btn btn-sm btn-warning" title="Capturar Calificaciones">
-                                                <i class="fas fa-edit"></i> Capturar
+                                                <i class="fas fa-edit"></i>
                                             </a>
-                                            <a href="{{ route('boletas.show', $alumno->id) }}" class="btn btn-sm btn-success" title="Ver Boleta">
-                                                <i class="fas fa-eye"></i> Ver
-                                            </a>
-                                            <!-- Aquí irá el botón para generar el PDF (Fase 1/2) -->
                                         </div>
                                     </td>
                                 </tr>
