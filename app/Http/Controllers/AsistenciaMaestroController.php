@@ -10,9 +10,11 @@ class AsistenciaMaestroController extends Controller
 {
     public function index(Request $request)
     {
+        Profesor::syncAllProfesorUsers();
+
         $fecha = $request->input('fecha', now()->toDateString());
         
-        $profesores = Profesor::orderBy('apellido_paterno')->get();
+        $profesores = Profesor::with('user')->get()->sortBy('nombre_completo', SORT_NATURAL | SORT_FLAG_CASE)->values();
         $asistencias = AsistenciaMaestro::whereDate('fecha', $fecha)->get()->keyBy('profesor_id');
 
         return view('asistencia_maestros.index', compact('profesores', 'asistencias', 'fecha'));

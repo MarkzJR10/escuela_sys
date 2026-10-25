@@ -29,7 +29,7 @@
                     @foreach($profesores as $profesor)
                     <tr>
                         <td>{{ $profesor->id }}</td>
-                        <td>{{ $profesor->nombre }} {{ $profesor->apellido_paterno }} {{ $profesor->apellido_materno }}</td>
+                        <td>{{ $profesor->nombre_completo }}</td>
                         <td>{{ $profesor->telefono }}</td>
                         <td>
                             @if($profesor->user)

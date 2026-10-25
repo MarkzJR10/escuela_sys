@@ -14,7 +14,10 @@ class ProfesorController extends Controller
 {
     public function index()
     {
-        $profesores = Profesor::with('user')->get();
+        // Sincronizar cualquier usuario que tenga rol profesor para garantizar consistencia
+        Profesor::syncAllProfesorUsers();
+
+        $profesores = Profesor::with('user')->get()->sortBy('nombre_completo', SORT_NATURAL | SORT_FLAG_CASE)->values();
         return view('profesores.index', compact('profesores'));
     }
 
@@ -29,7 +32,16 @@ class ProfesorController extends Controller
             'nombre' => 'required|string|max:255',
             'apellido_paterno' => 'required|string|max:255',
             'apellido_materno' => 'nullable|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => [
+                'required',
+                'email',
+                function ($attribute, $value, $fail) {
+                    $existingUser = User::where('email', $value)->first();
+                    if ($existingUser && Profesor::where('user_id', $existingUser->id)->exists()) {
+                        $fail('Ya existe un profesor registrado con este correo electrónico.');
+                    }
+                },
+            ],
             'genero' => 'required|in:M,F',
             'curp' => 'nullable|string|max:18',
             'fecha_nacimiento' => 'nullable|date',
@@ -40,16 +52,25 @@ class ProfesorController extends Controller
         ]);
 
         DB::transaction(function () use ($request) {
-            // 1. Crear el usuario
-            $user = User::create([
-                'name' => trim($request->nombre . ' ' . $request->apellido_paterno . ' ' . $request->apellido_materno),
-                'email' => $request->email,
-                'password' => Hash::make('password'), // Contraseña por defecto
-            ]);
+            $fullName = trim($request->nombre . ' ' . $request->apellido_paterno . ' ' . $request->apellido_materno);
+            
+            // 1. Obtener o crear el usuario
+            $user = User::where('email', $request->email)->first();
+            if (!$user) {
+                $user = User::create([
+                    'name' => $fullName,
+                    'email' => $request->email,
+                    'password' => Hash::make('password'), // Contraseña por defecto
+                ]);
+            } else {
+                $user->update(['name' => $fullName]);
+            }
 
             // 2. Asegurar que el rol profesor existe y asignarlo
             $role = Role::firstOrCreate(['name' => 'profesor', 'guard_name' => 'web']);
-            $user->assignRole($role);
+            if (!$user->hasRole('profesor')) {
+                $user->assignRole($role);
+            }
 
             // 3. Preparar datos del profesor
             $data = $request->only([
@@ -86,7 +107,7 @@ class ProfesorController extends Controller
             'nombre' => 'required|string|max:255',
             'apellido_paterno' => 'required|string|max:255',
             'apellido_materno' => 'nullable|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $profesore->user_id,
+            'email' => 'required|email|unique:users,email,' . ($profesore->user_id ?? 0),
             'genero' => 'required|in:M,F',
             'curp' => 'nullable|string|max:18',
             'fecha_nacimiento' => 'nullable|date',
@@ -97,13 +118,13 @@ class ProfesorController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $profesore) {
+            $fullName = trim($request->nombre . ' ' . $request->apellido_paterno . ' ' . $request->apellido_materno);
             $data = $request->only([
                 'nombre', 'apellido_paterno', 'apellido_materno', 'genero', 
                 'curp', 'fecha_nacimiento', 'domicilio', 'telefono', 'celular'
             ]);
 
             if ($request->hasFile('fotografia')) {
-                // Eliminar foto anterior si existe
                 if ($profesore->fotografia) {
                     Storage::disk('public')->delete($profesore->fotografia);
                 }
@@ -111,16 +132,36 @@ class ProfesorController extends Controller
                 $data['fotografia'] = $path;
             }
 
-            // Actualizar profesor
-            $profesore->update($data);
+            $role = Role::firstOrCreate(['name' => 'profesor', 'guard_name' => 'web']);
 
-            // Actualizar usuario vinculado
+            // Actualizar usuario vinculado o crearlo/asociarlo si no existía
             if ($profesore->user) {
                 $profesore->user->update([
-                    'name' => trim($request->nombre . ' ' . $request->apellido_paterno . ' ' . $request->apellido_materno),
+                    'name' => $fullName,
                     'email' => $request->email,
                 ]);
+                if (!$profesore->user->hasRole('profesor')) {
+                    $profesore->user->assignRole($role);
+                }
+            } else {
+                $user = User::where('email', $request->email)->first();
+                if (!$user) {
+                    $user = User::create([
+                        'name' => $fullName,
+                        'email' => $request->email,
+                        'password' => Hash::make('password'),
+                    ]);
+                } else {
+                    $user->update(['name' => $fullName]);
+                }
+                if (!$user->hasRole('profesor')) {
+                    $user->assignRole($role);
+                }
+                $data['user_id'] = $user->id;
             }
+
+            // Actualizar profesor
+            $profesore->update($data);
         });
 
         return redirect()->route('profesores.index')->with('success', 'Profesor actualizado exitosamente.');
@@ -128,7 +169,22 @@ class ProfesorController extends Controller
 
     public function destroy(Profesor $profesore)
     {
-        $profesore->delete();
+        DB::transaction(function () use ($profesore) {
+            if ($profesore->fotografia) {
+                Storage::disk('public')->delete($profesore->fotografia);
+            }
+            $user = $profesore->user;
+            $profesore->delete();
+
+            if ($user) {
+                if ($user->roles->count() <= 1 && $user->hasRole('profesor')) {
+                    $user->delete();
+                } else {
+                    $user->removeRole('profesor');
+                }
+            }
+        });
+
         return redirect()->route('profesores.index')->with('success', 'Profesor eliminado exitosamente.');
     }
 }

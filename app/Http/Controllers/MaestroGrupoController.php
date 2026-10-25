@@ -13,11 +13,13 @@ class MaestroGrupoController extends Controller
      */
     public function index()
     {
+        Profesor::syncAllProfesorUsers();
+
         // Obtener todos los grados/grupos con su maestro de planta actual
         $gradoGrupos = GradoGrupo::with('maestro')->orderBy('grado')->orderBy('grupo')->get();
         
         // Obtener todos los profesores disponibles para la selección
-        $profesores = Profesor::orderBy('apellido_paterno')->orderBy('nombre')->get();
+        $profesores = Profesor::with('user')->get()->sortBy('nombre_completo', SORT_NATURAL | SORT_FLAG_CASE)->values();
 
         return view('maestro_grupo.index', compact('gradoGrupos', 'profesores'));
     }
@@ -40,7 +42,7 @@ class MaestroGrupoController extends Controller
         $profesor = Profesor::findOrFail($request->profesor_id);
 
         return redirect()->route('maestro_grupo.index')
-            ->with('success', "Se asignó a {$profesor->nombre} {$profesor->apellido_paterno} como Maestro de Planta del grupo {$grupo->grado}° \"{$grupo->grupo}\".");
+            ->with('success', "Se asignó a {$profesor->nombre_completo} como Maestro de Planta del grupo {$grupo->grado}° \"{$grupo->grupo}\".");
     }
 
     /**
@@ -50,7 +52,7 @@ class MaestroGrupoController extends Controller
     {
         $grupo = GradoGrupo::findOrFail($id);
         $maestroNombre = $grupo->maestro 
-            ? "{$grupo->maestro->nombre} {$grupo->maestro->apellido_paterno}" 
+            ? $grupo->maestro->nombre_completo 
             : "maestro";
         
         $grupo->update([

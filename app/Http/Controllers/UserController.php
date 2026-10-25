@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Profesor;
 use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -34,12 +37,19 @@ class UserController extends Controller
             'role' => 'required|exists:roles,name',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-        $user->assignRole($request->role);
+        DB::transaction(function () use ($request) {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
+            $user->assignRole($request->role);
+
+            // Si el rol es profesor, sincronizarlo automáticamente a la tabla profesores
+            if (strtolower($request->role) === 'profesor') {
+                Profesor::syncFromUser($user);
+            }
+        });
 
         return redirect()->route('users.index')->with('success', 'Usuario creado exitosamente.');
     }
@@ -63,21 +73,48 @@ class UserController extends Controller
             'role' => 'required|exists:roles,name',
         ]);
 
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-        ]);
-        if ($request->filled('password')) {
-            $user->update(['password' => Hash::make($request->password)]);
-        }
-        $user->syncRoles([$request->role]);
+        DB::transaction(function () use ($request, $user) {
+            $user->update([
+                'name' => $request->name,
+                'email' => $request->email,
+            ]);
+            if ($request->filled('password')) {
+                $user->update(['password' => Hash::make($request->password)]);
+            }
+            $user->syncRoles([$request->role]);
+
+            if (strtolower($request->role) === 'profesor') {
+                Profesor::syncFromUser($user);
+            } else {
+                // Si ya no tiene el rol profesor y no tiene asignaciones activas, retirar de profesores
+                if ($user->profesor) {
+                    $tieneAsignaciones = DB::table('maestro_materia')->where('profesor_id', $user->profesor->id)->exists()
+                        || DB::table('grado_grupos')->where('maestro_id', $user->profesor->id)->exists();
+                    if (!$tieneAsignaciones) {
+                        if ($user->profesor->fotografia) {
+                            Storage::disk('public')->delete($user->profesor->fotografia);
+                        }
+                        $user->profesor->delete();
+                    }
+                }
+            }
+        });
 
         return redirect()->route('users.index')->with('success', 'Usuario actualizado exitosamente.');
     }
 
     public function destroy(User $user)
     {
-        $user->delete();
+        DB::transaction(function () use ($user) {
+            if ($user->profesor) {
+                if ($user->profesor->fotografia) {
+                    Storage::disk('public')->delete($user->profesor->fotografia);
+                }
+                $user->profesor->delete();
+            }
+            $user->delete();
+        });
+
         return redirect()->route('users.index')->with('success', 'Usuario eliminado exitosamente.');
     }
 }

@@ -29,7 +29,7 @@
                                 <option value="{{ $g->id }}">
                                     Grado {{ $g->grado }} - Grupo "{{ $g->grupo }}"
                                     @if($g->maestro)
-                                        (Actual: {{ $g->maestro->nombre }} {{ $g->maestro->apellido_paterno }})
+                                        (Actual: {{ $g->maestro->nombre_completo }})
                                     @else
                                         (Sin Maestro)
                                     @endif
@@ -44,8 +44,8 @@
                         <select name="profesor_id" id="profesor_id" class="form-control" required>
                             <option value="">Seleccione profesor...</option>
                             @foreach($profesores as $p)
-                                <option value="{{ $p->id }}">
-                                    {{ $p->apellido_paterno }} {{ $p->apellido_materno }} {{ $p->nombre }}
+                                <option value="{{ $p->id }}" {{ old('profesor_id') == $p->id ? 'selected' : '' }}>
+                                    {{ $p->nombre_completo }}
                                 </option>
                             @endforeach
                         </select>
@@ -99,7 +99,7 @@
                                             <div class="d-flex align-items-center">
                                                 <i class="fas fa-user-tie text-muted mr-2" style="font-size: 1.1rem;"></i>
                                                 <span class="font-weight-bold text-dark">
-                                                    {{ $g->maestro->nombre }} {{ $g->maestro->apellido_paterno }} {{ $g->maestro->apellido_materno }}
+                                                    {{ $g->maestro->nombre_completo }}
                                                 </span>
                                             </div>
                                         @else

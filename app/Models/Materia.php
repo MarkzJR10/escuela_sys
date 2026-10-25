@@ -10,4 +10,14 @@ class Materia extends Model
     use HasFactory;
 
     protected $fillable = ['nombre', 'grado'];
+
+    /**
+     * Devuelve el nombre de la materia junto a su grado.
+     */
+    public function getNombreConGradoAttribute(): string
+    {
+        return $this->grado 
+            ? "{$this->nombre} - {$this->grado}"
+            : "{$this->nombre} - General";
+    }
 }

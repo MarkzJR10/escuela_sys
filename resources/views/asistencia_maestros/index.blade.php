@@ -43,7 +43,7 @@
                                     $estado = $asist ? $asist->estado : 'presente';
                                 @endphp
                                 <tr>
-                                    <td class="align-middle font-weight-bold">{{ $p->apellido_paterno }} {{ $p->nombre }}</td>
+                                    <td class="align-middle font-weight-bold">{{ $p->nombre_completo }}</td>
                                     <td>
                                         <select name="asistencias[{{ $p->id }}][estado]" class="form-control form-control-sm" required>
                                             <option value="presente" {{ $estado == 'presente' ? 'selected' : '' }}>Presente</option>
