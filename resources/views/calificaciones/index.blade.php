@@ -206,6 +206,12 @@
                         </td>
                         @endif
                     </tr>
+                    @empty
+                    <tr>
+                        <td colspan="{{ $isFiltering ? 6 : 7 }}" class="text-center text-muted py-4">
+                            No hay alumnos o calificaciones registradas con estos filtros.
+                        </td>
+                    </tr>
                     @endforelse
                 </tbody>
             </table>
