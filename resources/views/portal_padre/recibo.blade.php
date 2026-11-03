@@ -9,9 +9,15 @@
             <h4 class="text-secondary font-weight-normal">Recibo de Pago de <strong>{{ strtoupper($alumno->nombre_completo) }}</strong></h4>
         </div>
         <div>
-            <a href="{{ route('portal_padre.dashboard') }}" class="btn btn-secondary mr-2">
-                <i class="fas fa-arrow-left mr-1"></i> Volver a Mis Hijos
-            </a>
+            @if(auth()->user()->hasRole('administrador'))
+                <a href="{{ url()->previous() !== url()->current() ? url()->previous() : route('colegiaturas.index') }}" class="btn btn-secondary mr-2">
+                    <i class="fas fa-arrow-left mr-1"></i> Volver
+                </a>
+            @else
+                <a href="{{ route('portal_padre.dashboard') }}" class="btn btn-secondary mr-2">
+                    <i class="fas fa-arrow-left mr-1"></i> Volver a Mis Hijos
+                </a>
+            @endif
             <button onclick="window.print()" class="btn btn-primary">
                 <i class="fas fa-print mr-1"></i> Imprimir Recibo
             </button>

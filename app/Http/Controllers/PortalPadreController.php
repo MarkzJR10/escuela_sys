@@ -65,9 +65,12 @@ class PortalPadreController extends Controller
             abort(403, 'Acceso denegado');
         }
 
-        $boletaData = $alumno->getBoletaActualData();
-        $pdf = Pdf::loadView('boletas.pdf', compact('alumno', 'boletaData'));
-        return $pdf->download('Boleta_'.$alumno->matricula.'.pdf');
+        $pdfContent = \App\Services\BoletaPdfService::renderOfficialPdf($alumno);
+
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="Boleta_' . $alumno->matricula . '.pdf"',
+        ]);
     }
 
     public function kardex(Alumno $alumno)
@@ -151,22 +154,33 @@ class PortalPadreController extends Controller
 
     public function recibo(Alumno $alumno)
     {
-        if (Configuracion::get('portal_padre_ver_recibos', '1') !== '1') {
+        $user = Auth::user();
+        $isAdmin = $user && $user->hasRole('administrador');
+
+        if (!$isAdmin && Configuracion::get('portal_padre_ver_recibos', '1') !== '1') {
             return redirect()->route('portal_padre.dashboard')->with('error', 'La opción de Recibos de Pago no está disponible actualmente.');
         }
 
-        // Verificar que el hijo pertenece al padre
-        $user = Auth::user();
-        $padre = Padre::where('user_id', $user->id)->first();
-        if (!$padre || $alumno->padre_id !== $padre->id) {
-            abort(403, 'Acceso denegado');
+        // Verificar que el hijo pertenece al padre (salvo que sea administrador)
+        if (!$isAdmin) {
+            $padre = Padre::where('user_id', $user->id)->first();
+            if (!$padre || $alumno->padre_id !== $padre->id) {
+                abort(403, 'Acceso denegado');
+            }
         }
 
         $alumno->load('gradoGrupo');
 
         // Nomenclatura: matricula + grado + mes + año
         $matricula = $alumno->matricula ? $alumno->matricula : $alumno->id;
-        $gradoNum = preg_replace('/[^0-9]/', '', $alumno->gradoGrupo->grado ?? '') ?: '1';
+        $gradoRaw = strtoupper(trim($alumno->gradoGrupo->grado ?? ''));
+        if ($gradoRaw === 'BK') {
+            $gradoNum = 'B';
+        } elseif (in_array($gradoRaw, ['N', 'K', 'P', 'B'])) {
+            $gradoNum = $gradoRaw;
+        } else {
+            $gradoNum = substr(preg_replace('/[^0-9]/', '', $gradoRaw), 0, 1) ?: '1';
+        }
         $mes = date('m');
         $anio = date('Y');
 

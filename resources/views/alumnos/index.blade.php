@@ -60,6 +60,9 @@
                                 <a href="{{ route('boletas.kardex', $alumno->id) }}" class="btn btn-primary btn-sm" title="Historial Académico (Kardex)">
                                     <i class="fas fa-graduation-cap"></i>
                                 </a>
+                                <a href="{{ route('portal_padre.recibo', $alumno->id) }}" class="btn btn-info btn-sm" title="Ver Ficha de Pago (Inbursa)">
+                                    <i class="fas fa-receipt"></i>
+                                </a>
                                 <a href="{{ route('alumnos.edit', $alumno) }}" class="btn btn-warning btn-sm" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>

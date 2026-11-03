@@ -51,9 +51,23 @@
     </div>
 
     @if(count($alumnos) > 0)
+        @php
+            $activeMateria = $selectedMateria ?? $materias->firstWhere('id', request('materia_id'));
+            $isExtra = $activeMateria && $activeMateria->is_extracurricular;
+        @endphp
         <div class="card">
-            <div class="card-header bg-primary">
-                <h3 class="card-title">Listado de Alumnos - Captura de Calificaciones</h3>
+            <div class="card-header bg-primary d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    Listado de Alumnos - Captura de Calificaciones
+                    @if($activeMateria)
+                        ({{ $activeMateria->nombre }})
+                    @endif
+                </h3>
+                @if($isExtra)
+                    <span class="badge badge-warning px-2 py-1">
+                        Escala Extracurricular: A = Excellent | B = Satisfactory | C = Average | D = Unsatisfactory
+                    </span>
+                @endif
             </div>
             <form action="{{ route('calificaciones.bulk_store') }}" method="POST">
                 @csrf
@@ -65,9 +79,9 @@
                         <thead>
                             <tr>
                                 <th>Alumno</th>
-                                <th style="width: 120px">T1</th>
-                                <th style="width: 120px">T2</th>
-                                <th style="width: 120px" title="T3">T3</th>
+                                <th style="width: 150px">T1</th>
+                                <th style="width: 150px">T2</th>
+                                <th style="width: 150px" title="T3">T3</th>
                                 <th>Última Actualización</th>
                             </tr>
                         </thead>
@@ -78,36 +92,39 @@
                                     $t2 = $alumno->calificaciones->where('trimestre', 2)->first();
                                     $t3 = $alumno->calificaciones->where('trimestre', 3)->first();
                                     $ultima = $alumno->calificaciones->sortByDesc('updated_at')->first();
+                                    $trimMap = [1 => $t1, 2 => $t2, 3 => $t3];
                                 @endphp
                                 <tr>
                                     <td>
                                         <strong>{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</strong><br>
                                         <small class="text-muted">Matrícula: {{ $alumno->matricula }}</small>
                                     </td>
-                                    <td>
-                                        <input type="number" step="0.1" min="0" max="10" 
-                                               name="notas[{{ $alumno->id }}][1]" 
-                                               class="form-control" 
-                                               value="{{ old('notas.'.$alumno->id.'.1', $t1 ? $t1->puntaje : '') }}" 
-                                               placeholder="0.0"
-                                               {{ !($periodosControl[1] ?? false) && !Auth::user()->hasAnyRole(['administrador', 'coordinador']) ? 'disabled title=Periodo_Cerrado' : '' }}>
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.1" min="0" max="10" 
-                                               name="notas[{{ $alumno->id }}][2]" 
-                                               class="form-control" 
-                                               value="{{ old('notas.'.$alumno->id.'.2', $t2 ? $t2->puntaje : '') }}" 
-                                               placeholder="0.0"
-                                               {{ !($periodosControl[2] ?? false) && !Auth::user()->hasAnyRole(['administrador', 'coordinador']) ? 'disabled title=Periodo_Cerrado' : '' }}>
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.1" min="0" max="10" 
-                                               name="notas[{{ $alumno->id }}][3]" 
-                                               class="form-control" 
-                                               value="{{ old('notas.'.$alumno->id.'.3', $t3 ? $t3->puntaje : '') }}" 
-                                               placeholder="0.0"
-                                               {{ !($periodosControl[3] ?? false) && !Auth::user()->hasAnyRole(['administrador', 'coordinador']) ? 'disabled title=Periodo_Cerrado' : '' }}>
-                                    </td>
+                                    @foreach([1, 2, 3] as $trimNum)
+                                        @php $tObj = $trimMap[$trimNum]; @endphp
+                                        <td>
+                                            @if($isExtra)
+                                                @php
+                                                    $valLetra = old("notas.{$alumno->id}.{$trimNum}", $tObj ? $tObj->letra_extracurricular : '');
+                                                @endphp
+                                                <select name="notas[{{ $alumno->id }}][{{ $trimNum }}]"
+                                                        class="form-control font-weight-bold text-center"
+                                                        {{ !($periodosControl[$trimNum] ?? false) && !Auth::user()->hasAnyRole(['administrador', 'coordinador']) ? 'disabled title=Periodo_Cerrado' : '' }}>
+                                                    <option value="">-- Seleccione --</option>
+                                                    <option value="A" {{ $valLetra === 'A' ? 'selected' : '' }}>A - Excellent</option>
+                                                    <option value="B" {{ $valLetra === 'B' ? 'selected' : '' }}>B - Satisfactory</option>
+                                                    <option value="C" {{ $valLetra === 'C' ? 'selected' : '' }}>C - Average</option>
+                                                    <option value="D" {{ $valLetra === 'D' ? 'selected' : '' }}>D - Unsatisfactory</option>
+                                                </select>
+                                            @else
+                                                <input type="number" step="0.1" min="0" max="10" 
+                                                       name="notas[{{ $alumno->id }}][{{ $trimNum }}]" 
+                                                       class="form-control" 
+                                                       value="{{ old("notas.{$alumno->id}.{$trimNum}", $tObj ? $tObj->puntaje : '') }}" 
+                                                       placeholder="0.0"
+                                                       {{ !($periodosControl[$trimNum] ?? false) && !Auth::user()->hasAnyRole(['administrador', 'coordinador']) ? 'disabled title=Periodo_Cerrado' : '' }}>
+                                            @endif
+                                        </td>
+                                    @endforeach
                                     <td>
                                         {{ $ultima ? $ultima->updated_at->format('d/m/Y H:i') : 'N/A' }}
                                     </td>

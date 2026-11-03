@@ -127,6 +127,10 @@
                 </thead>
                 <tbody>
                     @forelse($data as $row)
+                    @php
+                        $isRowExtra = $row['materia'] && $row['materia']->is_extracurricular;
+                        $extraOptions = ['A' => 'A (Excellent)', 'B' => 'B (Satisfactory)', 'C' => 'C (Average)', 'D' => 'D (Unsatisfactory)'];
+                    @endphp
                     <tr>
                         <td class="align-middle">
                             <span class="font-weight-bold text-dark">
@@ -142,55 +146,49 @@
                             <span class="badge badge-light border px-2 py-1 font-weight-bold">
                                 {{ $row['materia']->nombre }}
                             </span>
+                            @if($isRowExtra)
+                                <span class="badge badge-info ml-1" title="Calificación por letra: A, B, C, D">Extracurricular (A-D)</span>
+                            @endif
                         </td>
+                        @foreach([1 => 't1', 2 => 't2', 3 => 't3'] as $trimNum => $tKey)
                         <td class="text-center align-middle">
                             @if($isFiltering && $canCapture)
-                                <input type="number" step="0.1" min="0" max="10" 
-                                       name="notas[{{ $row['alumno']->id }}][1]" 
-                                       class="form-control form-control-sm text-center font-weight-bold" 
-                                       placeholder="-"
-                                       value="{{ $row['t1'] ? $row['t1']->puntaje : '' }}"
-                                       {{ !($periodosControl[1] ?? false) && !Auth::user()->hasAnyRole(['administrador', 'coordinador']) ? 'disabled title=Periodo_Cerrado' : '' }}>
-                            @elseif($row['t1'])
-                                <span class="badge {{ $row['t1']->puntaje >= 6 ? 'badge-success' : 'badge-danger' }} px-2 py-1 font-weight-bold" style="font-size: 0.95rem;">
-                                    {{ number_format($row['t1']->puntaje, 1) }}
-                                </span>
+                                @if($isRowExtra)
+                                    @php
+                                        $currentLetter = $row[$tKey] ? $row[$tKey]->letra_extracurricular : '';
+                                    @endphp
+                                    <select name="notas[{{ $row['alumno']->id }}][{{ $trimNum }}]"
+                                            class="form-control form-control-sm text-center font-weight-bold"
+                                            {{ !($periodosControl[$trimNum] ?? false) && !Auth::user()->hasAnyRole(['administrador', 'coordinador']) ? 'disabled title=Periodo_Cerrado' : '' }}>
+                                        <option value="">--</option>
+                                        @foreach(['A', 'B', 'C', 'D'] as $letter)
+                                            <option value="{{ $letter }}" {{ $currentLetter === $letter ? 'selected' : '' }}>{{ $letter }}</option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <input type="number" step="0.1" min="0" max="10" 
+                                           name="notas[{{ $row['alumno']->id }}][{{ $trimNum }}]" 
+                                           class="form-control form-control-sm text-center font-weight-bold" 
+                                           placeholder="-"
+                                           value="{{ $row[$tKey] ? $row[$tKey]->puntaje : '' }}"
+                                           {{ !($periodosControl[$trimNum] ?? false) && !Auth::user()->hasAnyRole(['administrador', 'coordinador']) ? 'disabled title=Periodo_Cerrado' : '' }}>
+                                @endif
+                            @elseif($row[$tKey])
+                                @if($isRowExtra)
+                                    @php $let = $row[$tKey]->letra_extracurricular; @endphp
+                                    <span class="badge {{ in_array($let, ['A', 'B', 'C']) ? 'badge-success' : 'badge-danger' }} px-2 py-1 font-weight-bold" style="font-size: 0.95rem;">
+                                        {{ $let ?: '-' }}
+                                    </span>
+                                @else
+                                    <span class="badge {{ $row[$tKey]->puntaje >= 6 ? 'badge-success' : 'badge-danger' }} px-2 py-1 font-weight-bold" style="font-size: 0.95rem;">
+                                        {{ number_format($row[$tKey]->puntaje, 1) }}
+                                    </span>
+                                @endif
                             @else
                                 <span class="text-muted">-</span>
                             @endif
                         </td>
-                        <td class="text-center align-middle">
-                            @if($isFiltering && $canCapture)
-                                <input type="number" step="0.1" min="0" max="10" 
-                                       name="notas[{{ $row['alumno']->id }}][2]" 
-                                       class="form-control form-control-sm text-center font-weight-bold" 
-                                       placeholder="-"
-                                       value="{{ $row['t2'] ? $row['t2']->puntaje : '' }}"
-                                       {{ !($periodosControl[2] ?? false) && !Auth::user()->hasAnyRole(['administrador', 'coordinador']) ? 'disabled title=Periodo_Cerrado' : '' }}>
-                            @elseif($row['t2'])
-                                <span class="badge {{ $row['t2']->puntaje >= 6 ? 'badge-success' : 'badge-danger' }} px-2 py-1 font-weight-bold" style="font-size: 0.95rem;">
-                                    {{ number_format($row['t2']->puntaje, 1) }}
-                                </span>
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
-                        </td>
-                        <td class="text-center align-middle">
-                            @if($isFiltering && $canCapture)
-                                <input type="number" step="0.1" min="0" max="10" 
-                                       name="notas[{{ $row['alumno']->id }}][3]" 
-                                       class="form-control form-control-sm text-center font-weight-bold" 
-                                       placeholder="-"
-                                       value="{{ $row['t3'] ? $row['t3']->puntaje : '' }}"
-                                       {{ !($periodosControl[3] ?? false) && !Auth::user()->hasAnyRole(['administrador', 'coordinador']) ? 'disabled title=Periodo_Cerrado' : '' }}>
-                            @elseif($row['t3'])
-                                <span class="badge {{ $row['t3']->puntaje >= 6 ? 'badge-success' : 'badge-danger' }} px-2 py-1 font-weight-bold" style="font-size: 0.95rem;">
-                                    {{ number_format($row['t3']->puntaje, 1) }}
-                                </span>
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
-                        </td>
+                        @endforeach
                         <td class="align-middle">
                             <small class="text-muted">
                                 {{ $row['ultima'] ? $row['ultima']->format('d/m/Y H:i') : 'Sin registro' }}

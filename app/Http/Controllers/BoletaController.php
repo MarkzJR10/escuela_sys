@@ -70,21 +70,29 @@ class BoletaController extends Controller
      */
     public function storeHistorico(Request $request, $alumnoId)
     {
+        $isExtra = \App\Services\BoletaPdfService::isExtracurricularSubject($request->materia);
+
         $request->validate([
             'grado'    => 'required|string|max:50',
             'materia'  => 'required|string|max:255',
             'ciclo'    => 'nullable|string|max:50',
-            'p1'       => 'nullable|numeric|min:0|max:10',
-            'p2'       => 'nullable|numeric|min:0|max:10',
-            'p3'       => 'nullable|numeric|min:0|max:10',
+            'p1'       => $isExtra ? ['nullable', 'string', 'in:A,B,C,D,a,b,c,d'] : ['nullable', 'numeric', 'min:0', 'max:10'],
+            'p2'       => $isExtra ? ['nullable', 'string', 'in:A,B,C,D,a,b,c,d'] : ['nullable', 'numeric', 'min:0', 'max:10'],
+            'p3'       => $isExtra ? ['nullable', 'string', 'in:A,B,C,D,a,b,c,d'] : ['nullable', 'numeric', 'min:0', 'max:10'],
             'p_final'  => 'nullable|numeric|min:0|max:10',
         ]);
 
         $alumno = Alumno::findOrFail($alumnoId);
 
-        $p1 = $request->filled('p1') ? floatval($request->p1) : null;
-        $p2 = $request->filled('p2') ? floatval($request->p2) : null;
-        $p3 = $request->filled('p3') ? floatval($request->p3) : null;
+        if ($isExtra) {
+            $p1 = $request->filled('p1') ? \App\Services\BoletaPdfService::extraLetterToScore($request->p1) : null;
+            $p2 = $request->filled('p2') ? \App\Services\BoletaPdfService::extraLetterToScore($request->p2) : null;
+            $p3 = $request->filled('p3') ? \App\Services\BoletaPdfService::extraLetterToScore($request->p3) : null;
+        } else {
+            $p1 = $request->filled('p1') ? floatval($request->p1) : null;
+            $p2 = $request->filled('p2') ? floatval($request->p2) : null;
+            $p3 = $request->filled('p3') ? floatval($request->p3) : null;
+        }
 
         $validScores = array_values(array_filter([$p1, $p2, $p3], fn($v) => !is_null($v)));
         $pFinal = $request->filled('p_final') 
@@ -148,12 +156,26 @@ class BoletaController extends Controller
         if ($request->has('boletas')) {
             foreach ($request->boletas as $boletaId => $data) {
                 $boleta = Boleta::findOrFail($boletaId);
-                $boleta->update([
-                    'p1'      => $data['p1'] ?? null,
-                    'p2'      => $data['p2'] ?? null,
-                    'p3'      => $data['p3'] ?? null,
-                    'p_final' => $data['p_final'] ?? null,
-                ]);
+                if ($boleta->is_extracurricular) {
+                    $p1 = !empty($data['p1']) ? \App\Services\BoletaPdfService::extraLetterToScore($data['p1']) : null;
+                    $p2 = !empty($data['p2']) ? \App\Services\BoletaPdfService::extraLetterToScore($data['p2']) : null;
+                    $p3 = !empty($data['p3']) ? \App\Services\BoletaPdfService::extraLetterToScore($data['p3']) : null;
+                    $valid = array_values(array_filter([$p1, $p2, $p3], fn($v) => !is_null($v)));
+                    $pFinal = count($valid) > 0 ? round(array_sum($valid) / count($valid), 1) : null;
+                    $boleta->update([
+                        'p1'      => $p1,
+                        'p2'      => $p2,
+                        'p3'      => $p3,
+                        'p_final' => $pFinal,
+                    ]);
+                } else {
+                    $boleta->update([
+                        'p1'      => $data['p1'] ?? null,
+                        'p2'      => $data['p2'] ?? null,
+                        'p3'      => $data['p3'] ?? null,
+                        'p_final' => $data['p_final'] ?? null,
+                    ]);
+                }
             }
         }
 

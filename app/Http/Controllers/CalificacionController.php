@@ -228,8 +228,9 @@ class CalificacionController extends Controller
         }
 
         $periodosControl = PeriodoControl::pluck('activo', 'trimestre')->toArray();
+        $selectedMateria = $request->filled('materia_id') ? Materia::find($request->materia_id) : null;
 
-        return view('calificaciones.captura', compact('gradoGrupos', 'materias', 'alumnos', 'periodosControl'));
+        return view('calificaciones.captura', compact('gradoGrupos', 'materias', 'alumnos', 'periodosControl', 'selectedMateria'));
     }
 
     public function bulkStore(Request $request)
@@ -238,29 +239,52 @@ class CalificacionController extends Controller
             return redirect()->route('calificaciones.index')->with('error', 'No tienes permiso para capturar calificaciones.');
         }
 
+        $materia = Materia::findOrFail($request->materia_id);
+        $isExtra = $materia->is_extracurricular;
+
         $request->validate([
             'grado_grupo_id' => 'nullable|exists:grado_grupos,id',
             'materia_id' => 'required|exists:materias,id',
             'notas' => 'required|array',
             'notas.*' => 'array',
-            'notas.*.*' => 'nullable|numeric|min:0|max:10'
+            'notas.*.*' => $isExtra
+                ? ['nullable', 'string', 'in:A,B,C,D,a,b,c,d']
+                : ['nullable', 'numeric', 'min:0', 'max:10'],
+        ], [
+            'notas.*.*.in' => 'Para materias extracurriculares únicamente puede seleccionar A, B, C o D.',
         ]);
 
         $periodosActivos = PeriodoControl::where('activo', true)->pluck('trimestre')->toArray();
 
-        DB::transaction(function () use ($request, $periodosActivos) {
+        DB::transaction(function () use ($request, $periodosActivos, $isExtra) {
             foreach ($request->notas as $alumno_id => $trimestres) {
                 foreach ($trimestres as $trimestre => $puntaje) {
-                    // Guardar si el trimestre está activo o si es admin/coordinador
-                    if ($puntaje !== null && (in_array($trimestre, $periodosActivos) || Auth::user()->hasAnyRole(['administrador', 'coordinador']))) {
-                        Calificacion::updateOrCreate(
-                            [
-                                'alumno_id' => $alumno_id,
-                                'materia_id' => $request->materia_id,
-                                'trimestre' => $trimestre,
-                            ],
-                            ['puntaje' => $puntaje]
-                        );
+                    $canSave = in_array($trimestre, $periodosActivos) || Auth::user()->hasAnyRole(['administrador', 'coordinador']);
+                    if (!$canSave) {
+                        continue;
+                    }
+
+                    if ($puntaje !== null && trim((string) $puntaje) !== '') {
+                        $valorGuardar = $isExtra
+                            ? \App\Services\BoletaPdfService::extraLetterToScore($puntaje)
+                            : $puntaje;
+
+                        if ($valorGuardar !== null) {
+                            Calificacion::updateOrCreate(
+                                [
+                                    'alumno_id' => $alumno_id,
+                                    'materia_id' => $request->materia_id,
+                                    'trimestre' => $trimestre,
+                                ],
+                                ['puntaje' => $valorGuardar]
+                            );
+                        }
+                    } else {
+                        Calificacion::where([
+                            'alumno_id' => $alumno_id,
+                            'materia_id' => $request->materia_id,
+                            'trimestre' => $trimestre,
+                        ])->delete();
                     }
                 }
             }
@@ -289,14 +313,26 @@ class CalificacionController extends Controller
             return abort(403, 'No tienes permiso para realizar esta acción.');
         }
 
+        $materia = Materia::findOrFail($request->materia_id);
+        $isExtra = $materia->is_extracurricular;
+
         $request->validate([
             'alumno_id' => 'required|exists:alumnos,id',
             'materia_id' => 'required|exists:materias,id',
             'trimestre' => 'required|in:1,2,3',
-            'puntaje' => 'required|numeric|min:0|max:10'
+            'puntaje' => $isExtra
+                ? ['required', 'string', 'in:A,B,C,D,a,b,c,d']
+                : ['required', 'numeric', 'min:0', 'max:10'],
+        ], [
+            'puntaje.in' => 'Para materias extracurriculares únicamente puede seleccionar A, B, C o D.',
         ]);
 
-        Calificacion::create($request->all());
+        $data = $request->all();
+        if ($isExtra) {
+            $data['puntaje'] = \App\Services\BoletaPdfService::extraLetterToScore($request->puntaje);
+        }
+
+        Calificacion::create($data);
 
         return redirect()->route('calificaciones.index')->with('success', 'Calificación registrada exitosamente.');
     }
@@ -333,14 +369,26 @@ class CalificacionController extends Controller
             return redirect()->route('calificaciones.index')->with('error', 'No se puede actualizar una calificación de un periodo cerrado.');
         }
 
+        $materia = Materia::findOrFail($request->materia_id);
+        $isExtra = $materia->is_extracurricular;
+
         $request->validate([
             'alumno_id' => 'required|exists:alumnos,id',
             'materia_id' => 'required|exists:materias,id',
             'trimestre' => 'required|in:1,2,3',
-            'puntaje' => 'required|numeric|min:0|max:10'
+            'puntaje' => $isExtra
+                ? ['required', 'string', 'in:A,B,C,D,a,b,c,d']
+                : ['required', 'numeric', 'min:0', 'max:10'],
+        ], [
+            'puntaje.in' => 'Para materias extracurriculares únicamente puede seleccionar A, B, C o D.',
         ]);
 
-        $calificacione->update($request->all());
+        $data = $request->all();
+        if ($isExtra) {
+            $data['puntaje'] = \App\Services\BoletaPdfService::extraLetterToScore($request->puntaje);
+        }
+
+        $calificacione->update($data);
 
         return redirect()->route('calificaciones.index')->with('success', 'Calificación actualizada exitosamente.');
     }

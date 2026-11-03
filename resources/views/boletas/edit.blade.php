@@ -30,19 +30,35 @@
                             </thead>
                             <tbody>
                                 @foreach($boletas as $boleta)
+                                @php $isExtra = $boleta->is_extracurricular; @endphp
                                 <tr>
-                                    <td class="align-middle text-left font-weight-bold">{{ $boleta->materia }}</td>
-                                    <td>
-                                        <input type="number" step="0.1" name="boletas[{{ $boleta->id }}][p1]" class="form-control text-center" value="{{ $boleta->p1 }}">
+                                    <td class="align-middle text-left font-weight-bold">
+                                        {{ $boleta->materia }}
+                                        @if($isExtra)
+                                            <span class="badge badge-info ml-1">Extracurricular (A-D)</span>
+                                        @endif
                                     </td>
+                                    @foreach([1 => 'p1', 2 => 'p2', 3 => 'p3'] as $tNum => $pField)
                                     <td>
-                                        <input type="number" step="0.1" name="boletas[{{ $boleta->id }}][p2]" class="form-control text-center" value="{{ $boleta->p2 }}">
+                                        @if($isExtra)
+                                            @php $let = $boleta->letraTrimestre($tNum); @endphp
+                                            <select name="boletas[{{ $boleta->id }}][{{ $pField }}]" class="form-control text-center font-weight-bold">
+                                                <option value="">--</option>
+                                                @foreach(['A', 'B', 'C', 'D'] as $opt)
+                                                    <option value="{{ $opt }}" {{ $let === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                                @endforeach
+                                            </select>
+                                        @else
+                                            <input type="number" step="0.1" min="0" max="10" name="boletas[{{ $boleta->id }}][{{ $pField }}]" class="form-control text-center" value="{{ $boleta->{$pField} }}">
+                                        @endif
                                     </td>
+                                    @endforeach
                                     <td>
-                                        <input type="number" step="0.1" name="boletas[{{ $boleta->id }}][p3]" class="form-control text-center" value="{{ $boleta->p3 }}">
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.1" name="boletas[{{ $boleta->id }}][p_final]" class="form-control text-center bg-light" value="{{ $boleta->p_final }}">
+                                        @if($isExtra)
+                                            <input type="text" class="form-control text-center bg-light" value="N/A (A-D)" disabled>
+                                        @else
+                                            <input type="number" step="0.1" min="0" max="10" name="boletas[{{ $boleta->id }}][p_final]" class="form-control text-center bg-light" value="{{ $boleta->p_final }}">
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach

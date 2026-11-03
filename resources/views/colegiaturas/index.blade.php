@@ -66,6 +66,9 @@
                                 @endif
                             </td>
                             <td>
+                                <a href="{{ route('portal_padre.recibo', $alumno) }}" class="btn btn-secondary btn-sm mr-1" title="Ver Ficha de Pago (Inbursa)">
+                                    <i class="fas fa-receipt"></i> Ficha de Pago
+                                </a>
                                 <a href="{{ route('colegiaturas.adeudos', $alumno) }}" class="btn btn-info btn-sm">
                                     <i class="fas fa-file-invoice-dollar"></i> Ver Adeudos
                                 </a>

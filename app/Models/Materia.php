@@ -20,4 +20,12 @@ class Materia extends Model
             ? "{$this->nombre} - {$this->grado}"
             : "{$this->nombre} - General";
     }
+
+    /**
+     * Indica si la materia es extracurricular y se califica con letras (A, B, C, D).
+     */
+    public function getIsExtracurricularAttribute(): bool
+    {
+        return \App\Services\BoletaPdfService::isExtracurricularSubject($this->nombre);
+    }
 }

@@ -66,10 +66,12 @@ class ComplementosController extends Controller
             }
         }
 
-        $boletaData = $alumno->getBoletaActualData();
-        
-        $pdf = Pdf::loadView('boletas.pdf', compact('alumno', 'boletaData'));
-        return $pdf->download('Boleta_'.$alumno->matricula.'.pdf');
+        $pdfContent = \App\Services\BoletaPdfService::renderOfficialPdf($alumno);
+
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="Boleta_' . $alumno->matricula . '.pdf"',
+        ]);
     }
 
     /**

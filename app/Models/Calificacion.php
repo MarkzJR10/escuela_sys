@@ -21,4 +21,12 @@ class Calificacion extends Model
     {
         return $this->belongsTo(Materia::class);
     }
+
+    /**
+     * Devuelve la letra (A, B, C, D) correspondiente al puntaje para materias extracurriculares.
+     */
+    public function getLetraExtracurricularAttribute(): string
+    {
+        return trim(\App\Services\BoletaPdfService::formatExtraGrade($this->puntaje));
+    }
 }

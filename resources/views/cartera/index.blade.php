@@ -28,6 +28,9 @@
                             <td>{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</td>
                             <td>{{ $alumno->gradoGrupo->grado }} {{ $alumno->gradoGrupo->grupo }}</td>
                             <td class="text-center">
+                                <a href="{{ route('portal_padre.recibo', $alumno->id) }}" class="btn btn-secondary btn-sm mr-1" title="Ver Ficha de Pago (Inbursa)">
+                                    <i class="fas fa-receipt"></i> Ficha de Pago
+                                </a>
                                 <a href="{{ route('colegiaturas.adeudos', $alumno->id) }}" class="btn btn-info btn-sm">
                                     <i class="fas fa-eye"></i> Ver Adeudos
                                 </a>
