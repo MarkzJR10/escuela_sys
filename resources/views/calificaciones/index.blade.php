@@ -40,21 +40,27 @@
                         </form>
                     @else
                         {{-- Para Administradores y Coordinadores: selects separados de Grupo y Materia --}}
+                        @php
+                            $selectedGG = $gradoGrupos->firstWhere('id', $grado_grupo_id);
+                            $gradoActivo = $selectedGG ? $selectedGG->grado : null;
+                        @endphp
                         <form action="{{ route('calificaciones.index') }}" method="GET" class="form-inline float-right">
-                            <select name="grado_grupo_id" class="form-control mr-2">
-                                <option value="">-- Grupo --</option>
+                            <select name="grado_grupo_id" id="filter-grado-grupo" class="form-control mr-2">
+                                <option value="" data-grado="">-- Grupo --</option>
                                 @foreach($gradoGrupos as $gg)
-                                    <option value="{{ $gg->id }}" {{ ($grado_grupo_id == $gg->id) ? 'selected' : '' }}>
+                                    <option value="{{ $gg->id }}" data-grado="{{ $gg->grado }}" {{ ($grado_grupo_id == $gg->id) ? 'selected' : '' }}>
                                         {{ $gg->grado }} "{{ $gg->grupo }}"
                                     </option>
                                 @endforeach
                             </select>
-                            <select name="materia_id" class="form-control mr-2">
+                            <select name="materia_id" id="filter-materia" class="form-control mr-2">
                                 <option value="">-- Materia --</option>
                                 @foreach($materias as $m)
-                                    <option value="{{ $m->id }}" {{ ($materia_id == $m->id) ? 'selected' : '' }}>
-                                        {{ $m->nombre_con_grado ?? $m->nombre }}
-                                    </option>
+                                    @if(!$gradoActivo || empty($m->grado) || $m->grado == $gradoActivo)
+                                        <option value="{{ $m->id }}" data-grado="{{ $m->grado }}" {{ ($materia_id == $m->id) ? 'selected' : '' }}>
+                                            {{ $m->nombre_con_grado ?? $m->nombre }}
+                                        </option>
+                                    @endif
                                 @endforeach
                             </select>
                             <button type="submit" class="btn btn-default"><i class="fas fa-filter"></i> Filtrar</button>
@@ -244,6 +250,41 @@
             "pageLength": 25,
             "responsive": true
         });
+
+        @if(!$isTeacher)
+        @php
+            $materiasJson = $materias->map(function($m) {
+                return [
+                    'id' => $m->id,
+                    'grado' => (string) ($m->grado ?? ''),
+                    'label' => $m->nombre_con_grado ?? $m->nombre,
+                ];
+            })->values();
+        @endphp
+        var allMaterias = @json($materiasJson);
+
+        $('#filter-grado-grupo').on('change', function() {
+            var selectedGrado = String($(this).find('option:selected').data('grado') || '');
+            var $materiaSelect = $('#filter-materia');
+            var currentMateriaId = String($materiaSelect.val() || '');
+
+            $materiaSelect.empty();
+            $materiaSelect.append('<option value="">-- Materia --</option>');
+
+            allMaterias.forEach(function(m) {
+                if (!selectedGrado || !m.grado || m.grado === selectedGrado) {
+                    var isSelected = (String(m.id) === currentMateriaId) ? ' selected' : '';
+                    $materiaSelect.append(
+                        $('<option>', {
+                            value: m.id,
+                            text: m.label,
+                            'data-grado': m.grado
+                        }).prop('selected', String(m.id) === currentMateriaId)
+                    );
+                }
+            });
+        });
+        @endif
     });
 </script>
 @stop

@@ -121,6 +121,15 @@ class CalificacionController extends Controller
             }
         }
 
+        $selectedGradoGrupo = $grado_grupo_id ? GradoGrupo::find($grado_grupo_id) : null;
+        $selectedMateria = $materia_id ? Materia::find($materia_id) : null;
+
+        // Si la materia seleccionada no corresponde al grado del grupo seleccionado, limpiarla
+        if (!$isTeacher && $selectedGradoGrupo && $selectedMateria && !empty($selectedMateria->grado) && $selectedMateria->grado != $selectedGradoGrupo->grado) {
+            $materia_id = null;
+            $selectedMateria = null;
+        }
+
         // Obtener listado de alumnos
         if ($isTeacher && $asignacionesDocente->isEmpty()) {
             // Si el maestro no tiene ninguna asignación, no debe ver alumnos
@@ -150,7 +159,6 @@ class CalificacionController extends Controller
         }
 
         $data = [];
-        $selectedMateria = $materia_id ? Materia::find($materia_id) : null;
 
         foreach ($alumnos as $alumno) {
             $materiasAgrupadas = $alumno->calificaciones->groupBy('materia_id');
@@ -180,7 +188,11 @@ class CalificacionController extends Controller
             }
         }
 
-        $gradoGrupos = GradoGrupo::orderBy('grado')->orderBy('grupo')->get();
+        $gradoGrupos = GradoGrupo::whereNotIn('grupo', ['EGRESADOS', 'BAJAS', 'SIN ASIGNAR'])
+            ->whereNotIn('grado', ['11', '12', '13'])
+            ->orderBy('grado')
+            ->orderBy('grupo')
+            ->get();
         $materias = Materia::orderBy('grado')->orderBy('nombre')->get();
         $periodosControl = PeriodoControl::pluck('activo', 'trimestre')->toArray();
 
@@ -212,14 +224,25 @@ class CalificacionController extends Controller
             return redirect()->route('calificaciones.index', $request->all());
         }
 
-        $gradoGrupos = GradoGrupo::orderBy('grado')->orderBy('grupo')->get();
+        $gradoGrupos = GradoGrupo::whereNotIn('grupo', ['EGRESADOS', 'BAJAS', 'SIN ASIGNAR'])
+            ->whereNotIn('grado', ['11', '12', '13'])
+            ->orderBy('grado')
+            ->orderBy('grupo')
+            ->get();
+        $selectedGradoGrupo = $request->filled('grado_grupo_id') ? GradoGrupo::find($request->grado_grupo_id) : null;
         $materias = Materia::orderBy('grado')->orderBy('nombre')->get();
         $alumnos = [];
 
-        if ($request->filled(['grado_grupo_id', 'materia_id'])) {
+        $selectedMateria = $request->filled('materia_id') ? Materia::find($request->materia_id) : null;
+        if ($selectedGradoGrupo && $selectedMateria && !empty($selectedMateria->grado) && $selectedMateria->grado != $selectedGradoGrupo->grado) {
+            $selectedMateria = null;
+            $request->merge(['materia_id' => null]);
+        }
+
+        if ($request->filled('grado_grupo_id') && $selectedMateria) {
             $alumnos = Alumno::where('grado_grupo_id', $request->grado_grupo_id)
-                ->with(['calificaciones' => function($q) use ($request) {
-                    $q->where('materia_id', $request->materia_id);
+                ->with(['calificaciones' => function($q) use ($selectedMateria) {
+                    $q->where('materia_id', $selectedMateria->id);
                 }])
                 ->orderBy('apellido_paterno')
                 ->orderBy('apellido_materno')
@@ -228,7 +251,6 @@ class CalificacionController extends Controller
         }
 
         $periodosControl = PeriodoControl::pluck('activo', 'trimestre')->toArray();
-        $selectedMateria = $request->filled('materia_id') ? Materia::find($request->materia_id) : null;
 
         return view('calificaciones.captura', compact('gradoGrupos', 'materias', 'alumnos', 'periodosControl', 'selectedMateria'));
     }

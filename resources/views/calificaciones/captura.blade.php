@@ -12,15 +12,19 @@
             <h3 class="card-title">Filtros de Selección</h3>
         </div>
         <div class="card-body">
+            @php
+                $selectedGG = $gradoGrupos->firstWhere('id', request('grado_grupo_id'));
+                $gradoActivo = $selectedGG ? $selectedGG->grado : null;
+            @endphp
             <form action="{{ route('calificaciones.captura') }}" method="GET" id="filter-form">
                 <div class="row">
                     <div class="col-md-3">
                         <div class="form-group">
                             <label>Grado y Grupo</label>
-                            <select name="grado_grupo_id" class="form-control select2" required onchange="this.form.submit()">
-                                <option value="">-- Seleccione --</option>
+                            <select name="grado_grupo_id" id="captura-grado-grupo" class="form-control select2" required>
+                                <option value="" data-grado="">-- Seleccione --</option>
                                 @foreach($gradoGrupos as $gg)
-                                    <option value="{{ $gg->id }}" {{ request('grado_grupo_id') == $gg->id ? 'selected' : '' }}>
+                                    <option value="{{ $gg->id }}" data-grado="{{ $gg->grado }}" {{ request('grado_grupo_id') == $gg->id ? 'selected' : '' }}>
                                         {{ $gg->grado }} {{ $gg->grupo }}
                                     </option>
                                 @endforeach
@@ -30,12 +34,14 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label>Materia</label>
-                            <select name="materia_id" class="form-control select2" required onchange="this.form.submit()">
+                            <select name="materia_id" id="captura-materia" class="form-control select2" required onchange="this.form.submit()">
                                 <option value="">-- Seleccione --</option>
                                 @foreach($materias as $materia)
-                                    <option value="{{ $materia->id }}" {{ request('materia_id') == $materia->id ? 'selected' : '' }}>
-                                        {{ $materia->nombre }} ({{ $materia->grado }})
-                                    </option>
+                                    @if(!$gradoActivo || empty($materia->grado) || $materia->grado == $gradoActivo)
+                                        <option value="{{ $materia->id }}" data-grado="{{ $materia->grado }}" {{ request('materia_id') == $materia->id ? 'selected' : '' }}>
+                                            {{ $materia->nombre }} ({{ $materia->grado }})
+                                        </option>
+                                    @endif
                                 @endforeach
                             </select>
                         </div>
@@ -153,6 +159,39 @@
     $(document).ready(function() {
         $('.select2').select2({
             theme: 'bootstrap4'
+        });
+
+        @php
+            $materiasCapturaJson = $materias->map(function($m) {
+                return [
+                    'id' => $m->id,
+                    'grado' => (string) ($m->grado ?? ''),
+                    'label' => $m->nombre . ' (' . $m->grado . ')',
+                ];
+            })->values();
+        @endphp
+        var allMaterias = @json($materiasCapturaJson);
+
+        $('#captura-grado-grupo').on('change', function() {
+            var selectedGrado = String($(this).find('option:selected').data('grado') || '');
+            var $materiaSelect = $('#captura-materia');
+
+            $materiaSelect.empty();
+            $materiaSelect.append('<option value="">-- Seleccione --</option>');
+
+            allMaterias.forEach(function(m) {
+                if (!selectedGrado || !m.grado || m.grado === selectedGrado) {
+                    $materiaSelect.append(
+                        $('<option>', {
+                            value: m.id,
+                            text: m.label,
+                            'data-grado': m.grado
+                        })
+                    );
+                }
+            });
+
+            $materiaSelect.trigger('change.select2');
         });
     });
 </script>
