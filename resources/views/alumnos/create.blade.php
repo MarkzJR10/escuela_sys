@@ -82,13 +82,13 @@
                             @error('genero') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label>Grado y Grupo</label>
-                            <select name="grado_grupo_id" class="form-control" required>
+                            <select name="grado_grupo_id" id="grado_grupo_id" class="form-control" required>
                                 <option value="">-- Seleccione --</option>
                                 @foreach($gradoGrupos as $gradoGrupo)
-                                    <option value="{{ $gradoGrupo->id }}" {{ old('grado_grupo_id') == $gradoGrupo->id ? 'selected' : '' }}>
+                                    <option value="{{ $gradoGrupo->id }}" data-siguiente="{{ $sugerenciasLista[$gradoGrupo->id] ?? 1 }}" {{ old('grado_grupo_id') == $gradoGrupo->id ? 'selected' : '' }}>
                                         {{ $gradoGrupo->grado }} {{ $gradoGrupo->grupo }}
                                     </option>
                                 @endforeach
@@ -96,7 +96,14 @@
                             @error('grado_grupo_id') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>No. Lista <small class="text-info" id="sugerencia-lista-label">(Sugerido)</small></label>
+                            <input type="number" min="1" name="numero_lista" id="numero_lista" class="form-control" value="{{ old('numero_lista') }}" placeholder="Auto" {{ auth()->user()->hasRole('administrador') ? '' : 'readonly' }}>
+                            @error('numero_lista') <span class="text-danger">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label>Colegiatura Base (Opcional)</label>
                             <select name="colegiatura_id" id="colegiatura_id" class="form-control">
@@ -189,6 +196,21 @@
             let fileName = $(this).val().split('\\').pop();
             $(this).next('.custom-file-label').addClass("selected").html(fileName);
         });
+
+        // Sincronizar sugerencia de Número de Lista al cambiar de grupo
+        $('#grado_grupo_id').on('change', function() {
+            var siguiente = $(this).find('option:selected').data('siguiente');
+            if (siguiente) {
+                $('#numero_lista').val(siguiente);
+                $('#sugerencia-lista-label').text('(Sugerido: ' + siguiente + ')');
+            } else {
+                $('#numero_lista').val('');
+                $('#sugerencia-lista-label').text('(Sugerido)');
+            }
+        });
+        if ($('#grado_grupo_id').val() !== '' && $('#numero_lista').val() === '') {
+            $('#grado_grupo_id').trigger('change');
+        }
 
         // Sincronizar Colegiatura Base con Monto
         $('#colegiatura_id').change(function() {

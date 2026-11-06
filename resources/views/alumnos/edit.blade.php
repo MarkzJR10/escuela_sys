@@ -83,13 +83,13 @@
                             @error('genero') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label>Grado y Grupo</label>
-                            <select name="grado_grupo_id" class="form-control" required>
+                            <select name="grado_grupo_id" id="grado_grupo_id" class="form-control" required data-original-grupo="{{ $alumno->grado_grupo_id }}" data-original-lista="{{ $alumno->numero_lista }}">
                                 <option value="">-- Seleccione --</option>
                                 @foreach($gradoGrupos as $gradoGrupo)
-                                    <option value="{{ $gradoGrupo->id }}" {{ old('grado_grupo_id', $alumno->grado_grupo_id) == $gradoGrupo->id ? 'selected' : '' }}>
+                                    <option value="{{ $gradoGrupo->id }}" data-siguiente="{{ $sugerenciasLista[$gradoGrupo->id] ?? 1 }}" {{ old('grado_grupo_id', $alumno->grado_grupo_id) == $gradoGrupo->id ? 'selected' : '' }}>
                                         {{ $gradoGrupo->grado }} {{ $gradoGrupo->grupo }}
                                     </option>
                                 @endforeach
@@ -97,7 +97,14 @@
                             @error('grado_grupo_id') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>No. Lista <small class="text-info" id="sugerencia-lista-label">{{ auth()->user()->hasRole('administrador') ? '(Editable)' : '' }}</small></label>
+                            <input type="number" min="1" name="numero_lista" id="numero_lista" class="form-control" value="{{ old('numero_lista', $alumno->numero_lista) }}" {{ auth()->user()->hasRole('administrador') ? '' : 'readonly' }}>
+                            @error('numero_lista') <span class="text-danger">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-3">
                         <div class="form-group">
                             <label>Estatus del Alumno</label>
                             <select name="estatus" class="form-control">
@@ -208,6 +215,22 @@
         $('.custom-file-input').on('change', function() {
             let fileName = $(this).val().split('\\').pop();
             $(this).next('.custom-file-label').addClass("selected").html(fileName);
+        });
+
+        // Al cambiar de grupo en edición, sugerir el número al final de la lista del nuevo grupo
+        $('#grado_grupo_id').on('change', function() {
+            var origGrupo = String($(this).data('original-grupo') || '');
+            var origLista = $(this).data('original-lista') || '';
+            var nuevoGrupo = String($(this).val() || '');
+            var siguiente = $(this).find('option:selected').data('siguiente');
+
+            if (nuevoGrupo && nuevoGrupo !== origGrupo && siguiente) {
+                $('#numero_lista').val(siguiente);
+                $('#sugerencia-lista-label').text('(Sugerido: ' + siguiente + ')');
+            } else if (nuevoGrupo === origGrupo) {
+                $('#numero_lista').val(origLista);
+                $('#sugerencia-lista-label').text('{{ auth()->user()->hasRole('administrador') ? '(Editable)' : '' }}');
+            }
         });
 
         // Sincronizar Colegiatura Base con Monto

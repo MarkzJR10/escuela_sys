@@ -11,6 +11,7 @@ class Alumno extends Model
 
     protected $fillable = [
         'matricula',
+        'numero_lista',
         'nombre',
         'apellido_paterno',
         'apellido_materno',
@@ -30,6 +31,18 @@ class Alumno extends Model
         'activo',
         'estatus'
     ];
+
+    /**
+     * Obtiene el siguiente número de lista sugerido (al final de la lista) para un grupo.
+     */
+    public static function siguienteNumeroLista($gradoGrupoId): int
+    {
+        if (!$gradoGrupoId) {
+            return 1;
+        }
+        $max = static::where('grado_grupo_id', $gradoGrupoId)->max('numero_lista');
+        return ((int) $max) + 1;
+    }
 
     public function gradoGrupo()
     {

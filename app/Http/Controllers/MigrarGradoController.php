@@ -40,7 +40,14 @@ class MigrarGradoController extends Controller
         ]);
 
         $alumno = Alumno::findOrFail($request->alumno_id);
-        $alumno->update(['grado_grupo_id' => $request->nuevo_grado_grupo_id]);
+        $nuevoNumeroLista = ((int) $alumno->grado_grupo_id !== (int) $request->nuevo_grado_grupo_id)
+            ? Alumno::siguienteNumeroLista($request->nuevo_grado_grupo_id)
+            : $alumno->numero_lista;
+
+        $alumno->update([
+            'grado_grupo_id' => $request->nuevo_grado_grupo_id,
+            'numero_lista' => $nuevoNumeroLista,
+        ]);
 
         return redirect()->back()->with('success', "Alumno {$alumno->nombre} migrado exitosamente.");
     }
@@ -58,6 +65,17 @@ class MigrarGradoController extends Controller
         $count = Alumno::where('grado_grupo_id', $request->grado_grupo_origen_id)
             ->where('activo', true)
             ->update(['grado_grupo_id' => $request->grado_grupo_destino_id]);
+
+        // Reordenar números de lista en el grupo destino por apellidos
+        $alumnosDestino = Alumno::where('grado_grupo_id', $request->grado_grupo_destino_id)
+            ->orderBy('apellido_paterno')
+            ->orderBy('apellido_materno')
+            ->orderBy('nombre')
+            ->get();
+        $num = 1;
+        foreach ($alumnosDestino as $al) {
+            $al->update(['numero_lista' => $num++]);
+        }
 
         $origen = GradoGrupo::find($request->grado_grupo_origen_id);
         $destino = GradoGrupo::find($request->grado_grupo_destino_id);

@@ -122,6 +122,7 @@
             <table id="calificaciones-table" class="table table-bordered table-striped table-hover">
                 <thead>
                     <tr>
+                        <th class="text-center" style="width: 75px;">No. Lista</th>
                         <th>Alumno</th>
                         <th>Materia</th>
                         <th class="text-center" style="width: 110px">T1</th>
@@ -138,9 +139,14 @@
                         $extraOptions = ['A' => 'A (Excellent)', 'B' => 'B (Satisfactory)', 'C' => 'C (Average)', 'D' => 'D (Unsatisfactory)'];
                     @endphp
                     <tr>
+                        <td class="text-center align-middle font-weight-bold" data-order="{{ $row['alumno']->numero_lista ?? 999999 }}">
+                            <span class="badge badge-secondary px-2 py-1" style="font-size: 0.9rem;">
+                                {{ $row['alumno']->numero_lista ?? '-' }}
+                            </span>
+                        </td>
                         <td class="align-middle">
                             <span class="font-weight-bold text-dark">
-                                {{ $row['alumno']->nombre }} {{ $row['alumno']->apellido_paterno }} {{ $row['alumno']->apellido_materno }}
+                                {{ $row['alumno']->apellido_paterno }} {{ $row['alumno']->apellido_materno }} {{ $row['alumno']->nombre }}
                             </span>
                             <br>
                             <small class="text-muted">
@@ -212,7 +218,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ $isFiltering ? 6 : 7 }}" class="text-center text-muted py-4">
+                        <td colspan="{{ $isFiltering ? 7 : 8 }}" class="text-center text-muted py-4">
                             No hay alumnos o calificaciones registradas con estos filtros.
                         </td>
                     </tr>

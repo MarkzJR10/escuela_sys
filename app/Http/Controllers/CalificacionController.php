@@ -152,7 +152,8 @@ class CalificacionController extends Controller
                 $alumnosQuery->where('id', $request->alumno_id);
             }
 
-            $alumnos = $alumnosQuery->orderBy('apellido_paterno')
+            $alumnos = $alumnosQuery->orderByRaw('COALESCE(numero_lista, 999999) ASC')
+                ->orderBy('apellido_paterno')
                 ->orderBy('apellido_materno')
                 ->orderBy('nombre')
                 ->get();
@@ -244,6 +245,7 @@ class CalificacionController extends Controller
                 ->with(['calificaciones' => function($q) use ($selectedMateria) {
                     $q->where('materia_id', $selectedMateria->id);
                 }])
+                ->orderByRaw('COALESCE(numero_lista, 999999) ASC')
                 ->orderBy('apellido_paterno')
                 ->orderBy('apellido_materno')
                 ->orderBy('nombre')

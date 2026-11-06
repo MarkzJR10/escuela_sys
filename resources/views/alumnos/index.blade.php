@@ -27,6 +27,7 @@
             <table id="alumnos-table" class="table table-bordered table-striped">
                 <thead>
                     <tr>
+                        <th style="width: 75px;">No. Lista</th>
                         <th>Matrícula</th>
                         <th>Nombre Completo</th>
                         <th>CURP</th>
@@ -38,6 +39,7 @@
                 <tbody>
                     @foreach($alumnos as $alumno)
                     <tr>
+                        <td class="text-center font-weight-bold">{{ $alumno->numero_lista ?? '-' }}</td>
                         <td><code>{{ $alumno->matricula }}</code></td>
                         <td>{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</td>
                         <td>{{ $alumno->curp }}</td>
@@ -95,7 +97,7 @@
             "pageLength": 10,
             "responsive": true,
             "columnDefs": [
-                { "orderable": false, "targets": 5 } // Disable ordering on "Acciones" column
+                { "orderable": false, "targets": 6 } // Disable ordering on "Acciones" column
             ]
         });
     });

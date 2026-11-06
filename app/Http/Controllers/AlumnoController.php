@@ -29,13 +29,20 @@ class AlumnoController extends Controller
         $gradoGrupos = GradoGrupo::all();
         $padres = Padre::with('user')->get();
         $colegiaturas = \App\Models\Colegiatura::all();
-        return view('alumnos.create', compact('gradoGrupos', 'padres', 'colegiaturas'));
+        $sugerenciasLista = Alumno::whereNotNull('grado_grupo_id')
+            ->selectRaw('grado_grupo_id, COALESCE(MAX(numero_lista), 0) + 1 as siguiente')
+            ->groupBy('grado_grupo_id')
+            ->pluck('siguiente', 'grado_grupo_id')
+            ->toArray();
+
+        return view('alumnos.create', compact('gradoGrupos', 'padres', 'colegiaturas', 'sugerenciasLista'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'matricula' => 'required|string|unique:alumnos,matricula',
+            'numero_lista' => 'nullable|integer|min:1',
             'nombre' => 'required|string|max:255',
             'apellido_paterno' => 'required|string|max:255',
             'apellido_materno' => 'nullable|string|max:255',
@@ -55,6 +62,11 @@ class AlumnoController extends Controller
 
         return DB::transaction(function () use ($request) {
             $data = $request->all();
+
+            $isAdmin = auth()->check() && auth()->user()->hasRole('administrador');
+            if (!$isAdmin || empty($data['numero_lista'])) {
+                $data['numero_lista'] = Alumno::siguienteNumeroLista($request->grado_grupo_id);
+            }
 
             if ($request->filled('colegiatura_id')) {
                 $colegiaturaBase = \App\Models\Colegiatura::find($request->colegiatura_id);
@@ -206,13 +218,20 @@ class AlumnoController extends Controller
         $gradoGrupos = GradoGrupo::all();
         $padres = Padre::with('user')->get();
         $colegiaturas = \App\Models\Colegiatura::all();
-        return view('alumnos.edit', compact('alumno', 'gradoGrupos', 'padres', 'colegiaturas'));
+        $sugerenciasLista = Alumno::whereNotNull('grado_grupo_id')
+            ->selectRaw('grado_grupo_id, COALESCE(MAX(numero_lista), 0) + 1 as siguiente')
+            ->groupBy('grado_grupo_id')
+            ->pluck('siguiente', 'grado_grupo_id')
+            ->toArray();
+
+        return view('alumnos.edit', compact('alumno', 'gradoGrupos', 'padres', 'colegiaturas', 'sugerenciasLista'));
     }
 
     public function update(Request $request, Alumno $alumno)
     {
         $request->validate([
             'matricula' => 'required|string|unique:alumnos,matricula,' . $alumno->id,
+            'numero_lista' => 'nullable|integer|min:1',
             'nombre' => 'required|string|max:255',
             'apellido_paterno' => 'required|string|max:255',
             'apellido_materno' => 'nullable|string|max:255',
@@ -232,6 +251,21 @@ class AlumnoController extends Controller
         ]);
 
         $data = $request->all();
+        $isAdmin = auth()->check() && auth()->user()->hasRole('administrador');
+        $grupoCambio = (int) $alumno->grado_grupo_id !== (int) $request->grado_grupo_id;
+
+        if ($grupoCambio) {
+            // Al asignarse a otro grupo, si el admin no especificó un número distinto al anterior, va al final de la lista del nuevo grupo
+            if (!$isAdmin || empty($data['numero_lista']) || (int) $data['numero_lista'] === (int) $alumno->numero_lista) {
+                $data['numero_lista'] = Alumno::siguienteNumeroLista($request->grado_grupo_id);
+            }
+        } else {
+            if (!$isAdmin) {
+                unset($data['numero_lista']);
+            } elseif (empty($data['numero_lista'])) {
+                $data['numero_lista'] = $alumno->numero_lista ?: Alumno::siguienteNumeroLista($request->grado_grupo_id);
+            }
+        }
 
         if ($request->filled('estatus')) {
             $data['activo'] = ($request->estatus === 'regular');

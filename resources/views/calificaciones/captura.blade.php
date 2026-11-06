@@ -84,6 +84,7 @@
                     <table class="table table-hover table-striped">
                         <thead>
                             <tr>
+                                <th class="text-center" style="width: 80px">No. Lista</th>
                                 <th>Alumno</th>
                                 <th style="width: 150px">T1</th>
                                 <th style="width: 150px">T2</th>
@@ -101,8 +102,13 @@
                                     $trimMap = [1 => $t1, 2 => $t2, 3 => $t3];
                                 @endphp
                                 <tr>
+                                    <td class="text-center align-middle font-weight-bold">
+                                        <span class="badge badge-secondary px-2 py-1" style="font-size: 0.9rem;">
+                                            {{ $alumno->numero_lista ?? '-' }}
+                                        </span>
+                                    </td>
                                     <td>
-                                        <strong>{{ $alumno->nombre }} {{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }}</strong><br>
+                                        <strong>{{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} {{ $alumno->nombre }}</strong><br>
                                         <small class="text-muted">Matrícula: {{ $alumno->matricula }}</small>
                                     </td>
                                     @foreach([1, 2, 3] as $trimNum)
