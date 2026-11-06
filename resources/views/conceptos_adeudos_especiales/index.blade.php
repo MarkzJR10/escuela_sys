@@ -76,8 +76,8 @@
                         </a>
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    <table class="table table-hover table-striped mb-0">
+                <div class="card-body">
+                    <table id="conceptos-table" class="table table-hover table-striped table-bordered w-100">
                         <thead>
                             <tr>
                                 <th style="width: 60px;" class="text-center">#</th>
@@ -86,11 +86,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($conceptos as $index => $concepto)
+                            @foreach($conceptos as $index => $concepto)
                                 <tr>
                                     <td class="text-center align-middle">{{ $index + 1 }}</td>
                                     <td class="align-middle font-weight-bold">{{ $concepto->nombre }}</td>
-                                    <td class="text-center align-middle">
+                                    <td class="text-center align-middle" data-search="{{ $concepto->activo ? 'Encendido' : 'Apagado' }}">
                                         <div class="custom-control custom-switch custom-switch-off-danger custom-switch-on-success">
                                             <input type="checkbox"
                                                    class="custom-control-input toggle-concepto"
@@ -104,13 +104,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted py-4">
-                                        No hay conceptos de adeudos especiales dados de alta todavía.
-                                    </td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -119,15 +113,28 @@
     </div>
 @stop
 
+@section('plugins.Datatables', true)
+
 @section('js')
 <script>
     $(document).ready(function() {
+        $('#conceptos-table').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
+            },
+            "pageLength": 10,
+            "responsive": true,
+            "columnDefs": [
+                { "orderable": false, "targets": 2 }
+            ]
+        });
+
         $('#activo_alta').on('change', function() {
             var isChecked = $(this).is(':checked');
             $(this).next('label').text('Estatus inicial: ' + (isChecked ? 'Encendido' : 'Apagado'));
         });
 
-        $('.toggle-concepto').on('change', function() {
+        $(document).on('change', '.toggle-concepto', function() {
             var checkbox = $(this);
             var id = checkbox.data('id');
             var label = checkbox.next('label');
