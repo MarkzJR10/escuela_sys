@@ -49,6 +49,7 @@ use App\Http\Controllers\CicloController;
 use App\Http\Controllers\ColegiaturaConfigController;
 use App\Http\Controllers\BitacoraController;
 use App\Http\Controllers\ExtracurricularController;
+use App\Http\Controllers\ConceptoAdeudoEspecialController;
 
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
@@ -228,6 +229,11 @@ Route::middleware(['auth', 'check.menu'])->group(function () {
 
         // CRUD Catálogo de Colegiaturas
         Route::resource('colegiaturas-config', ColegiaturaConfigController::class);
+
+        // Catálogo de Conceptos de Adeudos Especiales
+        Route::get('conceptos-adeudos-especiales', [ConceptoAdeudoEspecialController::class, 'index'])->name('conceptos_adeudos_especiales.index');
+        Route::post('conceptos-adeudos-especiales', [ConceptoAdeudoEspecialController::class, 'store'])->name('conceptos_adeudos_especiales.store');
+        Route::post('conceptos-adeudos-especiales/{conceptoAdeudoEspecial}/toggle', [ConceptoAdeudoEspecialController::class, 'toggle'])->name('conceptos_adeudos_especiales.toggle');
 
         // Bitácora de Auditoría (Exclusivo Administradores)
         Route::get('bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');

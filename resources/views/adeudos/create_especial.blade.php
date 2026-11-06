@@ -14,11 +14,56 @@
                     <h3 class="card-title">Selección de Destinatarios</h3>
                 </div>
                 <div class="card-body">
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            <i class="icon fas fa-check"></i> {{ session('success') }}
+                        </div>
+                    @endif
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            <i class="icon fas fa-ban"></i> {{ session('error') }}
+                        </div>
+                    @endif
+                    @if($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            <ul class="mb-0">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     <form action="{{ route('adeudos.store_especial') }}" method="POST">
                         @csrf
                         <div class="form-group">
-                            <label>Concepto del Adeudo</label>
-                            <input type="text" name="concepto" class="form-control" placeholder="Ej: Vestuario, Viaje..." required>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="mb-0">Concepto del Adeudo</label>
+                                @role('administrador')
+                                    <a href="{{ route('conceptos_adeudos_especiales.index') }}" class="btn btn-xs btn-outline-primary">
+                                        <i class="fas fa-cog mr-1"></i> Administrar Conceptos
+                                    </a>
+                                @endrole
+                            </div>
+                            <select name="concepto" class="form-control" required {{ $conceptos->isEmpty() ? 'disabled' : '' }}>
+                                <option value="">-- Seleccione un concepto --</option>
+                                @foreach($conceptos as $c)
+                                    <option value="{{ $c->nombre }}" {{ old('concepto') === $c->nombre ? 'selected' : '' }}>
+                                        {{ $c->nombre }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @if($conceptos->isEmpty())
+                                <small class="text-danger d-block mt-1">
+                                    No hay conceptos de adeudos especiales activos.
+                                    @role('administrador')
+                                        <a href="{{ route('conceptos_adeudos_especiales.index') }}">Dar de alta conceptos aquí</a>.
+                                    @endrole
+                                </small>
+                            @endif
                         </div>
                         <div class="form-group">
                             <label>Monto</label>

@@ -124,6 +124,9 @@ class AppServiceProvider extends ServiceProvider
             if ($item = $buildItem('colegiaturas-config', 'Catálogo de Colegiaturas', 'fas fa-fw fa-money-bill-alt')) {
                 $configSubmenu[] = $item;
             }
+            if ($item = $buildItem('conceptos-adeudos-especiales', 'Conceptos Cobros Especiales', 'fas fa-fw fa-tags')) {
+                $configSubmenu[] = $item;
+            }
 
             if (!empty($configSubmenu)) {
                 $adminItems[] = [

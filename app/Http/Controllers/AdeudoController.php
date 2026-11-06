@@ -6,8 +6,10 @@ use App\Models\Alumno;
 use App\Models\Adeudo;
 use App\Models\GradoGrupo;
 use App\Models\Configuracion;
+use App\Models\ConceptoAdeudoEspecial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Validation\Rule;
 
 class AdeudoController extends Controller
 {
@@ -18,8 +20,9 @@ class AdeudoController extends Controller
     {
         $grados = GradoGrupo::select('grado')->distinct()->pluck('grado');
         $grupos = GradoGrupo::select('grupo')->distinct()->pluck('grupo');
+        $conceptos = ConceptoAdeudoEspecial::where('activo', true)->orderBy('nombre')->get();
         // No cargamos todos los alumnos para evitar problemas de rendimiento
-        return view('adeudos.create_especial', compact('grados', 'grupos'));
+        return view('adeudos.create_especial', compact('grados', 'grupos', 'conceptos'));
     }
 
     /**
@@ -52,7 +55,12 @@ class AdeudoController extends Controller
     public function storeEspecial(Request $request)
     {
         $request->validate([
-            'concepto' => 'required|string|max:255',
+            'concepto' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::exists('conceptos_adeudos_especiales', 'nombre')->where('activo', true),
+            ],
             'monto' => 'required|numeric|min:0',
             'tipo_destino' => 'required|in:individual,masivo',
             // Si es individual:
