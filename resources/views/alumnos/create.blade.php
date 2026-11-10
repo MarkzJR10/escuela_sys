@@ -99,7 +99,7 @@
                     <div class="col-md-2">
                         <div class="form-group">
                             <label>No. Lista <small class="text-info" id="sugerencia-lista-label">(Sugerido)</small></label>
-                            <input type="number" min="1" name="numero_lista" id="numero_lista" class="form-control" value="{{ old('numero_lista') }}" placeholder="Auto" {{ auth()->user()->hasRole('administrador') ? '' : 'readonly' }}>
+                            <input type="number" min="1" name="numero_lista" id="numero_lista" class="form-control" value="{{ old('numero_lista') }}" placeholder="Auto" {{ auth()->user()->canEditNumeroLista() ? '' : 'readonly' }}>
                             @error('numero_lista') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>

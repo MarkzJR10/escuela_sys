@@ -63,8 +63,8 @@ class AlumnoController extends Controller
         return DB::transaction(function () use ($request) {
             $data = $request->all();
 
-            $isAdmin = auth()->check() && auth()->user()->hasRole('administrador');
-            if (!$isAdmin || empty($data['numero_lista'])) {
+            $canEditLista = auth()->check() && auth()->user()->canEditNumeroLista();
+            if (!$canEditLista || empty($data['numero_lista'])) {
                 $data['numero_lista'] = Alumno::siguienteNumeroLista($request->grado_grupo_id);
             }
 
@@ -251,16 +251,16 @@ class AlumnoController extends Controller
         ]);
 
         $data = $request->all();
-        $isAdmin = auth()->check() && auth()->user()->hasRole('administrador');
+        $canEditLista = auth()->check() && auth()->user()->canEditNumeroLista();
         $grupoCambio = (int) $alumno->grado_grupo_id !== (int) $request->grado_grupo_id;
 
         if ($grupoCambio) {
-            // Al asignarse a otro grupo, si el admin no especificó un número distinto al anterior, va al final de la lista del nuevo grupo
-            if (!$isAdmin || empty($data['numero_lista']) || (int) $data['numero_lista'] === (int) $alumno->numero_lista) {
+            // Al asignarse a otro grupo, si no especificó un número distinto al anterior, va al final de la lista del nuevo grupo
+            if (!$canEditLista || empty($data['numero_lista']) || (int) $data['numero_lista'] === (int) $alumno->numero_lista) {
                 $data['numero_lista'] = Alumno::siguienteNumeroLista($request->grado_grupo_id);
             }
         } else {
-            if (!$isAdmin) {
+            if (!$canEditLista) {
                 unset($data['numero_lista']);
             } elseif (empty($data['numero_lista'])) {
                 $data['numero_lista'] = $alumno->numero_lista ?: Alumno::siguienteNumeroLista($request->grado_grupo_id);

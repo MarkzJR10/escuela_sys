@@ -37,6 +37,7 @@
                     <table id="boletas-table" class="table table-bordered table-striped">
                         <thead>
                             <tr>
+                                <th class="text-center" style="width: 80px;">No. Lista</th>
                                 <th>Matrícula</th>
                                 <th>Alumno</th>
                                 <th width="350px">Acciones de Boleta</th>
@@ -45,6 +46,11 @@
                         <tbody>
                             @foreach($alumnos as $alumno)
                                 <tr>
+                                    <td class="text-center font-weight-bold" data-order="{{ $alumno->numero_lista ?? 999999 }}">
+                                        <span class="badge badge-secondary px-2 py-1" style="font-size: 0.9rem;">
+                                            {{ $alumno->numero_lista ?? '-' }}
+                                        </span>
+                                    </td>
                                     <td>{{ $alumno->matricula }}</td>
                                     <td>{{ $alumno->apellido_paterno }} {{ $alumno->apellido_materno }} {{ $alumno->nombre }}</td>
                                     <td>
@@ -91,10 +97,11 @@
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.10.20/i18n/Spanish.json"
                 },
+                "order": [[0, "asc"]],
                 "pageLength": 10,
                 "responsive": true,
                 "columnDefs": [
-                    { "orderable": false, "targets": 2 }
+                    { "orderable": false, "targets": 3 }
                 ]
             });
         }

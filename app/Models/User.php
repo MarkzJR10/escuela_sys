@@ -57,4 +57,20 @@ class User extends Authenticatable
     {
         return $this->hasOne(Profesor::class);
     }
+
+    /**
+     * Determina si el usuario puede editar el número de lista de los alumnos.
+     */
+    public function canEditNumeroLista(): bool
+    {
+        if ($this->hasRole('administrador')) {
+            return true;
+        }
+
+        try {
+            return $this->hasPermissionTo('editar_numero_lista');
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
 }

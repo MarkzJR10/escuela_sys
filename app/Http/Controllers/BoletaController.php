@@ -23,7 +23,10 @@ class BoletaController extends Controller
         if ($request->filled('grado_grupo_id')) {
             $alumnos = Alumno::where('grado_grupo_id', $request->grado_grupo_id)
                 ->where('activo', true)
+                ->orderByRaw('COALESCE(numero_lista, 999999) ASC')
                 ->orderBy('apellido_paterno')
+                ->orderBy('apellido_materno')
+                ->orderBy('nombre')
                 ->get();
         }
 

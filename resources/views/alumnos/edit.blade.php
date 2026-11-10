@@ -99,8 +99,8 @@
                     </div>
                     <div class="col-md-2">
                         <div class="form-group">
-                            <label>No. Lista <small class="text-info" id="sugerencia-lista-label">{{ auth()->user()->hasRole('administrador') ? '(Editable)' : '' }}</small></label>
-                            <input type="number" min="1" name="numero_lista" id="numero_lista" class="form-control" value="{{ old('numero_lista', $alumno->numero_lista) }}" {{ auth()->user()->hasRole('administrador') ? '' : 'readonly' }}>
+                            <label>No. Lista <small class="text-info" id="sugerencia-lista-label">{{ auth()->user()->canEditNumeroLista() ? '(Editable)' : '' }}</small></label>
+                            <input type="number" min="1" name="numero_lista" id="numero_lista" class="form-control" value="{{ old('numero_lista', $alumno->numero_lista) }}" {{ auth()->user()->canEditNumeroLista() ? '' : 'readonly' }}>
                             @error('numero_lista') <span class="text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
@@ -229,7 +229,7 @@
                 $('#sugerencia-lista-label').text('(Sugerido: ' + siguiente + ')');
             } else if (nuevoGrupo === origGrupo) {
                 $('#numero_lista').val(origLista);
-                $('#sugerencia-lista-label').text('{{ auth()->user()->hasRole('administrador') ? '(Editable)' : '' }}');
+                $('#sugerencia-lista-label').text('{{ auth()->user()->canEditNumeroLista() ? '(Editable)' : '' }}');
             }
         });
 

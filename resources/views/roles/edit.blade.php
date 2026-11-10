@@ -30,6 +30,20 @@
                 </div>
 
                 <div class="form-group mt-4">
+                    <label>Permisos Especiales:</label>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <div class="custom-control custom-switch custom-switch-off-danger custom-switch-on-success">
+                                <input type="checkbox" class="custom-control-input" name="permissions[]" value="editar_numero_lista" id="perm_editar_numero_lista" {{ ($role->name === 'administrador' || in_array('editar_numero_lista', $rolePermissions ?? [])) ? 'checked' : '' }} {{ $role->name === 'administrador' ? 'disabled' : '' }}>
+                                <label class="custom-control-label font-weight-bold" for="perm_editar_numero_lista">
+                                    <i class="fas fa-list-ol text-warning mr-1"></i> Editar Número de Lista de Alumnos
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
                     <label>Asignar Menús:</label>
                     <div class="row mt-2">
                         @foreach($menus as $menu)

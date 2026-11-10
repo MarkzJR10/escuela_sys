@@ -33,6 +33,9 @@
                             @foreach($role->menus as $menu)
                                 <span class="badge badge-info">{{ $menu->text }}</span>
                             @endforeach
+                            @if($role->name === 'administrador' || $role->permissions->contains('name', 'editar_numero_lista'))
+                                <span class="badge badge-warning"><i class="fas fa-list-ol mr-1"></i>Editar No. Lista</span>
+                            @endif
                         </td>
                         <td>
                             <a href="{{ route('roles.edit', $role) }}" class="btn btn-warning btn-sm" title="Editar">
