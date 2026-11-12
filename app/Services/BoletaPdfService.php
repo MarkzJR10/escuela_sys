@@ -48,6 +48,10 @@ class BoletaPdfService
                 'page_size' => [303, 279],
                 'level_title' => 'PRESCHOOL',
                 'qr_text' => $qrPreescolar,
+                'qr_x' => 220,
+                'qr_y' => 170,
+                'qr_w' => 50,
+                'qr_h' => 50,
                 'campos' => [
                     ['label' => "LENGUAJES", 'width' => 25, 'line_h' => 20],
                     ['label' => "SABERES Y\nPENSAMIENTO\nCIENTÍFICO", 'width' => 30, 'line_h' => 6.7],
@@ -83,6 +87,10 @@ class BoletaPdfService
                 'page_size' => [290, 279],
                 'level_title' => 'PRIMARY',
                 'qr_text' => $qrPrimaria,
+                'qr_x' => 220,
+                'qr_y' => 170,
+                'qr_w' => 50,
+                'qr_h' => 50,
                 'campos' => [
                     ['label' => "LENGUAJES", 'width' => 25, 'line_h' => 20],
                     ['label' => "SABERES Y\nPENSAMIENTO\nCIENTÍFICO", 'width' => 30, 'line_h' => 6.7],
@@ -119,6 +127,10 @@ class BoletaPdfService
                 'page_size' => [308, 279],
                 'level_title' => 'PRIMARY',
                 'qr_text' => $qrPrimaria,
+                'qr_x' => 220,
+                'qr_y' => 170,
+                'qr_w' => 50,
+                'qr_h' => 50,
                 'campos' => [
                     ['label' => "LENGUAJES", 'width' => 25, 'line_h' => 20],
                     ['label' => "SABERES Y\nPENSAMIENTO\nCIENTÍFICO", 'width' => 60, 'line_h' => 6.7],
@@ -156,6 +168,10 @@ class BoletaPdfService
                 'page_size' => [338, 279],
                 'level_title' => 'PRIMARY',
                 'qr_text' => $qrPrimaria,
+                'qr_x' => 220,
+                'qr_y' => 170,
+                'qr_w' => 50,
+                'qr_h' => 50,
                 'campos' => [
                     ['label' => "LENGUAJES", 'width' => 25, 'line_h' => 20],
                     ['label' => "SABERES Y\nPENSAMIENTO\nCIENTÍFICO", 'width' => 60, 'line_h' => 6.7],
@@ -195,6 +211,10 @@ class BoletaPdfService
                 'page_size' => [338, 279],
                 'level_title' => 'SECONDARY',
                 'qr_text' => $qrSecundaria,
+                'qr_x' => 220,
+                'qr_y' => 170,
+                'qr_w' => 50,
+                'qr_h' => 50,
                 'campos' => [
                     ['label' => "LENGUAJES", 'width' => 25, 'line_h' => 20],
                     ['label' => "SABERES Y\nPENSAMIENTO\nCIENTÍFICO", 'width' => 30, 'line_h' => 6.7],
@@ -233,6 +253,10 @@ class BoletaPdfService
                 'page_size' => [338, 279],
                 'level_title' => 'SECONDARY',
                 'qr_text' => $qrSecundaria,
+                'qr_x' => 220,
+                'qr_y' => 170,
+                'qr_w' => 50,
+                'qr_h' => 50,
                 'campos' => [
                     ['label' => "LENGUAJES", 'width' => 25, 'line_h' => 20],
                     ['label' => "SABERES Y\nPENSAMIENTO\nCIENTÍFICO", 'width' => 30, 'line_h' => 6.7],
@@ -271,6 +295,10 @@ class BoletaPdfService
                 'page_size' => [338, 279],
                 'level_title' => 'SECONDARY',
                 'qr_text' => $qrSecundaria,
+                'qr_x' => 220,
+                'qr_y' => 170,
+                'qr_w' => 50,
+                'qr_h' => 50,
                 'campos' => [
                     ['label' => "LENGUAJES", 'width' => 25, 'line_h' => 20],
                     ['label' => "SABERES Y\nPENSAMIENTO\nCIENTÍFICO", 'width' => 30, 'line_h' => 6.7],
@@ -826,7 +854,8 @@ class BoletaPdfService
         $x = $pdf->GetX();
         $y = $pdf->GetY();
         $pdf->SetXY($x + $extraOffset, $y - 10);
-        $pdf->SetFont('Arial', 'B', 9);
+        $fontA = ($data['template_key'] === 'preescolar' ? 8 : 9);
+        $pdf->SetFont('Arial', 'B', $fontA);
         $pdf->MultiCell($config['extra_scale_w'], 10, 'A = EXCELLENT', 1, 'L');
 
         // ================= SUBJECTS + EXTRACURRICULAR TRIMESTER 1, 2, 3 =================
@@ -916,9 +945,13 @@ class BoletaPdfService
         $pdf->SetXY($x + 150, $y - 10);
         $pdf->MultiCell(25, 5, "OVERALL \nAVERAGE", 1, 'C');
 
-        // Código QR en posición oficial (220, 170, 50, 50)
+        // Código QR en posición oficial según plantilla
+        $qrX = $config['qr_x'] ?? 220;
+        $qrY = $config['qr_y'] ?? 170;
+        $qrW = $config['qr_w'] ?? 50;
+        $qrH = $config['qr_h'] ?? 50;
         if (file_exists($qrFile)) {
-            $pdf->Image($qrFile, 220, 170, 50, 50);
+            $pdf->Image($qrFile, $qrX, $qrY, $qrW, $qrH);
         }
 
         $personal = $data['learner_characteristics']['PERSONAL HABITS'];
